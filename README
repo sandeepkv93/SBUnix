@@ -1,4 +1,3 @@
-
 * The provided Makefile:
   1) builds a kernel
   2) copies it into rootfs/boot/kernel/kernel
