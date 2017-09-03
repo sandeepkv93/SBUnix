@@ -9,3 +9,4 @@ struct stringllnode {
 void append(struct stringllnode **, char *);
 void append_all(struct stringllnode **, char **, int);
 void print_list(struct stringllnode *);
+void free_list(struct stringllnode *);
