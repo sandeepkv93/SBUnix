@@ -27,7 +27,6 @@ int main(int argc, char ** argv)
 {
         int fds[2];
         int pid;
-        int count = 0;
         int i=0;
 	int * exit_status;
 	char * cmd_paths[10] = {"/bin/cat","/bin/grep","/usr/bin/wc"};
