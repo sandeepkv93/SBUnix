@@ -51,6 +51,14 @@ enum cmd_t get_command_type(char* input_line) {
 	return cmd_bin;
 }
 
+int get_bg_command(char * input_line) {
+	struct stringllnode * cmd_curr = NULL;
+	lib_str_split(input_line, "&", &cmd_curr);
+	strcpy(input_line, cmd_curr->data);
+	free_list(cmd_curr);
+	return 0;
+}
+
 int get_arglist(char * input_line, char ** arg_list) {
 	struct stringllnode * cmd_head = NULL;
 	struct stringllnode * cmd_curr = NULL;
@@ -70,7 +78,6 @@ int get_arglist(char * input_line, char ** arg_list) {
 int main(int argc, char *argv[], char *envp[]) {
 	int i =0;
 	char input_line[1000];
-	char new_input_line[1000];
 	char *ps1 = "\033[93msbush>\033[0m";
 	char *arglist[100];
 	pid_t pid;
@@ -95,10 +102,8 @@ int main(int argc, char *argv[], char *envp[]) {
 			case cmd_builtin:
 				break;
 			case cmd_bg:
+				get_bg_command(input_line);
 				debug_print("Is BG\n");
-				strncpy(new_input_line, input_line, strlen(input_line)-2);
-				memset(input_line,0,strlen(input_line));
-				strncpy(input_line, new_input_line, strlen(new_input_line));
 				debug_print("Filtered to %s \n", input_line);
 			case cmd_pipe:
 			case cmd_script:
