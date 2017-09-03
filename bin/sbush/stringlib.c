@@ -16,56 +16,49 @@ int lib_str_find(char * str, char x) {
 	return -1;
 }
 
-int lib_str_remove_extra_spaces(char *a) {
-	int len = strlen(a)+1;
-	char *arr = (char *) malloc(sizeof(char)*len);
-	strcpy(arr,a);
-	int i=0;
-	int j=0;
+void lib_str_remove_extra_spaces(char *input_string) {
+        int initial_string_length = strlen(input_string);
+        int dst = 0;
+        int src = 0;
+        while (src < initial_string_length && input_string[src] == ' ') {
+            ++src;
+        }
+        while (src < initial_string_length) {
 
-	while(j<len && arr[j]==' '){
-		j++;
-	}
-	while(j<len){
+            if (input_string[src] == ' ') {
 
-		if(arr[j]==' '){
+                input_string[dst] = input_string[src];
+                ++dst;
+                ++src;
 
-			arr[i]=arr[j];
-			i++;j++;
+                while (src < initial_string_length && input_string[src] == ' ') {
+                    ++src;
+                }
 
-			while(j<len && arr[j]==' '){
-					j++;
-			}
+            } else if (input_string[src] == '!' || input_string[src] == ',' || input_string[src] == '.' ||  input_string[src] == '?') {
+                if (input_string[dst - 1] == ' ') {
+                    input_string[dst - 1] = input_string[src];
+                    src++;
+                } else {
+                    input_string[dst++] = input_string[src++];
+                }
 
-		}
+            } else {
+                input_string[dst++] = input_string[src++];
+            }
+        }
+        if (dst < src) {
 
-		else if((arr[j]=='.' || arr[j]==',' || arr[j]=='?') && arr[i-1]==' '){
-			if(arr[i-1]==' ')
-					arr[i-1]=arr[j];
-			j++;			
-		}
-		else{
-			arr[i]=arr[j];
-			i++;j++;
-		}	
+            --dst;
+            if (input_string[dst] == ' ') {
+                input_string[dst++] = '\0';
+            }
+            while (dst < initial_string_length) {
+                input_string[dst++] = '\0';
+            }
 
-	}	
-	if(i<j){
-
-		i--;
-		if(arr[i]==' '){
-			arr[i]='\0';
-			i++;
-		}
-		while(i<len){
-			arr[i]='\0';
-			i++;
-			}
-
-	}
-	strcpy(a,arr);
-	return 0;
-}
+        }
+ }
 
 int lib_str_split(const char *string_, char *delimiter,struct stringllnode **start ) {
 	int len = strlen(string_);
@@ -75,8 +68,8 @@ int lib_str_split(const char *string_, char *delimiter,struct stringllnode **sta
 	
 	for (token = strtok(st, delimiter); token; token = strtok(NULL, delimiter))
 	{
-			lib_str_remove_extra_spaces(token);
-			append(start,token);
+		lib_str_remove_extra_spaces(token);
+		append(start,token);
 	}
 	return 0;
 }
