@@ -1,4 +1,5 @@
 #include "stringll.h"
 
-struct stringllnode * lib_str_split(const char *,char *);
-char * remove_extra_spaces(char *);
+int lib_str_split(const char *,char *, struct  stringllnode **);
+void lib_str_remove_extra_spaces(char *);
+int lib_str_find(char * str, char x);

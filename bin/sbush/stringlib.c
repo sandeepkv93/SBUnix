@@ -4,66 +4,73 @@
 #include "stringlib.h"
 #include "stringll.h"
 
-char * remove_extra_spaces(char *a){
-	int len = strlen(a)+1;
-	char *arr = (char *) malloc(sizeof(char)*len);
-	strcpy(arr,a);
-	int i=0;
-	int j=0;
-
-	while(j<len && arr[j]==' '){
-		j++;
+int lib_str_find(char * str, char x) {
+	int i = 0;
+	while (*str != '\0') {
+		if (*str ==  x) {
+			return i;
+		}
+		i++;
+		str++;
 	}
-	while(j<len){
-		
-		if(arr[j]==' '){
-			
-			arr[i]=arr[j];
-			i++;j++;
-			
-			while(j<len && arr[j]==' '){
-				j++;
-			}
-			
-		}
-
-		else if((arr[j]=='.' || arr[j]==',' || arr[j]=='?') && arr[i-1]==' '){
-			if(arr[i-1]==' ')
-				arr[i-1]=arr[j];
-				j++;			
-		}
-		else{
-			arr[i]=arr[j];
-			i++;j++;
-		}	
-
-	}	
-	if(i<j){
-
-		i--;
-		if(arr[i]==' '){
-			arr[i]='\0';
-			i++;
-		}
-		while(i<len){
-			arr[i]='\0';
-			i++;
-		}
-		
-	}
-	return arr;
+	return -1;
 }
 
-struct stringllnode* lib_str_split(const char *string_, char *delimiter) {
+void lib_str_remove_extra_spaces(char *input_string) {
+        int initial_string_length = strlen(input_string);
+        int dst = 0;
+        int src = 0;
+        while (src < initial_string_length && input_string[src] == ' ') {
+            ++src;
+        }
+        while (src < initial_string_length) {
+
+            if (input_string[src] == ' ') {
+
+                input_string[dst] = input_string[src];
+                ++dst;
+                ++src;
+
+                while (src < initial_string_length && input_string[src] == ' ') {
+                    ++src;
+                }
+
+            } else if (input_string[src] == '!' || input_string[src] == ',' || input_string[src] == '.' ||  input_string[src] == '?') {
+                if (input_string[dst - 1] == ' ') {
+                    input_string[dst - 1] = input_string[src];
+                    src++;
+                } else {
+                    input_string[dst++] = input_string[src++];
+                }
+
+            } else {
+                input_string[dst++] = input_string[src++];
+            }
+        }
+        if (dst < src) {
+
+            --dst;
+            if (input_string[dst] == ' ') {
+                input_string[dst++] = '\0';
+            }
+            while (dst < initial_string_length) {
+                input_string[dst++] = '\0';
+            }
+
+        }
+ }
+
+int lib_str_split(const char *string_, char *delimiter,struct stringllnode **start ) {
 	int len = strlen(string_);
 	char *st = (char *) malloc(sizeof(char)*len);
 	strcpy(st,string_);
 	char* token;
-	struct stringllnode *start = NULL;
+	
 	for (token = strtok(st, delimiter); token; token = strtok(NULL, delimiter))
 	{
-		append(&start,remove_extra_spaces(token));
+		lib_str_remove_extra_spaces(token);
+		append(start,token);
 	}
-	return start;
+	return 0;
 }
 
