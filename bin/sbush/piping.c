@@ -1,6 +1,7 @@
 #define READ 0
 #define WRITE 1
 
+#define _GNU_SOURCE
 #include<sys/syscall.h>
 #include<stdio.h>
 #include<unistd.h>
