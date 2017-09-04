@@ -24,6 +24,8 @@ int wait_new(int pid)
 {
 	return  syscall(SYS_wait4,-1, NULL, 0, NULL);
 }
+
+#ifdef __TEST__
 int main(int argc, char ** argv)
 {
         int fds[2];
@@ -83,6 +85,7 @@ int main(int argc, char ** argv)
 	}
 
 }
+#endif
 
 /*        if(pipe_new(fds)==-1)
         {

@@ -3,3 +3,4 @@ cscope.po.out
 cscope.out
 rootfs/bin/*
 obj/bin/*
+*swp
