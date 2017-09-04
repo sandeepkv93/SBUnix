@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <stdio.h>
@@ -83,7 +82,7 @@ int get_arglist(char * input_line, char ** arg_list)
 	arg_list[i] = NULL;
 	return 0;
 }
-
+#if 0
 int pipe_(int fds[]) 
 {
 	return syscall(SYS_pipe,fds);
@@ -103,6 +102,7 @@ int wait_(int pid)
 {
 	return  syscall(SYS_wait4,-1, NULL, 0, NULL);
 }
+#endif
 
 int run_cmd(char * input_line, enum cmd_t command_type)
 {
@@ -116,40 +116,42 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 	int fds[2] ;
 	int read_end =-1;
 	int write_end = -1;
-
+	int waste;
 	// Split on | and read the commands into a link list
 	lib_str_split(input_line,STR_PIPE, &cmd_curr);
-
 	cmd_head = cmd_curr;
 
 	while (cmd_curr) {
-		if(pipe_(fds)==-1) {
+		if(pipe(fds)==-1) {
 			debug_print("Failed to create pipe.");
 		}
 		write_end = fds[1];
 		if(!fork()) {
 			if(cmd_head!=cmd_curr) {
 				// Not first command, read from pipe
-				close_(STDIN_FD);
-				dup_(read_end);
+				close(STDIN_FD);
+				waste = dup(read_end);
 			}
 			if(cmd_curr->next_node) {
 				// Not last command, write to pipe
 				close(STDOUT_FD);
-				dup_(write_end);
+				waste = dup(write_end);
 			}
 			get_arglist(cmd_curr->data, arglist); 
 			debug_print("Execing: %s\n", cmd_curr->data);
 			execvp(arglist[0], arglist);
 		} else {
-			wait_(-1);
-			close_(write_end);
+			if (command_type != cmd_bg) {
+				wait(NULL);
+			}
+			close(write_end);
 			if (read_end != -1) {
-				close_(read_end);
+				close(read_end);
 			}
 			read_end = fds[0];
 		}
 		cmd_curr = cmd_curr->next_node;
+		waste++;
 	}
 	return 0;
 }
