@@ -28,7 +28,8 @@ enum builtin_t get_shell_builtin(char * line)
 	struct stringllnode * cmd_list = NULL;
 	struct s_builtins builtins_db[] = {
 		{builtin_cd, "cd"},
-		{builtin_exit, "exit"}
+		{builtin_exit, "exit"},
+		{builtin_export, "export"}
 	};
 
 	lib_str_split(line,STR_SPACE, &cmd_list);
@@ -54,6 +55,34 @@ void set_path(char * path) {
 	}
 }
 
+int handle_export(char * line) {
+#if 0
+	struct stringllnode * cmd_list = NULL;
+	struct stringllnode * export_list = NULL;
+
+	lib_str_split(line,STR_SPACE, &cmd_list);
+	if (!cmd_list) {
+			return -1;
+	}
+
+	if(cmd_list->next_node)
+	{
+		// Path is given
+		lib_str_split(cmd_list->next_node->data,STR_EQUALS, &export_list);
+	} else {
+		// set_pwd($HOME);
+		error_print("Usage export <key>=<value>\n");
+	}
+	free_list(cmd_list);
+	return 0;
+#endif
+	char buff[100];
+	lib_str_split_get_member(line, STR_SPACE, 1, buff);
+	printf("Exporting : %s", buff);
+	return 0;
+	
+}
+
 int handle_cd(char * line) 
 {
 	struct stringllnode * cmd_list = NULL;
@@ -66,9 +95,12 @@ int handle_cd(char * line)
 	if(cmd_list->next_node)
 	{
 		// Path is given
-		return chdir(cmd_list->next_node->data);
+		if(chdir(cmd_list->next_node->data)) {
+			debug_print("Failed to chdir()");
+		}
 	} else {
 		// set_pwd($HOME);
+		error_print("Usage cd <Path>\n");
 	}
 	free_list(cmd_list);
 	return 0;
@@ -221,6 +253,8 @@ int main(int argc, char *argv[], char *envp[])
 					case builtin_cd:
 						debug_print("Trying to cd..\n");
 						handle_cd(input_line);
+					case builtin_export:
+						handle_export(input_line);
 					case builtin_none:
 						continue;
 				}

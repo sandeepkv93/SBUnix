@@ -67,17 +67,59 @@ void lib_str_remove_extra_spaces(char *input_string) {
 	}
 }
 
-int lib_str_split(const char *string_, char *delimiter,struct stringllnode **start ) {
+int lib_str_split(const char *string_, char *delimiter,struct stringllnode **start ) 
+{
 	int len = strlen(string_);
 	char *st = (char *) malloc(sizeof(char)*len);
 	strcpy(st,string_);
 	char* token;
 	
-	for (token = strtok(st, delimiter); token; token = strtok(NULL, delimiter))
-	{
+	for (token = strtok(st, delimiter); token; token = strtok(NULL, delimiter)) {
 		lib_str_remove_extra_spaces(token);
 		append(start,token);
 	}
 	return 0;
 }
 
+int lib_str_split_get_member(const char *string_, char *delimiter, int index, char* a)
+{
+	struct stringllnode * head = NULL;
+	lib_str_split(string_, delimiter, &head);
+	return get_node(head, index, a);
+}
+
+int strcmp_(const char * s1,const char * s2)
+{
+        while(*s1 == *s2 && *s1 != '\0')
+        {
+                s1++;
+                s2++;
+        }
+        return *s1-*s2;
+}
+int strlen_(const char * s1)
+{
+        int len=0;
+        while(*s1++!='\0')
+                len++;
+        return len;
+}
+char * strcpy_(char * dest,const char * src)
+{
+        char * temp;
+        temp = dest;
+        while((*temp++ = *src++)!='\0')
+                ;
+        return dest;
+}
+
+char * strcat_(char * dest,const char * src)
+{
+        char * temp = dest;
+        while(*temp != '\0')
+                temp++;
+        while((*temp++ = *src++)!='\0')
+                ;
+        *temp='\0';
+        return dest;
+}

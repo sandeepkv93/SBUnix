@@ -47,3 +47,14 @@ void free_list(struct stringllnode *node) {
 	free(node);
 }
 
+int get_node(struct stringllnode *node, int position, char* string) {
+	while(node) {
+		if (!position) {
+			strcpy(string,node->data);
+			return 0;
+		}
+		position--;
+		node = node->next_node;
+	}
+	return -1;
+}
