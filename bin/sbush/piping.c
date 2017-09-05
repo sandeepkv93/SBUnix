@@ -31,7 +31,6 @@ int main(int argc, char ** argv)
         int fds[2];
         int pid;
         int i=0;
-	int * exit_status;
 	char * cmd_paths[10] = {"/bin/cat","/bin/grep","/usr/bin/wc"};
 	char * cmds[10] = {"cat","grep","wc"};
 	char * args[10] = {"input","abc","-w"};
