@@ -54,7 +54,7 @@ enum builtin_t get_shell_builtin(char * line)
 		{builtin_export, "export"}
 	};
 
-	lib_str_split(line,STR_SPACE, &cmd_list);
+	lib_str_split(line,CHAR_SPACE, &cmd_list);
 	if (!cmd_list) {
 			return builtin_none;
 	}
@@ -82,7 +82,7 @@ void get_env(char* key, char *value)
 
 	while(environ[i] != NULL) {
 		if(!lib_str_find(environ[i], buff)) {
-			if(lib_str_split_get_member(environ[i], STR_EQUALS, 1, value)) {
+			if(lib_str_split_get_member(environ[i], CHAR_EQUALS, 1, value)) {
 				strcpy(value, STR_DEFAULT_PS1);
 			} 
 			return;
@@ -128,9 +128,9 @@ int handle_export(char * line)
 	char env_key[100];
 	char env_value[100];
 
-	if (lib_str_split_get_member(line, STR_SPACE, 1, export_statement) ||
-		lib_str_split_get_member(export_statement, STR_EQUALS, 0, env_key) ||
-		lib_str_split_get_member(export_statement, STR_EQUALS, 1, env_value)) {
+	if (lib_str_split_get_member(line, CHAR_SPACE, 1, export_statement) ||
+		lib_str_split_get_member(export_statement, CHAR_EQUALS, 0, env_key) ||
+		lib_str_split_get_member(export_statement, CHAR_EQUALS, 1, env_value)) {
 		error_print("Usage export <key>=<value>\n");
 	}
 
@@ -142,7 +142,7 @@ int handle_export(char * line)
 int handle_cd(char * line) 
 {
 	char buff[100];
-	if(lib_str_split_get_member(line, STR_SPACE, 1, buff)) {
+	if(lib_str_split_get_member(line, CHAR_SPACE, 1, buff)) {
 		// set_pwd($HOME);
 		error_print("Usage cd <Path>\n");
 	} else {
@@ -170,7 +170,7 @@ enum cmd_t get_command_type(char* input_line)
 int get_bg_command(char * input_line) 
 {
 	struct stringllnode * cmd_curr = NULL;
-	lib_str_split(input_line,STR_BG, &cmd_curr);
+	lib_str_split(input_line,CHAR_BG, &cmd_curr);
 	strcpy(input_line, cmd_curr->data);
 	free_list(cmd_curr);
 	return 0;
@@ -188,7 +188,7 @@ int get_arglist(char * input_line, char ** arg_list)
 	struct stringllnode * cmd_curr = NULL;
 	int i=0;
 	
-	lib_str_split(input_line,STR_SPACE, &cmd_curr);
+	lib_str_split(input_line,CHAR_SPACE, &cmd_curr);
 	cmd_head = cmd_curr;
 	while (cmd_curr) {
 		arg_list[i] = cmd_curr->data;
@@ -231,7 +231,7 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 	int waste;
 	pid_t pid;
 	// Split on | and read the commands into a link list
-	lib_str_split(input_line,STR_PIPE, &cmd_curr);
+	lib_str_split(input_line,CHAR_PIPE, &cmd_curr);
 	cmd_head = cmd_curr;
 
 	while (cmd_curr) {

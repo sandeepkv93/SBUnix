@@ -14,6 +14,11 @@
 #define STR_SPACE " "
 #define STR_DEFAULT_PS1 "\033[93msbush>\033[0m"
 
+#define CHAR_EQUALS '='
+#define CHAR_PIPE '|'
+#define CHAR_BG   '&'
+#define CHAR_SPACE ' '
+
 #define STDIN_FD 0
 #define STDOUT_FD 1
 
