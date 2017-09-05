@@ -200,6 +200,22 @@ int get_arglist(char * input_line, char ** arg_list)
 	return 0;
 }
 
+int run_script(char** argv, int argc) 
+{
+	char * script_args[100];
+	int i;
+	for (i=1; i < argc; i++) {
+		script_args[i-1] = argv[i];
+	}
+	script_args[i] = NULL;
+	debug_print("Going to exec");
+	execvp(script_args[0], script_args);
+	error_print("Failed to run script %s", script_args[0]);
+	exit(1);
+	return 0;
+
+}
+
 int run_cmd(char * input_line, enum cmd_t command_type)
 {
 	/* Given a link list head with commands as the data,
@@ -239,7 +255,7 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 			execvp(arglist[0], arglist);
 		} else {
 			if (command_type != cmd_bg) {
-				printf("waiting");
+				debug_print("waiting");
 				waitpid(pid,NULL,0);
 			}
 			close(write_end);
@@ -266,6 +282,11 @@ int main(int argc, char *argv[], char *envp[])
 		debug_print("%s\n",environ[i]);
 		i++;
 	}
+	debug_print("Argc = %d\n",argc);
+	if (argc > 1) {
+		run_script(argv,argc);
+	}
+
 	get_env("PS1",ps1);
 	puts(ps1);
 	while (gets(input_line)) {
@@ -291,7 +312,7 @@ int main(int argc, char *argv[], char *envp[])
 						handle_export(input_line);
 						break;
 					case builtin_none:
-						continue;
+						break;
 				}
 				
 				break;
