@@ -1,8 +1,17 @@
 #include<stdio.h>
 #include<string.h>
-#include<stdlib.h>
+//#include<stdlib.h>
 #include "stringlib.h"
 #include "stringll.h"
+
+#define TOKEN_SIZE 1024
+
+void lib_str_clean(char *var) {
+    int i;
+    for(i=0;i<TOKEN_SIZE;++i){
+        var[i] = '\0';
+    }
+}
 
 int lib_str_find(char * str1, char * str2) {
 	int i = 0;
@@ -67,21 +76,33 @@ void lib_str_remove_extra_spaces(char *input_string) {
 	}
 }
 
-int lib_str_split(const char *string_, char *delimiter,struct stringllnode **start ) 
+int lib_str_split(const char *string_, char delimiter,struct stringllnode **start ) 
 {
 	int len = strlen(string_);
 	char *st = (char *) malloc(sizeof(char)*len);
 	strcpy(st,string_);
-	char* token;
-	
-	for (token = strtok(st, delimiter); token; token = strtok(NULL, delimiter)) {
-		lib_str_remove_extra_spaces(token);
-		append(start,token);
+	char token[TOKEN_SIZE];
+   	int beg_index=0;
+   	int end_index=0;
+   	int i;
+   	for(i=0;string_[i]!='\0';++i) {
+		if(string_[i] == delimiter) {
+			lib_str_clean(token);
+			strncpy(token,string_+beg_index,(end_index - beg_index));
+			beg_index = end_index+1;
+			lib_str_remove_extra_spaces(token);
+			append(start,token);
+		}
+		++end_index;
 	}
+	lib_str_clean(token);
+	strncpy(token,string_+beg_index,(end_index - beg_index));
+	lib_str_remove_extra_spaces(token);
+	append(start,token);
 	return 0;
 }
 
-int lib_str_split_get_member(const char *string_, char *delimiter, int index, char* a)
+int lib_str_split_get_member(const char *string_, char delimiter, int index, char* a)
 {
 	int t;
 	struct stringllnode * head = NULL;
@@ -114,6 +135,17 @@ char * strcpy_(char * dest,const char * src)
         while((*temp++ = *src++)!='\0')
                 ;
         return dest;
+}
+
+char * strncpy(char *dest, const char *src, size_t n)
+{
+	size_t k;
+	for (k = 0; k < n && src[k] != '\0'; k++)
+        dest[k] = src[k];
+    while(i<n)
+        dest[k] = '\0';
+
+	return dest;
 }
 
 char * strcat_(char * dest,const char * src)
