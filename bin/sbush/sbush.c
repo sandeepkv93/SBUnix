@@ -12,6 +12,28 @@
 extern char ** environ;
 /* sbush shell */
 
+#if 0
+int pipe_(int fds[]) 
+{
+	return syscall(SYS_pipe,fds);
+}
+
+int dup_(int fd)
+{
+	return syscall(SYS_dup,fd);
+}
+
+int close_(int fd)
+{
+	return syscall(SYS_close,fd);
+}
+
+int wait_(int pid)
+{
+	return  syscall(SYS_wait4,-1, NULL, 0, NULL);
+}
+#endif
+
 int is_bg_process(char * line) 
 {
 	return (lib_str_find(line,STR_BG)>0);
@@ -46,67 +68,61 @@ enum builtin_t get_shell_builtin(char * line)
 	return builtin_none;
 }
 
-void set_path(char * path) {
+void set_env(char* key, char * value) {
+	/* 
+	 * Searches for key in environ variable
+	 * and sets key=value aptly
+	 */
 	int i = 0;
+	char buff[100];
+
+	strcpy(buff, key);
+	strcat(key,STR_EQUALS);
+
 	while(environ[i] != NULL) {
-		if(!lib_str_find(environ[i], "PATH=")) {
-			strcpy(environ[i], "PATH=/");
+		if(!lib_str_find(environ[i], key)) {
+			debug_print("Here");
+			strcpy(environ[i], key);
+			strcat(environ[i], value);
 		}
 		i++;
 	}
 }
 
 int handle_export(char * line) {
-#if 0
-	struct stringllnode * cmd_list = NULL;
-	struct stringllnode * export_list = NULL;
+	/* 
+	 * Handles statements of the form:
+	 * 		export key=value
+	 */
+	char export_statement[100];
+	char env_key[100];
+	char env_value[100];
 
-	lib_str_split(line,STR_SPACE, &cmd_list);
-	if (!cmd_list) {
-			return -1;
-	}
-
-	if(cmd_list->next_node)
-	{
-		// Path is given
-		lib_str_split(cmd_list->next_node->data,STR_EQUALS, &export_list);
-	} else {
-		// set_pwd($HOME);
+	if (lib_str_split_get_member(line, STR_SPACE, 1, export_statement) ||
+		lib_str_split_get_member(export_statement, STR_EQUALS, 0, env_key) ||
+		lib_str_split_get_member(export_statement, STR_EQUALS, 1, env_value)) {
 		error_print("Usage export <key>=<value>\n");
 	}
-	free_list(cmd_list);
+
+	debug_print("Setting %s : %s\n", env_key, env_value);
+	set_env(env_key, env_value);
 	return 0;
-#endif
-	char buff[100];
-	lib_str_split_get_member(line, STR_SPACE, 1, buff);
-	printf("Exporting : %s", buff);
-	return 0;
-	
 }
 
 int handle_cd(char * line) 
 {
-	struct stringllnode * cmd_list = NULL;
-
-	lib_str_split(line,STR_SPACE, &cmd_list);
-	if (!cmd_list) {
-			return -1;
-	}
-
-	if(cmd_list->next_node)
-	{
-		// Path is given
-		if(chdir(cmd_list->next_node->data)) {
-			debug_print("Failed to chdir()");
-		}
-	} else {
+	char buff[100];
+	if(lib_str_split_get_member(line, STR_SPACE, 1, buff)) {
 		// set_pwd($HOME);
 		error_print("Usage cd <Path>\n");
+	} else {
+		// Path is given
+		if(chdir(buff)) {
+			debug_print("Failed to chdir()");
+		}
 	}
-	free_list(cmd_list);
 	return 0;
 }
-
 	
 enum cmd_t get_command_type(char* input_line) 
 {
@@ -132,6 +148,12 @@ int get_bg_command(char * input_line)
 
 int get_arglist(char * input_line, char ** arg_list) 
 {
+	/*
+	 * Given an input such as:
+	 * echo hello world
+	 *
+	 * returns ["echo","hello","world"]
+	 */
 	struct stringllnode * cmd_head = NULL;
 	struct stringllnode * cmd_curr = NULL;
 	int i=0;
@@ -147,27 +169,6 @@ int get_arglist(char * input_line, char ** arg_list)
 	arg_list[i] = NULL;
 	return 0;
 }
-#if 0
-int pipe_(int fds[]) 
-{
-	return syscall(SYS_pipe,fds);
-}
-
-int dup_(int fd)
-{
-	return syscall(SYS_dup,fd);
-}
-
-int close_(int fd)
-{
-	return syscall(SYS_close,fd);
-}
-
-int wait_(int pid)
-{
-	return  syscall(SYS_wait4,-1, NULL, 0, NULL);
-}
-#endif
 
 int run_cmd(char * input_line, enum cmd_t command_type)
 {
@@ -254,8 +255,10 @@ int main(int argc, char *argv[], char *envp[])
 					case builtin_cd:
 						debug_print("Trying to cd..\n");
 						handle_cd(input_line);
+						break;
 					case builtin_export:
 						handle_export(input_line);
+						break;
 					case builtin_none:
 						continue;
 				}

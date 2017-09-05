@@ -83,9 +83,12 @@ int lib_str_split(const char *string_, char *delimiter,struct stringllnode **sta
 
 int lib_str_split_get_member(const char *string_, char *delimiter, int index, char* a)
 {
+	int t;
 	struct stringllnode * head = NULL;
 	lib_str_split(string_, delimiter, &head);
-	return get_node(head, index, a);
+	t= get_node(head, index, a);
+	free_list(head);
+	return t; 
 }
 
 int strcmp_(const char * s1,const char * s2)
