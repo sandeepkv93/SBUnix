@@ -1,3 +1,4 @@
+ #define _GNU_SOURCE         /* See feature_test_macros(7) */
 #include<stdio.h>
 #include<unistd.h>
 //#include<stdlib.h>
@@ -122,63 +123,8 @@ void* malloc_(unsigned num_bytes)
         }
 }
 
-//////////////////////////////////////////////////////////////////
-//*******************TESTING FUNCTIONS****************************
-//////////////////////////////////////////////////////////////////
 
-
-void append(struct stringllnode** head_reference, char *new_data) {
-        struct stringllnode* new_node = (struct stringllnode*) malloc_(sizeof(struct stringllnode));
-
-        new_node->data = malloc_(sizeof(char)*(strlen(new_data)+1));
-        strncpy(new_node->data,new_data,(strlen(new_data)+1));
-        new_node->next_node = NULL;
-
-        struct stringllnode *last = *head_reference;
-        if (*head_reference == NULL) {
-                *head_reference = new_node;
-                return;
-        }
-        while (last->next_node != NULL) {
-                last = last->next_node;
-        }
-        last->next_node = new_node;
-        return;
-}
-
-void append_all(struct stringllnode** head_reference, char** new_data_array, int array_size) {
-        int index;
-        for(index = 0;index < array_size; ++index) {
-                append(head_reference,*(new_data_array+index));
-        }
-}
-
-void print_list(struct stringllnode *node) {
-        while (node != NULL) {
-                puts(node->data);
-                node = node->next_node;
-        }
-}
-
-void free_list(struct stringllnode *node) {
-        struct stringllnode * prev = node;
-	printf("Pointers being freed\n");
-        while(node->next_node != NULL) {
-                prev = node;
-                node = node->next_node;
-		printf("%ld\n",(long)prev);
-		printf("%ld\n",(long)prev->data);
-		free_(prev->data);
-                free_(prev);
-        }
-	printf("%ld\n",(long)node);
-	printf("%ld\n",(long)node->data);
-	free_(node->data);
-        free_(node);
-}
-
-
-
+#ifdef __TEST__
 int main(int argc, char ** argv)
 {
 
@@ -293,3 +239,4 @@ print_free_list();
 */
 
 }
+#endif
