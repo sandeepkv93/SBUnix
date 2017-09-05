@@ -1,6 +1,4 @@
 #include "mem_allocator.h"
-#include "stringll.h"
-#include "stringlib.h"
 
 void * brk_new(void * addr)
 {

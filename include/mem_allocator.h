@@ -1,8 +1,4 @@
-#define _GNU_SOURCE         /* See feature_test_macros(7) */
-#include<stdio.h>
-#include<unistd.h>
-#include<sys/syscall.h>
-
+#include <stdlib.h>
 union header
 {
 	struct

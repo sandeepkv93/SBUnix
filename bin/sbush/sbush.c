@@ -253,6 +253,8 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 			get_arglist(cmd_curr->data, arglist); 
 			debug_print("Execing: %s\n", cmd_curr->data);
 			execvp(arglist[0], arglist);
+			error_print("Unknown command : %s\n", arglist[0]);
+			exit(1);
 		} else {
 			if (command_type != cmd_bg) {
 				debug_print("waiting");
