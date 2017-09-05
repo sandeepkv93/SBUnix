@@ -4,20 +4,27 @@
 #include "stringlib.h"
 #include "stringll.h"
 
-int lib_str_find(char * str, char x) {
+int lib_str_find(char * str1, char * str2) {
 	int i = 0;
-	while (*str != '\0') {
-		if (*str ==  x) {
-			return i;
+	char *x, *y;
+	while (*str1 != '\0') {
+		x = str1;
+		y = str2;
+		while (*y ==  *x) {
+			x++;
+			y++;
+			if (*y == '\0') {
+				return i;
+			}
 		}
 		i++;
-		str++;
+		str1++;
 	}
 	return -1;
 }
 
 void lib_str_remove_extra_spaces(char *input_string) {
-	int initial_string_length = strlen(input_string);
+	int initial_string_length = strlen(input_string) + 1;
 	int dst = 0;
 	int src = 0;
 	while (src < initial_string_length && input_string[src] == ' ') {

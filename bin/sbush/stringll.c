@@ -39,7 +39,7 @@ void print_list(struct stringllnode *node) {
 
 void free_list(struct stringllnode *node) {
 	struct stringllnode * prev = node;
-	while(node->next_node != NULL) {
+	while(node != NULL) {
 		prev = node;
 		node = node->next_node;
 		free(prev->data);
