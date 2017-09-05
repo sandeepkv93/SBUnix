@@ -14,6 +14,7 @@
 #define STR_PIPE "|"
 #define STR_BG   "&"
 #define STR_SPACE " "
+#define STR_DEFAULT_PS1 "\033[93msbush>\033[0m"
 
 #define STDIN_FD 0
 #define STDOUT_FD 1
