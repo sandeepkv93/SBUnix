@@ -1,25 +1,6 @@
- #define _GNU_SOURCE         /* See feature_test_macros(7) */
-#include<stdio.h>
-#include<unistd.h>
-//#include<stdlib.h>
-#include<sys/syscall.h>
-#include<string.h>
+#include "mem_allocator.h"
 #include "stringll.h"
 #include "stringlib.h"
-union header
-{
-	struct
-	{
-		union header  *next;
-		unsigned int size;
-	}meta;
-	long double x; //for alignment to support the most restrictive type
-};
-
-typedef union header Header;
-
-Header start;
-Header *freep = NULL;
 
 void * brk_new(void * addr)
 {
@@ -90,20 +71,15 @@ void* malloc_(unsigned num_bytes)
 {
         unsigned num_units;
         Header *cur, *prev;
-        
         //initialisation. list is empty.
         if(freep == NULL)
         {
                 start.meta.next = freep = prev = &start;
                 start.meta.size = 0;
-        }
-
-	
+        }	
         num_units = ((num_bytes + sizeof(Header)-1)/sizeof(Header)) + 1; // one extra block for the header. 
-	
 	prev = freep;
 	cur = prev->meta.next; // start with the ds	
-
         while(1)
         {
 		printf("checking %ld\n",(long)(cur+1));
@@ -152,91 +128,7 @@ Head = NULL;
 
 print_free_list();
 
-/*
-
-
-append_all(&Head, argv,argc);
-print_list(Head);
-printf("second alloc  %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
-free_list(Head);
-printf("after free %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
-Head = NULL;
-append_all(&Head, argv,argc);
-print_list(Head);
-printf("second alloc  %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
-free_list(Head);
-printf("after free %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
-Head = NULL;
-append_all(&Head, argv,argc);
-print_list(Head);
-printf("second alloc  %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
-free_list(Head);
-printf("after free %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
-Head = NULL;
-append_all(&Head, argv,argc);
-print_list(Head);
-printf("second alloc  %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
-printf("\n\n");
-print_free_list();
-*/
-/*
-	printf("%ld",(long)brk_new(NULL));
-
-	char * p;
-	p  = (char *)pls_giv_mem(sizeof(char));
-	*p = 'c';
-	printf("%c\n",*p);
-
-        printf("%ld\n",(long)brk_new(NULL));
-	p = (char *)pls_giv_mem(sizeof(char));
-        *p = 'd';
-        printf("%c\n",*p);
-	printf("%ld",(long)brk_new(NULL));
-	printf(" START %ld\n",(long)brk_new(NULL));
-
-	char * p;
-	p =(char *)malloc_(sizeof(char));
-	*p = 'a';
-	printf("%c\n",*p);
-	printf("first alloc %ld p=%ld\n",(long)brk_new(NULL),(long)p);
-	print_free_list();
-	print_malloc_list();
-
-	int *q;
-	q = (int *)malloc_(sizeof(int));
-	*q = 2;
-	printf("%d\n",*q);
-	printf("second alloc %ld q=%ld\n",(long)brk_new(NULL),(long)q);
-	print_free_list();
-	print_malloc_list();
-	free_(p);
-	p = NULL;
-	printf("after free %ld\n ",(long)brk_new(NULL));
-	print_free_list();
-	print_malloc_list();
-	free_(q);
-        print_free_list();
-        print_malloc_list();
-        p =(char *)malloc
-	_(sizeof(char));
-        *p = 'x';
-        printf("%c\n",*p);
-	printf("another alloc but should use freed mem%ld p=%ld\n",(long)brk_new(NULL),(long)p);
-	print_free_list();
-	print_malloc_list();
-
-	printf("\n****derived types****\n");
-
-	char * str = (char *)memalloc(sizeof(char)*10);
-	strcpy(str,"Hello\0");
-	printf("\narray of chars %s\n brk = %ld str = %ld",str,(long)brk_new(NULL),(long)str);
-	free_mem(str);
-	str = NULL;
-	str = (char *)memalloc(sizeof(char)*10);
-	strcpy(str,"Hello\0");
-        printf("\narray of chars %s\n brk =%ld str = %ld",str,(long)brk_new(NULL),(long)str);
-
-*/
-
 }
 #endif
+
+
