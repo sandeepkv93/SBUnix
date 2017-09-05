@@ -1,4 +1,4 @@
-#define __DEBUG__ 1
+#define __DEBUG__ 0
 
 #ifdef __DEBUG__  
 	#define debug_print(...)  printf(__VA_ARGS__);  
