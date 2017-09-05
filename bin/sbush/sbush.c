@@ -68,7 +68,8 @@ enum builtin_t get_shell_builtin(char * line)
 	return builtin_none;
 }
 
-void set_env(char* key, char * value) {
+void get_env(char* key, char *value)
+{
 	/* 
 	 * Searches for key in environ variable
 	 * and sets key=value aptly
@@ -77,19 +78,48 @@ void set_env(char* key, char * value) {
 	char buff[100];
 
 	strcpy(buff, key);
-	strcat(key,STR_EQUALS);
+	strcat(buff,STR_EQUALS);
 
 	while(environ[i] != NULL) {
-		if(!lib_str_find(environ[i], key)) {
-			debug_print("Here");
-			strcpy(environ[i], key);
+		if(!lib_str_find(environ[i], buff)) {
+			if(lib_str_split_get_member(environ[i], STR_EQUALS, 1, value)) {
+				strcpy(value, STR_DEFAULT_PS1);
+			} 
+			return;
+		}
+		i++;
+	}
+	strcpy(value, STR_DEFAULT_PS1);
+}
+
+void set_env(char* key, char * value)
+{
+	/* 
+	 * Searches for key in environ variable
+	 * and sets key=value aptly
+	 */
+	int i = 0;
+	char buff[100];
+
+	strcpy(buff, key);
+	strcat(buff,STR_EQUALS);
+
+	while(environ[i] != NULL) {
+		if(!lib_str_find(environ[i], buff)) {
+			strcpy(environ[i], buff);
 			strcat(environ[i], value);
 		}
 		i++;
 	}
+
+	// Hack
+	strcpy(environ[i-1], buff);
+	strcat(environ[i-1], value);
+	environ[i] = NULL;
 }
 
-int handle_export(char * line) {
+int handle_export(char * line) 
+{
 	/* 
 	 * Handles statements of the form:
 	 * 		export key=value
@@ -229,13 +259,14 @@ int main(int argc, char *argv[], char *envp[])
 {
 	int i =0;
 	char input_line[1000];
-	char *ps1 = "\033[93msbush>\033[0m";
+	char ps1[100];
 	enum cmd_t command_type;
 	debug_print("Env variables:\n");
 	while(environ[i] != NULL) {
 		debug_print("%s\n",environ[i]);
 		i++;
 	}
+	get_env("PS1",ps1);
 	puts(ps1);
 	while (gets(input_line)) {
 		/*
@@ -275,6 +306,7 @@ int main(int argc, char *argv[], char *envp[])
 		}
 
 		// Print PS1.
+		get_env("PS1",ps1);
 		puts(ps1);
 	}
 	return 0;
