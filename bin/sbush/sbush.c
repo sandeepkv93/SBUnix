@@ -9,16 +9,17 @@
 #include "stringll.h"
 #include "stringlib.h"
 
+extern char ** environ;
 /* sbush shell */
 
 int is_bg_process(char * line) 
 {
-	return (lib_str_find(line,'&')>0);
+	return (lib_str_find(line,STR_BG)>0);
 }
 
 int is_piped(char * line) 
 {
-	return (lib_str_find(line,'|')>0);
+	return (lib_str_find(line,STR_PIPE)>0);
 }
 
 enum builtin_t get_shell_builtin(char * line) 
@@ -39,9 +40,40 @@ enum builtin_t get_shell_builtin(char * line)
 				return builtins_db[i].type;
 		}
 	}
-	free(cmd_list);
+	free_list(cmd_list);
 	return builtin_none;
 }
+
+void set_path(char * path) {
+	int i = 0;
+	while(environ[i] != NULL) {
+		if(!lib_str_find(environ[i], "PATH=")) {
+			strcpy(environ[i], "PATH=/");
+		}
+		i++;
+	}
+}
+
+int handle_cd(char * line) 
+{
+	struct stringllnode * cmd_list = NULL;
+
+	lib_str_split(line,STR_SPACE, &cmd_list);
+	if (!cmd_list) {
+			return -1;
+	}
+
+	if(cmd_list->next_node)
+	{
+		// Path is given
+		return chdir(cmd_list->next_node->data);
+	} else {
+		// set_pwd($HOME);
+	}
+	free_list(cmd_list);
+	return 0;
+}
+
 	
 enum cmd_t get_command_type(char* input_line) 
 {
@@ -111,12 +143,13 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 	 * If no pipe is found executes command.
 	 */
 
-	struct stringllnode * cmd_curr, * cmd_head;
+	struct stringllnode * cmd_curr = NULL, * cmd_head;
 	char *arglist[100];
 	int fds[2] ;
 	int read_end =-1;
 	int write_end = -1;
 	int waste;
+	pid_t pid;
 	// Split on | and read the commands into a link list
 	lib_str_split(input_line,STR_PIPE, &cmd_curr);
 	cmd_head = cmd_curr;
@@ -126,7 +159,7 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 			debug_print("Failed to create pipe.");
 		}
 		write_end = fds[1];
-		if(!fork()) {
+		if(!(pid=fork())) {
 			if(cmd_head!=cmd_curr) {
 				// Not first command, read from pipe
 				close(STDIN_FD);
@@ -142,7 +175,8 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 			execvp(arglist[0], arglist);
 		} else {
 			if (command_type != cmd_bg) {
-				wait(NULL);
+				printf("waiting");
+				waitpid(pid,NULL,0);
 			}
 			close(write_end);
 			if (read_end != -1) {
@@ -153,6 +187,7 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 		cmd_curr = cmd_curr->next_node;
 		waste++;
 	}
+	free_list(cmd_curr);
 	return 0;
 }
 
@@ -163,8 +198,8 @@ int main(int argc, char *argv[], char *envp[])
 	char *ps1 = "\033[93msbush>\033[0m";
 	enum cmd_t command_type;
 	debug_print("Env variables:\n");
-	while(envp[i] != NULL) {
-		debug_print("%s\n",envp[i]);
+	while(environ[i] != NULL) {
+		debug_print("%s\n",environ[i]);
 		i++;
 	}
 	puts(ps1);
@@ -180,17 +215,25 @@ int main(int argc, char *argv[], char *envp[])
 		command_type = get_command_type(input_line);
 		switch(command_type) {
 			case cmd_builtin:
+				switch (get_shell_builtin(input_line)) {
+					case builtin_exit:
+						exit(0);
+					case builtin_cd:
+						debug_print("Trying to cd..\n");
+						handle_cd(input_line);
+					case builtin_none:
+						continue;
+				}
+				
 				break;
 			case cmd_bg:
 				get_bg_command(input_line);
-				debug_print("Is BG\n");
+				debug_print("BG process. ");
 				debug_print("Filtered to %s \n", input_line);
 			case cmd_pipe:
 			case cmd_script:
 			case cmd_bin:
 				run_cmd(input_line,command_type);
-
-				
 		}
 
 		// Print PS1.
