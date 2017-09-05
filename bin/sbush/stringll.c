@@ -42,8 +42,10 @@ void free_list(struct stringllnode *node) {
 	while(node != NULL) {
 		prev = node;
 		node = node->next_node;
+		//free(prev->data);
 		free(prev);
 	}
+	//free(node->data);
 	free(node);
 }
 

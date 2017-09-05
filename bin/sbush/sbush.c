@@ -38,6 +38,7 @@ enum builtin_t get_shell_builtin(char * line)
 	}
 	for (i=0; i < LENARR(builtins_db); i++) {
 		if (!strcmp(cmd_list->data,builtins_db[i].command)) {
+				free_list(cmd_list);
 				return builtins_db[i].type;
 		}
 	}
