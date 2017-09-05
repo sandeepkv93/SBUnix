@@ -74,3 +74,38 @@ int lib_str_split(const char *string_, char *delimiter,struct stringllnode **sta
 	return 0;
 }
 
+int strcmp_(const char * s1,const char * s2)
+{
+        while(*s1 == *s2 && *s1 != '\0')
+        {
+                s1++;
+                s2++;
+        }
+        return *s1-*s2;
+}
+int strlen_(const char * s1)
+{
+        int len=0;
+        while(*s1++!='\0')
+                len++;
+        return len;
+}
+char * strcpy_(char * dest,const char * src)
+{
+        char * temp;
+        temp = dest;
+        while((*temp++ = *src++)!='\0')
+                ;
+        return dest;
+}
+
+char * strcat_(char * dest,const char * src)
+{
+        char * temp = dest;
+        while(*temp != '\0')
+                temp++;
+        while((*temp++ = *src++)!='\0')
+                ;
+        *temp='\0';
+        return dest;
+}
