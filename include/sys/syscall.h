@@ -1,3 +1,5 @@
+#ifndef _SYSCALLS_H
+#define _SYSCALLS_H
 #define _SYS__read				0
 #define _SYS__write				1
 #define _SYS__open				2
@@ -347,20 +349,4 @@
 #define _SYS__rt_tgsigqueueinfo		297
 #define _SYS__perf_event_open		298
 
-#define NULL ((void *)0)
-typedef long mode_t;
-typedef long size_t;
-typedef long pid_t;
-
-int write_ (int, const void *, size_t);
-int syscall_ (long, long, long, long);
-void exit_ (int);
-int read_(int , void * , size_t );
-int open_(const char * , int , mode_t );
-int read_(int, void* , size_t);
-pid_t fork_(void);
-int execvp_(const char *, char * const [], char * const []) ;
-pid_t waitpid_(pid_t , int * , int ) ;
-int pipe_(int []);
-int dup_(int);
-int close_(int);
+#endif

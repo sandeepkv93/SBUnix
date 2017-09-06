@@ -2,9 +2,16 @@
 #define _UNISTD_H
 
 #include <sys/defs.h>
+long syscall (long, long, long, long);
+void exit (int);
+int open(const char * , int , mode_t );
+pid_t fork(void);
+pid_t waitpid(pid_t , int * , int ) ;
+int pipe(int []);
+int dup(int);
+int close(int);
+void * brk(void *);
 
-int open(const char *pathname, int flags);
-int close(int fd);
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
 int unlink(const char *pathname);
@@ -12,10 +19,8 @@ int unlink(const char *pathname);
 int chdir(const char *path);
 char *getcwd(char *buf, size_t size);
 
-pid_t fork();
 int execvpe(const char *file, char *const argv[], char *const envp[]);
-pid_t wait(int *status)
-int waitpid(int pid, int *status);
+pid_t wait(int *status);
 
 unsigned int sleep(unsigned int seconds);
 

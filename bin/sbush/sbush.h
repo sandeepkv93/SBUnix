@@ -4,7 +4,7 @@
 	#define debug_print(...)
 #endif
 
-#define error_print(...)  printf(__VA_ARGS__);  
+#define error_print(x) puts(x);  
 
 #define LENARR(x) (sizeof(x)/sizeof(x[0]))
 

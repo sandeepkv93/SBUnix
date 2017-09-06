@@ -1,3 +1,4 @@
+#if 0
 #define READ 0
 #define WRITE 1
 
@@ -124,3 +125,4 @@ int main(int argc, char ** argv)
 }
 
 */
+#endif

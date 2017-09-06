@@ -2,14 +2,12 @@
 #include <sys/syscall.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #include <stdlib.h>
 #include "sbush.h"
 #include "stringll.h"
 #include "stringlib.h"
 
-extern char ** environ;
+char ** environ;
 /* sbush shell */
 
 #if 0
@@ -209,8 +207,8 @@ int run_script(char** argv, int argc)
 	}
 	script_args[i] = NULL;
 	debug_print("Going to exec");
-	execvp(script_args[0], script_args);
-	error_print("Failed to run script %s", script_args[0]);
+	execvpe(script_args[0], script_args, environ);
+	error_print("Failed to run script! Please check the script\n");
 	exit(1);
 	return 0;
 
@@ -252,8 +250,10 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 			}
 			get_arglist(cmd_curr->data, arglist); 
 			debug_print("Execing: %s\n", cmd_curr->data);
-			execvp(arglist[0], arglist);
-			error_print("Unknown command : %s\n", arglist[0]);
+			execvpe(arglist[0], arglist, environ);
+			error_print("Unknown command : ");
+			error_print(arglist[0]);
+			error_print("\n");
 			exit(1);
 		} else {
 			if (command_type != cmd_bg) {
@@ -273,12 +273,13 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 	return 0;
 }
 
-int main(int argc, char *argv[], char *envp[]) 
+int main(int argc, char *argv[], char *envp[])
 {
 	int i =0;
 	char input_line[1000];
 	char ps1[100];
 	enum cmd_t command_type;
+	environ = envp;
 	debug_print("Env variables:\n");
 	while(environ[i] != NULL) {
 		debug_print("%s\n",environ[i]);

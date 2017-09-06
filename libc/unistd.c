@@ -1,5 +1,6 @@
-#include <syscall.h>
-int syscall_( long sys_no,long a, long b, long c)
+#include <sys/syscall.h>
+#include <sys/defs.h>
+long syscall( long sys_no,long a, long b, long c)
 {
 	/*
 	 * sys_no -> rax
@@ -8,8 +9,7 @@ int syscall_( long sys_no,long a, long b, long c)
 	 * arg4   -> rdx
 	 */
 	long x = 0;
-	char * str = "ok working\n";
-	asm(
+	__asm__(
 			"movq	%1,%%rax;"
 			"movq	%2,%%rdi;"
 			"movq	%3,%%rsi;"
@@ -23,55 +23,64 @@ int syscall_( long sys_no,long a, long b, long c)
 	return x;
 }
 
-void exit_ (int value) 
+void exit (int value) 
 {
-	syscall_(_SYS__exit,value,0,0);
+	syscall(_SYS__exit,value,0,0);
 }
 
-int write_ (int fd, const void * buf, size_t count) 
+ssize_t write (int fd, const void * buf, size_t count) 
 {
-	return syscall_(_SYS__write,(long)fd, (long)buf, (long) count);
+	return syscall(_SYS__write,(long)fd, (long)buf, (long) count);
 }
 
-int open_(const char * filename, int flags, mode_t mode) 
+int open(const char * filename, int flags, mode_t mode) 
 {
-	return syscall_(_SYS__open,(long)filename, (long)flags, (long) mode);
+	return syscall(_SYS__open,(long)filename, (long)flags, (long) mode);
 }
 
-int read_(int fd, void * buf, size_t count) 
+ssize_t read(int fd, void * buf, size_t count) 
 {
-	return syscall_(_SYS__read, (long)fd, (long)buf, (long) count);
+	return syscall(_SYS__read, (long)fd, (long)buf, (long) count);
 }
 
-pid_t fork_(void) 
+pid_t fork(void) 
 {
-	return syscall_(_SYS__fork, 0,0,0);	
+	return syscall(_SYS__fork, 0,0,0);	
 }
 
-int execvp_(const char * filename, char * const argv[], char * const envp[]) 
+int execvpe(const char * filename, char * const argv[], char * const envp[]) 
 {
-	return syscall_(_SYS__execve, (long)filename,(long)argv,(long)envp);	
+	return syscall(_SYS__execve, (long)filename,(long)argv,(long)envp);	
 }
 
-pid_t waitpid_(pid_t pid, int * wstatus, int options) 
+pid_t waitpid(pid_t pid, int * wstatus, int options) 
 {
-	return syscall_(_SYS__wait4, (long)pid, (long)wstatus, (long)options); 
+	return syscall(_SYS__wait4, (long)pid, (long)wstatus, (long)options); 
 }
 
-int pipe_(int fds[])
+int pipe(int fds[])
 {
-	return syscall_(_SYS__pipe,(long)fds,0,0);
+	return syscall(_SYS__pipe,(long)fds,0,0);
 }
 
-int dup_(int fd)
+int dup(int fd)
 {
-	return syscall_(_SYS__dup,(long)fd,0,0);
+	return syscall(_SYS__dup,(long)fd,0,0);
 }
 
-int close_(int fd)
+int close(int fd)
 {
-	return syscall_(_SYS__close,(long)fd,0,0);
+	return syscall(_SYS__close,(long)fd,0,0);
 }
+
+void * brk(void *addr) {
+	return (void *)syscall(_SYS__brk, (long) addr, 0, 0);
+}
+
+int chdir(const char * path) {
+	return syscall(_SYS__chdir, (long) path, 0, 0);
+}
+
 #ifdef __TEST__
 void _start() 
 {

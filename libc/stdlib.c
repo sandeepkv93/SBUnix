@@ -1,18 +1,34 @@
-#include "mem_allocator.h"
+#include <sys/syscall.h>
+#include <unistd.h>
 
+union header {
+	struct
+	{
+		union header  *next;
+		unsigned int size;
+	} meta;
+	long double x; //for alignment to support the most restrictive type
+};
+
+typedef union header Header;
+
+Header start;
+Header *freep = NULL;
+
+/*
 void * brk_new(void * addr)
 {
 	return (void *)syscall(SYS_brk, addr); //returns current boundary when invalid address is passed. Sets the 
-}
+}*/
 
 void * pls_giv_mem(int num_bytes)
 {
-	void * cur_brk = brk_new(NULL); // provides the current boundary -> start of the memory block that gets allocated in this call.
-	brk_new(cur_brk + num_bytes); // increment data segment boundary
+	void * cur_brk = brk(NULL); // provides the current boundary -> start of the memory block that gets allocated in this call.
+	brk(cur_brk + num_bytes); // increment data segment boundary
 	return cur_brk;
 }
 
-void free_(void * new) // user will send different pointers. different types can be typecasted to void
+void free(void * new) // user will send different pointers. different types can be typecasted to void
 {
 	Header *temp = freep->meta.next;
 	Header * new_block;
@@ -36,10 +52,10 @@ void free_(void * new) // user will send different pointers. different types can
 void print_free_list()
 {
 	Header * temp = freep->meta.next;
-	printf("free list of pointers:\n");
+	//printf("free list of pointers:\n");
 	while(temp != freep)
 	{
-		printf("addr:%ld size:%d\n",(long)(temp + 1),temp->meta.size);
+		//printf("addr:%ld size:%d\n",(long)(temp + 1),temp->meta.size);
 		temp = temp->meta.next;
 	}
 }
@@ -47,10 +63,10 @@ void print_free_list()
 void print_malloc_list()
 {
         Header *temp = start.meta.next;
-        printf("malloc list of pointers:\n");
+        //printf("malloc list of pointers:\n");
         while(temp != &start)
         {
-                printf("addr:%ld size:%d\n",(long)(temp + 1),temp->meta.size);
+                //printf("addr:%ld size:%d\n",(long)(temp + 1),temp->meta.size);
                 temp = temp->meta.next;
         }
 }
@@ -60,12 +76,12 @@ Header * get_mem(unsigned num_units)
 	//handle out of memory/mem limit exceed
 	new = (Header *)pls_giv_mem(num_units*sizeof(Header));
 	new->meta.size = num_units;
-	free_((void *)(new+1));
+	free((void *)(new+1));
 	return freep; 
 }
 
 
-void* malloc_(unsigned num_bytes)
+void* malloc(size_t num_bytes)
 {
         unsigned num_units;
         Header *cur, *prev;
@@ -80,10 +96,10 @@ void* malloc_(unsigned num_bytes)
 	cur = prev->meta.next; // start with the ds	
         while(1)
         {
-		printf("checking %ld\n",(long)(cur+1));
+		//printf("checking %ld\n",(long)(cur+1));
 		if(cur->meta.size>=num_units)
 		{
-			printf("found %ld\n",(long)(cur+1));
+			//printf("found %ld\n",(long)(cur+1));
 			prev->meta.next = cur->meta.next;
 			return (void*)(cur+1); // address of the free space has to be sent and not the address of the header.
 		}
@@ -102,14 +118,14 @@ void* malloc_(unsigned num_bytes)
 int main(int argc, char ** argv)
 {
 
-printf("START %ld\n",(long)brk_new(NULL));
+printf("START %ld\n",(long)brk_(NULL));
 struct stringllnode *Head=NULL;
 append_all(&Head,argv,argc);
 print_list(Head);
 print_malloc_list();
-printf("first alloc %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
+printf("first alloc %ld Head = %ld\n",(long)brk_(NULL),(long)Head);
 free_list(Head);
-printf("after free %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
+printf("after free %ld Head = %ld\n",(long)brk_(NULL),(long)Head);
 
 Head = NULL;
 
@@ -118,9 +134,9 @@ print_malloc_list();
 append_all(&Head,argv,argc);
 print_list(Head);
 print_malloc_list();
-printf("first alloc %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
+printf("first alloc %ld Head = %ld\n",(long)brk_(NULL),(long)Head);
 free_list(Head);
-printf("after free %ld Head = %ld\n",(long)brk_new(NULL),(long)Head);
+printf("after free %ld Head = %ld\n",(long)brk_(NULL),(long)Head);
 
 Head = NULL;
 

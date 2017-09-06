@@ -93,7 +93,7 @@ int lib_str_split(const char *string_, char delimiter,struct stringllnode **star
 	for(i=0;string_[i]!='\0';++i) {
 		if(string_[i] == delimiter) {
 			lib_str_clean(token);
-			strncpy_(token,string_+beg_index,(end_index - beg_index));
+			strncpy(token,string_+beg_index,(end_index - beg_index));
 			beg_index = end_index+1;
 			lib_str_remove_extra_spaces(token);
 			append(start,token);
@@ -101,7 +101,7 @@ int lib_str_split(const char *string_, char delimiter,struct stringllnode **star
 		++end_index;
 	}
 	lib_str_clean(token);
-	strncpy_(token,string_+beg_index,(end_index - beg_index));
+	strncpy(token,string_+beg_index,(end_index - beg_index));
 	lib_str_remove_extra_spaces(token);
 	append(start,token);
 	return 0;
@@ -117,51 +117,3 @@ int lib_str_split_get_member(const char *string_, char delimiter, int index, cha
 	return t; 
 }
 
-int strcmp_(const char * s1,const char * s2)
-{
-	while(*s1 == *s2 && *s1 != '\0') {
-		s1++;
-		s2++;
-	}
-	return *s1-*s2;
-}
-
-int strlen_(const char * s1)
-{
-	int len=0;
-	while(*s1++!='\0') {
-		len++;
-	}
-	return len;
-}
-
-char * strcpy_(char * dest,const char * src)
-{
-	char * temp;
-	temp = dest;
-	while((*temp++ = *src++)!='\0')
-		;
-	return dest;
-}
-
-char * strncpy_(char *dest, const char *src, int n)
-{
-	char * temp;
-	temp = dest;
-	while(n && (*temp++ = *src++)!='\0'){
-		n--;
-	}
-	return dest;
-}
-
-char * strcat_(char * dest,const char * src)
-{
-	char * temp = dest;
-	while(*temp != '\0') {
-		temp++;
-	}
-	while((*temp++ = *src++)!='\0')
-		;
-	*temp='\0';
-	return dest;
-}
