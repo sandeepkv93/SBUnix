@@ -32,6 +32,9 @@ void free(void * new) // user will send different pointers. different types can 
 {
 	Header *temp = freep->meta.next;
 	Header * new_block;
+	if (new == NULL) {
+		return;
+	}
 	new_block = (Header*)new - 1;
 	
 //	while(!(new_block>temp && new_block<temp->meta.next))
