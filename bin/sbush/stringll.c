@@ -33,6 +33,7 @@ void append_all(struct stringllnode** head_reference, char** new_data_array, int
 void print_list(struct stringllnode *node) {
 	while (node != NULL) {
 		puts(node->data);
+		//printf("%s^\n",node->data);
 		node = node->next_node;
 	}
 }

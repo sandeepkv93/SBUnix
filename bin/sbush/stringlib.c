@@ -36,7 +36,7 @@ int lib_str_find(char * str1, char * str2)
 
 void lib_str_remove_extra_spaces(char *input_string) 
 {
-	int initial_string_length = strlen(input_string) + 1;
+	int initial_string_length = strlen(input_string);
 	int dst = 0;
 	int src = 0;
 	while (src < initial_string_length && input_string[src] == ' ') {
@@ -67,12 +67,13 @@ void lib_str_remove_extra_spaces(char *input_string)
 			input_string[dst++] = input_string[src++];
 		}
 	}
-	if (dst < src) {
-
+	
+	if (dst <= src) {
 		--dst;
 		if (input_string[dst] == ' ') {
-			input_string[dst++] = '\0';
+			input_string[dst] = '\0';
 		}
+		++dst;
 		while (dst < initial_string_length) {
 			input_string[dst++] = '\0';
 		}
