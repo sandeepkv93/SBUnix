@@ -18,6 +18,7 @@
 #define CHAR_PIPE '|'
 #define CHAR_BG   '&'
 #define CHAR_SPACE ' '
+#define CHAR_COLON ':'
 
 #define STDIN_FD 0
 #define STDOUT_FD 1

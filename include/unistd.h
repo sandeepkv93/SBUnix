@@ -2,6 +2,9 @@
 #define _UNISTD_H
 
 #include <sys/defs.h>
+
+#define F_OK 0
+
 long syscall (long, long, long, long);
 void exit (int);
 int open(const char * , int , mode_t );

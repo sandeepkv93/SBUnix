@@ -115,7 +115,24 @@ void set_env(char* key, char * value)
 	strcat(environ[i-1], value);
 	environ[i] = NULL;
 }
-
+int is_file_exists(char * file){
+	char path[500];
+	struct stringllnode * path_list = NULL;
+	get_env("PATH",path);
+	lib_str_split(path, CHAR_COLON, &path_list);
+	do{
+		strcat(path_list->data,"/\0");
+		strcat(path_list->data,file);
+		//puts(access(path_list->data, F_OK ));
+ 		if( access(path_list->data, F_OK ) < 0 ){
+			path_list = path_list->next_node;
+			continue;
+		}
+		strcpy(file,path_list->data);
+		return 1; 	
+	}while(path_list != NULL);
+	return 0;
+}
 int handle_export(char * line) 
 {
 	/* 
@@ -248,7 +265,11 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 				close(STDOUT_FD);
 				waste = dup(write_end);
 			}
-			get_arglist(cmd_curr->data, arglist); 
+			get_arglist(cmd_curr->data, arglist);
+			if(!is_file_exists(arglist[0])){
+				error_print("Executable not found\n");
+				exit(1);
+			}
 			debug_print("Execing: %s\n", cmd_curr->data);
 			execvpe(arglist[0], arglist, environ);
 			error_print("Unknown command : ");
