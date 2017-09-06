@@ -1,13 +1,15 @@
 #include <unistd.h>
-char *gets(char *s) {
+#include <stdio.h>
+
+char * fgets (int fd, char *s) {
 	int i=0;
 	char a='\0';
 	while(1) {
-		if (read(0,&a,1) < 0){ 
+		if (read(fd,&a,1) <= 0){ 
 			return NULL; 
 		}
 
-		if (a=='\n') {
+		if (a=='\n' || a==EOF) {
 			break;
 		}
 
@@ -16,4 +18,8 @@ char *gets(char *s) {
 	} 
 	s[i] = '\0';
 	return s;
+}
+
+char* gets (char *s) {
+	return fgets(0,s);
 }

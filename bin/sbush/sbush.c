@@ -294,26 +294,33 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 	return 0;
 }
 
-int main(int argc, char *argv[], char *envp[])
-{
-	int i =0;
-	char input_line[1000];
+void print_ps1() {
 	char ps1[100];
-	enum cmd_t command_type;
-	environ = envp;
-	debug_print("Env variables:\n");
-	while(environ[i] != NULL) {
-		debug_print("%s\n",environ[i]);
-		i++;
-	}
-	debug_print("Argc = %d\n",argc);
-	if (argc > 1) {
-		run_script(argv,argc);
-	}
-
 	get_env("PS1",ps1);
 	puts(ps1);
-	while (gets(input_line)) {
+}
+
+int main(int argc, char *argv[], char *envp[])
+{
+	int mode = MODE_INTERACTIVE;
+	char input_line[1000];
+	enum cmd_t command_type;
+	environ = envp;
+	int input_fd = 0;
+
+	debug_print("Argc = %d\n",argc);
+
+	if (argc > 1) {
+		mode = MODE_SCRIPT;
+		if((input_fd = open(argv[1],O_RDONLY,0)) == -1) {
+			error_print("Unable to read the script! : ");
+			error_print(argv[0]);
+		}
+	} else {
+		print_ps1();
+	}
+
+	while (fgets(input_fd,input_line)) {
 		/*
 		 * Maintain PATH
 		 * Read the args and run script, else:
@@ -349,10 +356,10 @@ int main(int argc, char *argv[], char *envp[])
 			case cmd_bin:
 				run_cmd(input_line,command_type);
 		}
+		if (mode==MODE_INTERACTIVE) {
+			print_ps1();
+		}
 
-		// Print PS1.
-		get_env("PS1",ps1);
-		puts(ps1);
 	}
 	return 0;
 }
