@@ -63,6 +63,11 @@ int pipe(int fds[])
 	return syscall(_SYS__pipe,(long)fds,0,0);
 }
 
+int access(const char *pathname, int mode)
+{
+	return syscall(_SYS__acces, (long)pathname, (long)mode, 0);
+}
+
 int dup(int fd)
 {
 	return syscall(_SYS__dup,(long)fd,0,0);
