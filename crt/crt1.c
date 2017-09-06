@@ -1,6 +1,21 @@
 #include <stdlib.h>
+#include <stdio.h>
 
+long __argc;
+char * __argv;
+char a[2];
 void _start(void) {
+	 __asm__(
+			 "popq %%rsi;"
+			 "popq %%rsi;"
+			 "popq %%rsi;"
+			 "popq %%rsi;"
+			 "movq %%rsi, %0;"
+			 "movq %%rsp, %1;"
+			 :"=r"(__argc),"=r"(__argv)
+			 :
+			 : "%rsi", "%rsp"
+		);
   /*
 	 __asm__(
         "xorl %ebp,%ebp;" //the outermost frame is marked by making ebp xero
@@ -16,5 +31,10 @@ void _start(void) {
         "syscall;"
 		);
 		*/
-	 exit( main(1,NULL, NULL));
+	 puts("argc>");
+	 a[0] = '0' + __argc;
+	 a[1] = '\0';
+	 puts(a);
+	 puts(__argv);
+	 exit( main(__argc,(char**)__argv, (char**)((char**)__argv + __argc + 1)));
  }
