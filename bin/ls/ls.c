@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
     char *file_name;
     char console_buffer[CONSOLE_BUF_SIZE];
     char formatter[FORMATTING_VAR_SIZE];
-//    char *format_unset = "\e[0m\e[21m  ";
+    char *format_unset = "\e[0m\e[21m  ";
     char *directory_name = (argc>1)?argv[1]:".";
     char *new_line_buffer = "\n";
     char error_message[CONSOLE_BUF_SIZE];
@@ -70,9 +70,9 @@ int main(int argc, char* argv[])
                 }
 
                 /* Write to the formatted string to the buffer */
-                //strcpy(console_buffer,formatter);
+                strcpy(console_buffer,formatter);
                 strcat(console_buffer,file_name);
-                //strcat(console_buffer,format_unset);
+                strcat(console_buffer,format_unset);
 
                 write(1,console_buffer,strlen(console_buffer));
             }            
