@@ -22,6 +22,9 @@
 #define STDIN_FD 0
 #define STDOUT_FD 1
 
+#define MODE_INTERACTIVE 21
+#define MODE_SCRIPT 22
+
 enum cmd_t {cmd_bin, cmd_script, cmd_bg, cmd_pipe, cmd_builtin };
 
 enum builtin_t { builtin_none, builtin_cd, builtin_exit, builtin_export };

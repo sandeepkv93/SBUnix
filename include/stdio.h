@@ -8,5 +8,6 @@ int puts(const char *s);
 int printf(const char *format, ...);
 
 char *gets(char *s);
+char *fgets(int fd, char *s);
 
 #endif
