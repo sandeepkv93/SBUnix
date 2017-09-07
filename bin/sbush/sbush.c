@@ -12,28 +12,6 @@
 char ** environ;
 /* sbush shell */
 
-#if 0
-int pipe_(int fds[]) 
-{
-	return syscall(SYS_pipe,fds);
-}
-
-int dup_(int fd)
-{
-	return syscall(SYS_dup,fd);
-}
-
-int close_(int fd)
-{
-	return syscall(SYS_close,fd);
-}
-
-int wait_(int pid)
-{
-	return  syscall(SYS_wait4,-1, NULL, 0, NULL);
-}
-#endif
-
 int is_bg_process(char * line) 
 {
 	return (lib_str_find(line,STR_BG)>0);
@@ -292,8 +270,7 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 			}
 			get_arglist(cmd_curr->data, arglist);
 			if(!is_file_exists(arglist[0])){
-				error_print(arglist[0]);
-				error_print("Executable not found\n");
+				error_print("!!Executable not found in PATH\n");
 				exit(1);
 			}
 			debug_print("Execing: %s\n", cmd_curr->data);
@@ -321,9 +298,9 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 }
 
 void print_ps1() {
-	char ps1[100];
+	char ps1[300];
 	get_env("PS1",ps1);
-	puts(ps1);
+	putstr(ps1);
 }
 
 int is_whitespace(char a){
@@ -365,6 +342,9 @@ int main(int argc, char *argv[], char *envp[])
 	while (fgets(input_fd,input_line)) {
 		if(is_empty_str(input_line)) {
 			//print PS1
+			if (mode==MODE_INTERACTIVE) {
+				print_ps1();
+			}
 			continue;
 		}
 		/*
