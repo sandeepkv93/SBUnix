@@ -134,6 +134,11 @@ int is_dir(char * filename){
 int is_file_exists(char * file){
 	char path[500];
 	struct stringllnode * path_list = NULL;
+
+	if(file[0] == '/'){
+		return 1;
+	}
+
 	get_env("PATH",path);
 	lib_str_split(path, CHAR_COLON, &path_list);
 	do{
@@ -148,7 +153,6 @@ int is_file_exists(char * file){
                         	continue;
 		}
 
-		//puts("not a directory");
 		strcpy(file,path_list->data);
 		return 1; 	
 	}while(path_list != NULL);
