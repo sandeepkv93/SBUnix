@@ -119,6 +119,7 @@ int is_file_exists(char * file){
 	char path[500];
 	struct stringllnode * path_list = NULL;
 
+
 	if(file[0] == '/'){
 		return 1;
 	}
@@ -140,6 +141,9 @@ int is_file_exists(char * file){
 		strcpy(file,path_list->data);
 		return 1; 	
 	}while(path_list != NULL);
+	if( access(file, F_OK ) >= 0 ){
+		return 1;
+	}
 	return 0;
 }
 int handle_export(char * line) 
@@ -278,6 +282,7 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 				waste = dup(write_end);
 			}
 			get_arglist(cmd_curr->data, arglist);
+
 			if(!is_file_exists(arglist[0])){
 				error_print("!!Executable not found in PATH\n");
 				exit(1);
