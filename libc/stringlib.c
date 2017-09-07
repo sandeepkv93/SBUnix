@@ -54,8 +54,7 @@ void lib_str_remove_extra_spaces(char *input_string)
 				++src;
 			}
 
-		} else if (input_string[src] == '!' || input_string[src] == ',' || 
-					input_string[src] == '.' ||  input_string[src] == '?') {
+		} else if (input_string[src] == '!' ||  input_string[src] == '?') {
 			if (input_string[dst - 1] == ' ') {
 				input_string[dst - 1] = input_string[src];
 				src++;
