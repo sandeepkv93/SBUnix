@@ -4,6 +4,7 @@
 #include <sys/defs.h>
 
 #define F_OK 0
+#define X_OK 1
 
 long syscall (long, long, long, long);
 void exit (int);

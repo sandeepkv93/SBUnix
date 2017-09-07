@@ -3,9 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include "sbush.h"
 #include "stringll.h"
 #include "stringlib.h"
+
 
 char ** environ;
 /* sbush shell */
@@ -55,6 +57,9 @@ enum builtin_t get_shell_builtin(char * line)
 	lib_str_split(line,CHAR_SPACE, &cmd_list);
 	if (!cmd_list) {
 			return builtin_none;
+	}
+	if(cmd_list->data[0]=='#'){
+		return builtin_comment;
 	}
 	for (i=0; i < LENARR(builtins_db); i++) {
 		if (!strcmp(cmd_list->data,builtins_db[i].command)) {
@@ -115,19 +120,35 @@ void set_env(char* key, char * value)
 	strcat(environ[i-1], value);
 	environ[i] = NULL;
 }
+
+int is_dir(char * filename){
+	int fd = open(filename, O_DIRECTORY,0);
+	if(fd > 0)
+	{
+		close(fd);
+		return 1;
+	}
+	return 0;
+}
+
 int is_file_exists(char * file){
 	char path[500];
 	struct stringllnode * path_list = NULL;
 	get_env("PATH",path);
 	lib_str_split(path, CHAR_COLON, &path_list);
 	do{
-		strcat(path_list->data,"/\0");
+		strcat(path_list->data,"/");
 		strcat(path_list->data,file);
-		//puts(access(path_list->data, F_OK ));
  		if( access(path_list->data, F_OK ) < 0 ){
 			path_list = path_list->next_node;
 			continue;
 		}
+		if( is_dir(path_list->data)){
+                        	path_list = path_list->next_node;
+                        	continue;
+		}
+
+		puts("not a directory");
 		strcpy(file,path_list->data);
 		return 1; 	
 	}while(path_list != NULL);
@@ -267,6 +288,7 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 			}
 			get_arglist(cmd_curr->data, arglist);
 			if(!is_file_exists(arglist[0])){
+				error_print(arglist[0]);
 				error_print("Executable not found\n");
 				exit(1);
 			}
@@ -300,6 +322,23 @@ void print_ps1() {
 	puts(ps1);
 }
 
+int is_whitespace(char a){
+	if(a==' ' || a=='\t' || a=='\n' || a=='\0'){
+		return 1;
+	}
+	return 0;
+}
+
+int is_empty_str(char *s){
+	int i;		
+	for(i=0;i<strlen(s);++i) {
+		if(!is_whitespace(s[i])) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 int main(int argc, char *argv[], char *envp[])
 {
 	int mode = MODE_INTERACTIVE;
@@ -307,7 +346,6 @@ int main(int argc, char *argv[], char *envp[])
 	enum cmd_t command_type;
 	environ = envp;
 	int input_fd = 0;
-
 	debug_print("Argc = %d\n",argc);
 
 	if (argc > 1) {
@@ -321,6 +359,10 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 	while (fgets(input_fd,input_line)) {
+		if(is_empty_str(input_line)) {
+			//print PS1
+			continue;
+		}
 		/*
 		 * Maintain PATH
 		 * Read the args and run script, else:
@@ -330,6 +372,9 @@ int main(int argc, char *argv[], char *envp[])
 		 * 4. Fork and exec binary. check BG
 		 */
 		command_type = get_command_type(input_line);
+		if (mode == MODE_INTERACTIVE) {
+			print_ps1();
+		}
 		switch(command_type) {
 			case cmd_builtin:
 				switch (get_shell_builtin(input_line)) {
@@ -343,6 +388,8 @@ int main(int argc, char *argv[], char *envp[])
 						handle_export(input_line);
 						break;
 					case builtin_none:
+						break;
+					case builtin_comment:
 						break;
 				}
 				

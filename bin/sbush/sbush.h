@@ -28,7 +28,7 @@
 
 enum cmd_t {cmd_bin, cmd_script, cmd_bg, cmd_pipe, cmd_builtin };
 
-enum builtin_t { builtin_none, builtin_cd, builtin_exit, builtin_export };
+enum builtin_t { builtin_none, builtin_cd, builtin_exit, builtin_export, builtin_comment };
 
 struct s_builtins {
 	enum builtin_t type;
