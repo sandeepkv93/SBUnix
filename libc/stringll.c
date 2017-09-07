@@ -1,8 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include "stringll.h"
-#include "stringlib.h"
+#include<stringll.h>
+#include<stringlib.h>
 
 void append(struct stringllnode** head_reference, char *new_data) {
 	struct stringllnode* new_node = (struct stringllnode*) malloc(sizeof(struct stringllnode));
@@ -33,7 +33,6 @@ void append_all(struct stringllnode** head_reference, char** new_data_array, int
 void print_list(struct stringllnode *node) {
 	while (node != NULL) {
 		puts(node->data);
-		//printf("%s^\n",node->data);
 		node = node->next_node;
 	}
 }
