@@ -9,7 +9,8 @@
 #include "stringlib.h"
 
 
-char ** environ;
+char* environ[500];
+
 /* sbush shell */
 
 int is_bg_process(char * line) 
@@ -70,7 +71,11 @@ void get_env(char* key, char *value)
 		}
 		i++;
 	}
-	strcpy(value, STR_DEFAULT_PS1);
+	if (!strcmp(key,"PS1")) {
+		strcpy(value, STR_DEFAULT_PS1);
+		return;
+	}
+	*value = '\0';
 }
 
 void set_env(char* key, char * value)
@@ -94,10 +99,10 @@ void set_env(char* key, char * value)
 		i++;
 	}
 
-	// Hack
-	strcpy(environ[i-1], buff);
-	strcat(environ[i-1], value);
-	environ[i] = NULL;
+	environ[i] = malloc(strlen(buff) + strlen(value) + 2);
+	strcpy(environ[i], buff);
+	strcat(environ[i], value);
+	environ[i+1] = NULL;
 }
 
 int is_dir(char * filename){
@@ -153,7 +158,9 @@ int handle_export(char * line)
 		error_print("Usage export <key>=<value>\n");
 	}
 
-	debug_print("Setting %s : %s\n", env_key, env_value);
+	debug_print("Setting ");
+	debug_print(env_key);
+	debug_print(env_value);
 	set_env(env_key, env_value);
 	return 0;
 }
@@ -168,6 +175,7 @@ int handle_cd(char * line)
 		// Path is given
 		if(chdir(buff)) {
 			debug_print("Failed to chdir()");
+			puts("Failed to cd. Please check the path");
 		}
 	}
 	return 0;
@@ -274,7 +282,8 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 				error_print("!!Executable not found in PATH\n");
 				exit(1);
 			}
-			debug_print("Execing: %s\n", cmd_curr->data);
+			debug_print("Execing: ")
+			debug_print(cmd_curr->data);
 			execvpe(arglist[0], arglist, environ);
 			error_print("Unknown command : ");
 			error_print(arglist[0]);
@@ -321,14 +330,31 @@ int is_empty_str(char *s){
 	return 1;
 }
 
+void read_envlist(char** envp) {
+	int i = 0;
+	while(envp[i] !=  NULL) {
+		debug_print(".");
+		environ[i] = (char *) malloc(strlen(envp[i]) + 1);
+		debug_print("0");
+		debug_print(envp[i]);
+		strcpy(environ[i], envp[i]);
+		debug_print("1");
+		i++;
+	}
+	environ[i] = NULL;
+}
+
 int main(int argc, char *argv[], char *envp[])
 {
 	int mode = MODE_INTERACTIVE;
 	char input_line[1000];
 	enum cmd_t command_type;
-	environ = envp;
 	int input_fd = 0;
-	debug_print("Argc = %d\n",argc);
+	//debug_print("Argc = %d\n",argc);
+	
+	debug_print("Here");
+	read_envlist(envp);
+	debug_print("Here");
 
 	if (argc > 1) {
 		mode = MODE_SCRIPT;
@@ -379,7 +405,9 @@ int main(int argc, char *argv[], char *envp[])
 			case cmd_bg:
 				get_bg_command(input_line);
 				debug_print("BG process. ");
-				debug_print("Filtered to %s \n", input_line);
+				debug_print("Filtered to ")
+				debug_print(input_line);
+				debug_print("\n")
 			case cmd_pipe:
 			case cmd_script:
 			case cmd_bin:

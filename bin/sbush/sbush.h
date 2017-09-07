@@ -1,5 +1,5 @@
 #ifdef __DEBUG__
-	#define debug_print(...)  printf(__VA_ARGS__);  
+	#define debug_print(x)  puts(x);
 #else
 	#define debug_print(...)
 #endif
