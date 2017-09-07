@@ -148,7 +148,7 @@ int is_file_exists(char * file){
                         	continue;
 		}
 
-		puts("not a directory");
+		//puts("not a directory");
 		strcpy(file,path_list->data);
 		return 1; 	
 	}while(path_list != NULL);
@@ -333,10 +333,10 @@ int is_empty_str(char *s){
 	int i;		
 	for(i=0;i<strlen(s);++i) {
 		if(!is_whitespace(s[i])) {
-			return 1;
+			return 0;
 		}
 	}
-	return 0;
+	return 1;
 }
 
 int main(int argc, char *argv[], char *envp[])
@@ -372,9 +372,6 @@ int main(int argc, char *argv[], char *envp[])
 		 * 4. Fork and exec binary. check BG
 		 */
 		command_type = get_command_type(input_line);
-		if (mode == MODE_INTERACTIVE) {
-			print_ps1();
-		}
 		switch(command_type) {
 			case cmd_builtin:
 				switch (get_shell_builtin(input_line)) {
