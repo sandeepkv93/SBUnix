@@ -80,7 +80,7 @@ void set_env(char* key, char * value)
 	 * and sets key=value aptly
 	 */
 	int i = 0;
-	char buff[100];
+	char buff[500];
 
 	strcpy(buff, key);
 	strcat(buff,STR_EQUALS);
@@ -89,6 +89,7 @@ void set_env(char* key, char * value)
 		if(!lib_str_find(environ[i], buff)) {
 			strcpy(environ[i], buff);
 			strcat(environ[i], value);
+			return;
 		}
 		i++;
 	}
