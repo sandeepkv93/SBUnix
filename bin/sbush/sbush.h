@@ -12,7 +12,7 @@
 #define STR_PIPE "|"
 #define STR_BG   "&"
 #define STR_SPACE " "
-#define STR_DEFAULT_PS1 "\033[93msbush>\033[0m"
+#define STR_DEFAULT_PS1 "\033[93msbush>\033[0m "
 
 #define CHAR_EQUALS '='
 #define CHAR_PIPE '|'
