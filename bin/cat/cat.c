@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
         int i;
         for(i=1;i<argc;i++)
         {
-                if((fd_read = open(argv[i],O_RDONLY,0))==-1)
+                if((fd_read = open(argv[i],O_RDONLY,0)) < 0)
                         puts("Error opening the file\n");
                 while((read_size = read(fd_read,buf,BUF_SIZE))>0)
                         write(1,buf,read_size);

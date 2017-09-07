@@ -3,6 +3,7 @@
 #include <string.h>
 //#include <sys/stat.h>
 #include <fcntl.h>
+#include<stdio.h>
 
 #define BUF_SIZE 1024
 #define CONSOLE_BUF_SIZE 255
@@ -35,6 +36,10 @@ int main(int argc, char* argv[])
 
     /* Open the directory*/
     fd = open(directory_name, O_RDONLY | O_DIRECTORY,0);
+    if(fd < 0){
+	puts("Failed to list directory. Please check the path.");
+        return -1;
+    }	
     while(1) {
         nread = syscall(_SYS__getdents, fd,(long) dirent_buffer, BUF_SIZE);
         if (nread == -1) {
