@@ -35,55 +35,65 @@ int main(int argc, char* argv[])
     char d_type;
 
     /* Open the directory*/
-    fd = open(directory_name, O_RDONLY | O_DIRECTORY,0);
-    if(fd < 0){
-	puts("Failed to list directory. Please check the path.");
-        return -1;
-    }	
-    while(1) {
-        nread = syscall(_SYS__getdents, fd,(long) dirent_buffer, BUF_SIZE);
-        if (nread == -1) {
-            strcpy(error_message,"ls: cannot access \'");
-            strcat(error_message,directory_name);
-            strcat(error_message,"\': No such file or directory\n");
-            write(1, error_message, strlen(error_message));
-            exit(-1);
-        }
-
-        /* read till nread becomes zero*/
-        if (nread == 0)
-            break;
-
-        for (directory_position = 0; directory_position < nread;directory_position += new_dirent_structure->d_reclen) {
-            new_dirent_structure = (struct new_dirent *) (dirent_buffer + directory_position);
-            
-            /* Get the file name from dirent structure */
-            file_name = new_dirent_structure->d_name;
-            
-            if (strcmp(file_name, "..") && strcmp(file_name, ".")) {
-		d_type = *(dirent_buffer + directory_position + new_dirent_structure->d_reclen - 1);	
-		
-                /* Formatting the filenames based on the type of files*/
-                if (d_type == DT_DIR) {
-                    strcpy(formatter,"\e[1m\e[34m");
-                }
-                else if ((d_type == DT_LNK)) {
-                    strcpy(formatter, "\e[1m\e[94m");
-                }
-                else {
-                    strcpy(formatter,"");
-                }
-
-                /* Write to the formatted string to the buffer */
-                strcpy(console_buffer,formatter);
-                strcat(console_buffer,file_name);
-                strcat(console_buffer,format_unset);
-
-                write(1,console_buffer,strlen(console_buffer));
-            }            
-        }
+    if(access(directory_name, F_OK) < 0){
+	strcpy(error_message,"ls: cannot access \'");
+        strcat(error_message,directory_name);
+        strcat(error_message,"\': No such file or directory\n");
+        write(1, error_message, strlen(error_message));
+        exit(-1);
     }
-    close(fd);
-    write(1,new_line_buffer,strlen(new_line_buffer));
-    return 0;
+    else{
+	    fd = open(directory_name, O_RDONLY | O_DIRECTORY,0);
+	    if(fd < 0){
+		puts(directory_name);
+		return 0;
+	    }
+            	
+	    while(1) {
+		nread = syscall(_SYS__getdents, fd,(long) dirent_buffer, BUF_SIZE);
+		if (nread == -1) {
+		    strcpy(error_message,"ls: cannot access \'");
+		    strcat(error_message,directory_name);
+		    strcat(error_message,"\': No such file or directory\n");
+		    write(1, error_message, strlen(error_message));
+		    exit(-1);
+		}
+
+		/* read till nread becomes zero*/
+		if (nread == 0)
+		    break;
+
+		for (directory_position = 0; directory_position < nread;directory_position += new_dirent_structure->d_reclen) {
+		    new_dirent_structure = (struct new_dirent *) (dirent_buffer + directory_position);
+		    
+		    /* Get the file name from dirent structure */
+		    file_name = new_dirent_structure->d_name;
+		    
+		    if (strcmp(file_name, "..") && strcmp(file_name, ".")) {
+			d_type = *(dirent_buffer + directory_position + new_dirent_structure->d_reclen - 1);	
+			
+			/* Formatting the filenames based on the type of files*/
+			if (d_type == DT_DIR) {
+			    strcpy(formatter,"\e[1m\e[34m");
+			}
+			else if ((d_type == DT_LNK)) {
+			    strcpy(formatter, "\e[1m\e[94m");
+			}
+			else {
+			    strcpy(formatter,"");
+			}
+
+			/* Write to the formatted string to the buffer */
+			strcpy(console_buffer,formatter);
+			strcat(console_buffer,file_name);
+			strcat(console_buffer,format_unset);
+
+			write(1,console_buffer,strlen(console_buffer));
+		    }            
+		}
+	    }
+	    close(fd);
+	    write(1,new_line_buffer,strlen(new_line_buffer));
+	    return 0;
+    }
 }
