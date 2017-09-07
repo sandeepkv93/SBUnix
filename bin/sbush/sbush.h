@@ -4,7 +4,7 @@
 	#define debug_print(...)
 #endif
 
-#define error_print(x) puts(x);  
+#define error_print(x) putstr(x);  
 
 #define LENARR(x) (sizeof(x)/sizeof(x[0]))
 

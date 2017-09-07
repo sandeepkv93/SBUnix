@@ -115,7 +115,7 @@ int is_dir(char * filename){
 	return 0;
 }
 
-int is_file_exists(char * file){
+int get_executable_path(char * file){
 	char path[500];
 	struct stringllnode * path_list = NULL;
 
@@ -283,7 +283,7 @@ int run_cmd(char * input_line, enum cmd_t command_type)
 			}
 			get_arglist(cmd_curr->data, arglist);
 
-			if(!is_file_exists(arglist[0])){
+			if(!get_executable_path(arglist[0])){
 				error_print("!!Executable not found in PATH\n");
 				exit(1);
 			}
@@ -355,17 +355,15 @@ int main(int argc, char *argv[], char *envp[])
 	char input_line[1000];
 	enum cmd_t command_type;
 	int input_fd = 0;
-	//debug_print("Argc = %d\n",argc);
 	
-	debug_print("Here");
 	read_envlist(envp);
-	debug_print("Here");
 
 	if (argc > 1) {
 		mode = MODE_SCRIPT;
 		if((input_fd = open(argv[1],O_RDONLY,0)) == -1) {
 			error_print("Unable to read the script! : ");
 			error_print(argv[0]);
+			error_print("\n");
 		}
 	} else {
 		print_ps1();
