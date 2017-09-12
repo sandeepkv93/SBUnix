@@ -3,11 +3,14 @@
 #include <sys/kprintf.h>
 #include <sys/tarfs.h>
 #include <sys/ahci.h>
+#include <stdarg.h>
+#include <string.h>
 
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
+
 
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
@@ -28,7 +31,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 void boot(void)
 {
   // note: function changes rsp, local stack variables can't be practically used
-  register char *temp1, *temp2;
+   //register char *temp1, *temp2;
+	register char *temp2;
 
   for(temp2 = (char*)0xb8001; temp2 < (char*)0xb8000+160*25; temp2 += 2) *temp2 = 7 /* white */;
   __asm__(
@@ -44,10 +48,16 @@ void boot(void)
     (uint64_t*)&physbase,
     (uint64_t*)(uint64_t)loader_stack[4]
   );
-  for(
-    temp1 = "!!!!! start() returned !!!!!", temp2 = (char*)0xb8000;
-    *temp1;
-    temp1 += 1, temp2 += 2
-  ) *temp2 = *temp1;
-  while(1);
+  	/*
+  	for(temp1 = "\0", temp2 = (char*)0xb8000; *temp1; temp1 += 1, temp2 += 2) {
+  		*temp2 = *temp1;
+  	}
+  	*/
+  	char *s = "Alice";
+	char *st = "Wonderland";
+	char ch = 'I';
+	int i =100;
+	signalme('H');
+	kprintf_("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! Your score in hex is %x",ch,s,st,i,s);
+	while(1);
 }
