@@ -111,11 +111,11 @@ _start()
                            // move it to rdx
         "andq $~15, %rsp;" // make stack pointer point to an address that is a
                            // multiple of 16. this is for optimization
-        "pushq %rsp;"    // push back the aligned stack pointer
-        "push %rdx;"     // push argv
-        "push %rsi;"     // push argc
-        "call main;"     // call main
-        "movq $60,%rax;" // exit
+        "pushq %rsp;"      // push back the aligned stack pointer
+        "push %rdx;"       // push argv
+        "push %rsi;"       // push argc
+        "call main;"       // call main
+        "movq $60,%rax;"   // exit
         "movq $0,%rdi;"
         "syscall;");
 }

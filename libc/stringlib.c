@@ -110,9 +110,7 @@ lib_str_split(const char* string_, char delimiter, struct stringllnode** start)
 }
 
 int
-lib_str_split_get_member(const char* string_,
-                         char delimiter,
-                         int index,
+lib_str_split_get_member(const char* string_, char delimiter, int index,
                          char* a)
 {
     int t;

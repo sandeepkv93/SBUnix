@@ -3,18 +3,12 @@
 
 static const int EOF = -1;
 
-int
-putchar(int c);
-int
-puts(const char* s);
-int
-putstr(const char* s);
-int
-printf(const char* format, ...);
+int putchar(int c);
+int puts(const char* s);
+int putstr(const char* s);
+int printf(const char* format, ...);
 
-char*
-gets(char* s);
-char*
-fgets(int fd, char* s);
+char* gets(char* s);
+char* fgets(int fd, char* s);
 
 #endif

@@ -27,8 +27,7 @@ append(struct stringllnode** head_reference, char* new_data)
 }
 
 void
-append_all(struct stringllnode** head_reference,
-           char** new_data_array,
+append_all(struct stringllnode** head_reference, char** new_data_array,
            int array_size)
 {
     int index;

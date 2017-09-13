@@ -71,10 +71,8 @@ static uint64_t gdt[MAX_GDT] = {
 static struct gdtr_t gdtr = { sizeof(gdt), (uint64_t)gdt };
 static struct tss_t tss;
 
-void
-_x86_64_asm_lgdt(struct gdtr_t* gdtr, uint64_t cs_idx, uint64_t ds_idx);
-void
-_x86_64_asm_ltr(uint64_t tss_idx);
+void _x86_64_asm_lgdt(struct gdtr_t* gdtr, uint64_t cs_idx, uint64_t ds_idx);
+void _x86_64_asm_ltr(uint64_t tss_idx);
 void
 init_gdt()
 {
