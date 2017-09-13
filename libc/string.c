@@ -1,49 +1,54 @@
 
-int strcmp(const char * s1,const char * s2)
+int
+strcmp(const char* s1, const char* s2)
 {
-	while(*s1 == *s2 && *s1 != '\0') {
-		s1++;
-		s2++;
-	}
-	return *s1-*s2;
+    while (*s1 == *s2 && *s1 != '\0') {
+        s1++;
+        s2++;
+    }
+    return *s1 - *s2;
 }
 
-int strlen(const char * s1)
+int
+strlen(const char* s1)
 {
-	int len=0;
-	while(*s1++!='\0') {
-		len++;
-	}
-	return len;
+    int len = 0;
+    while (*s1++ != '\0') {
+        len++;
+    }
+    return len;
 }
 
-char * strcpy(char * dest,const char * src)
+char*
+strcpy(char* dest, const char* src)
 {
-	char * temp;
-	temp = dest;
-	while((*temp++ = *src++)!='\0')
-		;
-	return dest;
+    char* temp;
+    temp = dest;
+    while ((*temp++ = *src++) != '\0')
+        ;
+    return dest;
 }
 
-char * strncpy(char *dest, const char *src, int n)
+char*
+strncpy(char* dest, const char* src, int n)
 {
-	char * temp;
-	temp = dest;
-	while(n && (*temp++ = *src++)!='\0'){
-		n--;
-	}
-	return dest;
+    char* temp;
+    temp = dest;
+    while (n && (*temp++ = *src++) != '\0') {
+        n--;
+    }
+    return dest;
 }
 
-char * strcat(char * dest,const char * src)
+char*
+strcat(char* dest, const char* src)
 {
-	char * temp = dest;
-	while(*temp != '\0') {
-		temp++;
-	}
-	while((*temp++ = *src++)!='\0')
-		;
-	*temp='\0';
-	return dest;
+    char* temp = dest;
+    while (*temp != '\0') {
+        temp++;
+    }
+    while ((*temp++ = *src++) != '\0')
+        ;
+    *temp = '\0';
+    return dest;
 }

@@ -3,10 +3,10 @@
 #define WRITE 1
 
 #define _GNU_SOURCE
-#include<sys/syscall.h>
-#include<stdio.h>
-#include<unistd.h>
-#include<sys/wait.h>
+#include <stdio.h>
+#include <sys/syscall.h>
+#include <sys/wait.h>
+#include <unistd.h>
 int pipe_new(int fds[])
 {
 	return syscall(SYS_pipe,fds);

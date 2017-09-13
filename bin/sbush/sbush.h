@@ -1,22 +1,22 @@
 #ifdef __DEBUG__
-	#define debug_print(x)  puts(x);
+#define debug_print(x) puts(x);
 #else
-	#define debug_print(...)
+#define debug_print(...)
 #endif
 
-#define error_print(x) putstr(x);  
+#define error_print(x) putstr(x);
 
-#define LENARR(x) (sizeof(x)/sizeof(x[0]))
+#define LENARR(x) (sizeof(x) / sizeof(x[0]))
 
 #define STR_EQUALS "="
 #define STR_PIPE "|"
-#define STR_BG   "&"
+#define STR_BG "&"
 #define STR_SPACE " "
 #define STR_DEFAULT_PS1 "\033[93msbush>\033[0m "
 
 #define CHAR_EQUALS '='
 #define CHAR_PIPE '|'
-#define CHAR_BG   '&'
+#define CHAR_BG '&'
 #define CHAR_SPACE ' '
 #define CHAR_COLON ':'
 
@@ -26,11 +26,26 @@
 #define MODE_INTERACTIVE 21
 #define MODE_SCRIPT 22
 
-enum cmd_t {cmd_bin, cmd_script, cmd_bg, cmd_pipe, cmd_builtin };
+enum cmd_t
+{
+    cmd_bin,
+    cmd_script,
+    cmd_bg,
+    cmd_pipe,
+    cmd_builtin
+};
 
-enum builtin_t { builtin_none, builtin_cd, builtin_exit, builtin_export, builtin_comment };
+enum builtin_t
+{
+    builtin_none,
+    builtin_cd,
+    builtin_exit,
+    builtin_export,
+    builtin_comment
+};
 
-struct s_builtins {
-	enum builtin_t type;
-	char * command;
+struct s_builtins
+{
+    enum builtin_t type;
+    char* command;
 };
