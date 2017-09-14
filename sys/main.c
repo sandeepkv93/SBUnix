@@ -4,12 +4,24 @@
 #include <sys/defs.h>
 #include <sys/gdt.h>
 #include <sys/kprintf.h>
+#include <sys/pic.h>
 #include <sys/tarfs.h>
 
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE] __attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
+
+static inline int
+are_interrupts_enabled()
+{
+    unsigned long flags;
+    __asm__ __volatile("pushf\n\t"
+                       "pop %0"
+                       : "=g"(flags));
+    return flags & (1 << 9);
+}
+
 
 void
 start(uint32_t* modulep, void* physbase, void* physfree)
@@ -30,6 +42,20 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     }
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+
+    char* s = "Alice";
+    char* st = "Wonderland";
+    char ch = 'I';
+    int i = 100;
+    signalme('H');
+    kprintf_("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
+             "Your score in hex is %x",
+             ch, s, st, i, &i);
+    pic_init();
+    register_idt();
+    __asm__("sti;");
+    are_interrupts_enabled()? signalme('Y') : signalme('N');
+    /*__asm__( "cli;");*/
 }
 
 void
@@ -56,14 +82,6 @@ boot(void)
             *temp2 = *temp1;
     }
     */
-    char* s = "Alice";
-    char* st = "Wonderland";
-    char ch = 'I';
-    int i = 100;
-    signalme('H');
-    kprintf_("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
-             "Your score in hex is %x",
-             ch, s, st, i, s);
     while (1)
         ;
 }
