@@ -113,7 +113,7 @@ void
 kb_isr()
 {
     push_regs();
-    kprintf_("Val-> %d.", inb(0x60));
+    kprintf("Val-> %d.", inb(0x60));
     outb(PIC1_COMMAND, PIC_EOI);
     pop_regs();
     return_isr();
@@ -123,7 +123,7 @@ void
 fake_isr()
 {
     push_regs();
-    kprintf_(".");
+    kprintf(".");
     outb(PIC1_COMMAND, PIC_EOI);
     /*
         if (irq > 7)
@@ -154,5 +154,5 @@ register_idt()
     }
     idt[0x21] = pic_get_idt_entry((void*)kb_isr);
     lidt(idt, sizeof(struct_idt_entry) * 256 - 1);
-    kprintf_("this %d", sizeof(struct_idt_entry));
+    kprintf("this %d", sizeof(struct_idt_entry));
 }
