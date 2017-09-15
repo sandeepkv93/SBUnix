@@ -47,9 +47,9 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     char ch = 'I';
     long j, i = 100;
     signalme('H');
-    kprintf_("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
-             "Your score in hex is %x",
-             ch, s, st, i, &i);
+    kprintf("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
+            "Your score in hex is %x",
+            ch, s, st, i, &i);
     register_idt();
     pic_init();
     enable_interrupts(TRUE);

@@ -25,6 +25,86 @@ enable_interrupts(bool status)
     }
 }
 
+inline void
+push_regs()
+{
+    // Push registers
+    __asm__("push %rsi;"
+            "push %rdi;"
+            "push %rbp;"
+            "push %rax;"
+            "push %rbx;"
+            "push %rcx;"
+            "push %rdx;");
+}
+inline void
+pop_regs()
+{
+    // Pop registers
+    __asm__("pop %rdx;"
+            "pop %rcx;"
+            "pop %rbx;"
+            "pop %rax;"
+            "pop %rbp;"
+            "pop %rdi;"
+            "pop %rsi;"
+            "add $0x8,%rsp;");
+}
+
+inline void
+return_isr()
+{
+    __asm__("iretq;");
+}
+
+struct_idt_entry
+pic_get_idt_entry(void* address)
+{
+    long addr = (long)address;
+    struct_idt_entry member;
+    member.offset_1 = (addr & 0xffff);
+    member.offset_2 = ((addr >> 16) & 0xffff);
+    member.offset_3 = ((addr >> 32) & 0xffffffff);
+    member.selector = 8;
+    member.ist = 0;
+    member.zero = 0;
+    member.type_attr = 0x8E;
+    return member;
+}
+
+void
+register_isr(int intn, void* handler)
+{
+    idt[intn] = pic_get_idt_entry(handler);
+}
+void
+timer_handler()
+{
+    static int seconds = 0;
+    static int counter = 0;
+    push_regs();
+    counter++;
+    if (counter == 41) {
+        seconds++;
+        counter = 0;
+        kprintf("in timer %d", seconds);
+    }
+    outb(PIC1_COMMAND, PIC_EOI);
+    pop_regs();
+    return_isr();
+}
+
+void
+timer_setup()
+{
+    __asm__("mov $0x34, %al;"
+            "out %al, $0x43;"   // load control register
+            "mov $29102, %eax;" // 1193182 = (41 * 29102) = 41*2*14551//
+            "out %al, $0x40;"
+            "mov %ah, %al;"
+            "out %al, $0x40;");
+}
+
 // TODO
 void
 pic_init()
@@ -62,53 +142,6 @@ pic_init()
     outb(0xa1, 0xff);
 }
 
-struct_idt_entry
-pic_get_idt_entry(void* address)
-{
-    long addr = (long)address;
-    struct_idt_entry member;
-    member.offset_1 = (addr & 0xffff);
-    member.offset_2 = ((addr >> 16) & 0xffff);
-    member.offset_3 = ((addr >> 32) & 0xffffffff);
-    member.selector = 8;
-    member.ist = 0;
-    member.zero = 0;
-    member.type_attr = 0x8E;
-    return member;
-}
-
-inline void
-push_regs()
-{
-    // Push registers
-    __asm__("push %rsi;"
-            "push %rdi;"
-            "push %rbp;"
-            "push %rax;"
-            "push %rbx;"
-            "push %rcx;"
-            "push %rdx;");
-}
-inline void
-pop_regs()
-{
-    // Pop registers
-    __asm__("pop %rdx;"
-            "pop %rcx;"
-            "pop %rbx;"
-            "pop %rax;"
-            "pop %rbp;"
-            "pop %rdi;"
-            "pop %rsi;"
-            "add $0x8,%rsp;");
-}
-
-inline void
-return_isr()
-{
-    __asm__("iretq;");
-}
-
 void
 kb_isr()
 {
@@ -123,7 +156,7 @@ void
 fake_isr()
 {
     push_regs();
-    kprintf(".");
+    kprintf("unregistered interrupt");
     outb(PIC1_COMMAND, PIC_EOI);
     /*
         if (irq > 7)
@@ -152,7 +185,9 @@ register_idt()
     for (i = 0; i < 256; i++) {
         idt[i] = pic_get_idt_entry((void*)fake_isr);
     }
-    idt[0x21] = pic_get_idt_entry((void*)kb_isr);
+    timer_setup(); // setup PIT
+    register_isr(0x20, (void*)timer_handler);
+    register_isr(0x21, (void*)kb_isr);
     lidt(idt, sizeof(struct_idt_entry) * 256 - 1);
     kprintf("this %d", sizeof(struct_idt_entry));
 }

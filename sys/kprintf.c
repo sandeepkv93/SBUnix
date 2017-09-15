@@ -79,7 +79,6 @@ signalme(char c)
     *t = c;
 }
 
-
 void
 print_to_printf(const char* buf, int buflen)
 {
@@ -123,13 +122,13 @@ kprintf(const char* arg1, ...)
                 copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
                 break;
             case 'p':
-            	buffer[bufptr++] = '0';
-            	buffer[bufptr++] = 'x';
-            	copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
+                buffer[bufptr++] = '0';
+                buffer[bufptr++] = 'x';
+                copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
                 break;
         }
         ++i;
     }
-    print_to_printf(buffer,bufptr);
+    print_to_printf(buffer, bufptr);
     va_end(ap);
 }
