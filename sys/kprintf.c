@@ -81,7 +81,7 @@ signalme(char c)
 
 
 void
-print_to_printf(const char* buf, int buflen)
+print_to_console(const char* buf, int buflen)
 {
     int k = 0;
     while (k < buflen) {
@@ -130,6 +130,6 @@ kprintf(const char* arg1, ...)
         }
         ++i;
     }
-    print_to_printf(buffer,bufptr);
+    print_to_console(buffer,bufptr);
     va_end(ap);
 }
