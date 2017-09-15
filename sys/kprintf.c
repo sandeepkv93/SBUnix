@@ -4,11 +4,6 @@
 
 char* vc = (char*)0xb8000;
 
-void
-kprintf(const char* fmt, ...)
-{
-}
-
 int
 strlen(const char* s1)
 {
@@ -84,8 +79,19 @@ signalme(char c)
     *t = c;
 }
 
+
 void
-kprintf_(const char* arg1, ...)
+print_to_printf(const char* buf, int buflen)
+{
+    int k = 0;
+    while (k < buflen) {
+        *vc = buf[k++];
+        vc += 2;
+    }
+}
+
+void
+kprintf(const char* arg1, ...)
 {
     char buffer[4096] = { '\0' };
     int bufptr = 0;
@@ -94,7 +100,6 @@ kprintf_(const char* arg1, ...)
     int len = strlen(arg1);
     int i = 0;
     char* st;
-    signalme('M');
     while (i < len) {
         if (arg1[i] != '%') {
             buffer[bufptr++] = arg1[i++];
@@ -117,15 +122,14 @@ kprintf_(const char* arg1, ...)
             case 'x':
                 copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
                 break;
+            case 'p':
+            	buffer[bufptr++] = '0';
+            	buffer[bufptr++] = 'x';
+            	copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
+                break;
         }
         ++i;
     }
-
-    /* Replace this Shitty logic using memcopy*/
-    i = 0;
-    while (i < strlen(buffer)) {
-        *vc = buffer[i++];
-        vc += 2;
-    }
+    print_to_printf(buffer,bufptr);
     va_end(ap);
 }

@@ -30,6 +30,8 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     }
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+    int k = 10;
+    kprintf("Hello %p ",&k);
 }
 
 void
@@ -60,10 +62,15 @@ boot(void)
     char* st = "Wonderland";
     char ch = 'I';
     int i = 100;
-    signalme('H');
-    kprintf_("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
+    //signalme('H');
+    kprintf("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
              "Your score in hex is %x",
              ch, s, st, i, s);
+    /*
+    for(i = 10; i > 0; i--) {
+        kprintf("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
+             "Your score in hex is %x",ch, s, st, i, s);
+    }*/
     while (1)
         ;
 }
