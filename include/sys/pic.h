@@ -21,6 +21,7 @@ typedef struct {
    uint16_t offset_2; // offset bits 16..31
    uint32_t offset_3; // offset bits 32..63
    uint32_t zero;     // reserved
-} struct_idt_entry;
+} __attribute__((packed)) struct_idt_entry;
+struct_idt_entry idt[256];
 
 #endif

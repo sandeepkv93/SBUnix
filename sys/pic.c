@@ -44,37 +44,37 @@ io_wait()
 void
 pic_init()
 {
- 	outb(0x11, 0x20);
+ 	outb( 0x20,0x11);
 
-        outb(0x11, 0xa0);
+        outb( 0xa0,0x11);
 
         /*Remaps IRQ0-IRQ7 to 0x20-0x27 in interrupt vector table*/
 
-        outb(0x20, 0x21); 
+        outb( 0x21,0x20); 
 
         /*Remaps IRQ8-IRQ15 to 0x28-0x2F in interrupt vector table*/
 
-        outb(0x28, 0xa1);
+        outb( 0xa1,0x28);
 
         /*PIC2 is connected to PIC1 via IRQ2*/
 
-        outb(0x04, 0x21);
+        outb( 0x21,0x04);
 
-        outb(0x02, 0xa1);
+        outb( 0xa1,0x02);
 
         /*Enables 8086/88 mode*/
 
-        outb(0x01, 0x21);
+        outb( 0x21,0x01);
 
-        outb(0x01, 0xa1);
+        outb( 0xa1,0x01);
 
         /*Disables all interrupts from IRQ0-IRQ7*/
 
-        outb(0xff, 0x21);
+        outb( 0x21,0xfd);
 
         /*Disables all interrupts from IRQ8-IRQ15*/
 
-        outb(0xff, 0xa1);
+        outb( 0xa1,0xff);
 }
 
 struct_idt_entry pic_get_idt_entry(void * address)
@@ -86,31 +86,57 @@ struct_idt_entry pic_get_idt_entry(void * address)
     member.offset_3 = ( (addr >> 32) & 0xffffffff);
     member.selector = 8;
     member.ist = 0;
+    member.zero = 0;
+    member.type_attr = 0x8E;
     return member;
 }
 
 void fake_isr() {
-    kprintf_("Here I am!! Boys :D");
-    __asm__("iret;");
+    static int i =0;
+    __asm__(
+   "push %rax;"
+   "push %rbx;"
+   "push %rcx;"
+   "push %rdx;"
+   "push %rsi;"
+   "push %rdi;"
+   "push %rbp;"
+);
+    signalme('0'+i++);
+    kprintf_("okkkk");
+        outb(PIC1_COMMAND, PIC_EOI);
+     __asm__(
+   "pop %rbp;"
+   "pop %rdi;"
+   "pop %rsi;"
+   "pop %rdx;"
+   "pop %rcx;"
+   "pop %rbx;"
+   "pop %rax;"
+   "add $0x8,%rsp;"
+    "iretq;"
+    );
 }
 
 static inline void lidt(void* base, uint16_t size)
 {   // This function works in 32 and 64bit mode
     struct {
         uint16_t length;
-        void*    base;
-    } __attribute__((packed)) IDTR = { size, base };
+        uint64_t    base;
+    } __attribute__((packed)) IDTR = { size, (uint64_t)base };
  
-    __asm__ ( "lidt %0" : : "m"(IDTR) );  // let the compiler choose an addressing mode
+    __asm__ ( "lidt %0;"
+              "sti;"
+              : : "m"(IDTR) );  // let the compiler choose an addressing mode
 }
 
 void register_idt() {
-    struct_idt_entry idt[256];
     int i;
     for (i=0; i<256; i++) {
         idt[i] = pic_get_idt_entry((void*)fake_isr);
     }
-    lidt(&idt, sizeof(struct_idt_entry) * 256);
+    lidt(idt, sizeof(struct_idt_entry) * 256 - 1);
+    kprintf_("this %d",sizeof(struct_idt_entry));
 }
 
 
