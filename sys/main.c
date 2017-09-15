@@ -22,7 +22,6 @@ are_interrupts_enabled()
     return flags & (1 << 9);
 }
 
-
 void
 start(uint32_t* modulep, void* physbase, void* physfree)
 {
@@ -46,7 +45,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     char* s = "Alice";
     char* st = "Wonderland";
     char ch = 'I';
-    long j,i = 100;
+    long j, i = 100;
     signalme('H');
     kprintf_("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
              "Your score in hex is %x",
@@ -54,15 +53,15 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     kprintf_("sample");
     register_idt();
     pic_init();
-    are_interrupts_enabled()? signalme('Y') : signalme('N');
-    while(1){
-        for(i=0; i != 32768; i++) {
-        for(j=0; j != 32768; j++) 
-            j = j +1 -1;
+    enable_interrupts(TRUE);
+    are_interrupts_enabled() ? signalme('Y') : signalme('N');
+    while (1) {
+        for (i = 0; i != 32768; i++) {
+            for (j = 0; j != 32768; j++)
+                j = j + 1 - 1;
         }
-        are_interrupts_enabled()? signalme('Y') : signalme('N');
-    }
-        ;
+        are_interrupts_enabled() ? signalme('Y') : signalme('N');
+    };
 }
 
 void
