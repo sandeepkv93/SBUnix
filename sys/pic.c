@@ -87,7 +87,7 @@ print_time(int seconds)
 {
     char str[20];
     int len = 0;
-    len = sprintf(str, "Time since boot %d", seconds);
+    len = sprintf(str, " Time since boot %d:%d", seconds / 60, seconds % 60);
     cursor_move(24, 80 - (len));
     kprintf(str);
 }

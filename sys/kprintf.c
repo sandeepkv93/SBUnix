@@ -80,6 +80,11 @@ copy_integer(int i, char* buf, int* ptr)
     int d;
     int k = 0;
     char int_buffer[64] = { '\0' };
+    if (i == 0) {
+        buf[*ptr] = '0';
+        *ptr += 1;
+        return;
+    }
     while (i > 0) {
         d = i % 10;
         i /= 10;
