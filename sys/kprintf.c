@@ -264,6 +264,13 @@ kprintf(const char* format, ...)
 }
 
 void
+get_cursor_position(int* row, int* col)
+{
+    *row = vc_row;
+    *col = vc_col;
+}
+
+void
 cursor_move(int row, int col)
 {
     vc_row = row;
