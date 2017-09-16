@@ -1,6 +1,8 @@
+#include <sys/keyboard.h>
 #include <sys/kprintf.h>
 #include <sys/pic.h>
 
+extern char g_keymap[];
 void
 outb(uint16_t port, uint8_t value)
 {
@@ -48,7 +50,7 @@ pop_regs()
             "pop %rbp;"
             "pop %rdi;"
             "pop %rsi;"
-            "add $0x8,%rsp;");
+            "add $0x8,%rsp;"); // Because gcc adds 'sub 0x8, RSP' ¯\_(ツ)_/¯
 }
 
 inline void
@@ -146,7 +148,11 @@ void
 kb_isr()
 {
     push_regs();
-    kprintf("Val-> %d.", inb(0x60));
+    uint8_t code;
+    code = inb(0x60);
+    if ((code > 0) && (code < g_keymap[0])) {
+        signalme(g_keymap[code]);
+    }
     outb(PIC1_COMMAND, PIC_EOI);
     pop_regs();
     return_isr();

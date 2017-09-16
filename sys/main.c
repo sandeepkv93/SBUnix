@@ -45,22 +45,15 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     char* s = "Alice";
     char* st = "Wonderland";
     char ch = 'I';
-    long j, i = 100;
-    signalme('H');
+    int i = 11;
     kprintf("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
             "Your score in hex is %x",
             ch, s, st, i, &i);
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
-    are_interrupts_enabled() ? signalme('Y') : signalme('N');
-    while (1) {
-        for (i = 0; i != 32768; i++) {
-            for (j = 0; j != 32768; j++)
-                j = j + 1 - 1;
-        }
-        are_interrupts_enabled() ? signalme('Y') : signalme('N');
-    };
+    while (1)
+        ;
 }
 
 void

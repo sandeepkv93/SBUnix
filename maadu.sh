@@ -1,3 +1,4 @@
+#! /bin/bash
 find -name "*.[h|c]" | xargs clang-format -i
 make clean
 make

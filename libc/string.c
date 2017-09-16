@@ -1,34 +1,34 @@
-void charcpy(char * dest, char * src, int char_num)
+void
+charcpy(char* dest, char* src, int char_num)
 {
-        while(char_num--)
-        {
-                *dest++ = *src++;
-        }
+    while (char_num--) {
+        *dest++ = *src++;
+    }
 }
 
-void longcpy(long * dest, long * src, int long_num)
+void
+longcpy(long* dest, long* src, int long_num)
 {
-        while(long_num--)
-        {
-                *dest++ = *src++;
-        }
+    while (long_num--) {
+        *dest++ = *src++;
+    }
 }
 
-void memcpy(void * dest, void * src, int size)
+void
+memcpy(void* dest, void* src, int size)
 {
-  int char_num = size % sizeof(long);
-  int long_num = size / sizeof(long);
-  int char_start = 0;
-  if(long_num)
-  {
-     longcpy((long *)dest,(long*)src,long_num);
-     char_start = size - char_num; 
-  }
-  char_start = size - char_num;
-  if(char_num)
-  {
-     charcpy((char*)(dest+char_start),(char*)(src+char_start),char_num);
-  }
+    int char_num = size % sizeof(long);
+    int long_num = size / sizeof(long);
+    int char_start = 0;
+    if (long_num) {
+        longcpy((long*)dest, (long*)src, long_num);
+        char_start = size - char_num;
+    }
+    char_start = size - char_num;
+    if (char_num) {
+        charcpy((char*)(dest + char_start), (char*)(src + char_start),
+                char_num);
+    }
 }
 
 int
