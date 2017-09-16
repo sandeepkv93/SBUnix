@@ -5,5 +5,5 @@ void kprintf(const char*, ...);
 void signalme(char);
 void clear_screen();
 void cursor_move(int, int);
-int sprintf(char * , const char * ,...);
+int sprintf(char*, const char*, ...);
 #endif

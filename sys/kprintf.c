@@ -1,6 +1,6 @@
 #include <stdarg.h>
-#include <sys/string.h>
 #include <sys/kprintf.h>
+#include <sys/string.h>
 #define VC_ROW_LIMIT 25
 #define VC_COL_LIMIT 80
 
@@ -132,7 +132,8 @@ print_to_console(const char* buf, int buflen)
     }
 }
 
-int vprintf(char * buffer,const char * format,va_list ap)
+int
+vprintf(char* buffer, const char* format, va_list ap)
 {
     int len = strlen(format);
     int i = 0;
@@ -169,48 +170,48 @@ int vprintf(char * buffer,const char * format,va_list ap)
         ++i;
     }
     return bufptr;
-
 }
-int sprintf(char * buffer, const char * format,...)
+int
+sprintf(char* buffer, const char* format, ...)
 {
     int bufptr = 0;
     va_list ap;
     va_start(ap, format);
-    bufptr = vprintf(buffer, format,ap);
-/*    int len = strlen(format);
-    int i = 0;
-    char* st;
-    while (i < len) {
-        if (format[i] != '%') {
-            buffer[bufptr++] = format[i++];
-            continue;
+    bufptr = vprintf(buffer, format, ap);
+    /*    int len = strlen(format);
+        int i = 0;
+        char* st;
+        while (i < len) {
+            if (format[i] != '%') {
+                buffer[bufptr++] = format[i++];
+                continue;
+            }
+            ++i;
+            switch (format[i]) {
+                case 'c':
+                    buffer[bufptr++] = (char)va_arg(ap, int);
+                    break;
+                case 's':
+                    st = (char*)va_arg(ap, char*);
+                    while (*st) {
+                        buffer[bufptr++] = *st++;
+                    }
+                    break;
+                case 'd':
+                    copy_integer(va_arg(ap, int), buffer, &bufptr);
+                    break;
+                case 'x':
+                    copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
+                    break;
+                case 'p':
+                    buffer[bufptr++] = '0';
+                    buffer[bufptr++] = 'x';
+                    copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
+                    break;
+            }
+            ++i;
         }
-        ++i;
-        switch (format[i]) {
-            case 'c':
-                buffer[bufptr++] = (char)va_arg(ap, int);
-                break;
-            case 's':
-                st = (char*)va_arg(ap, char*);
-                while (*st) {
-                    buffer[bufptr++] = *st++;
-                }
-                break;
-            case 'd':
-                copy_integer(va_arg(ap, int), buffer, &bufptr);
-                break;
-            case 'x':
-                copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
-                break;
-            case 'p':
-                buffer[bufptr++] = '0';
-                buffer[bufptr++] = 'x';
-                copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
-                break;
-        }
-        ++i;
-    }
-*/
+    */
     va_end(ap);
     return bufptr;
 }
@@ -222,42 +223,42 @@ kprintf(const char* format, ...)
     int bufptr = 0;
     va_list ap;
     va_start(ap, format);
-    bufptr = vprintf(buffer,format,ap);
-/*
-    int len = strlen(arg1);
-    int i = 0;
-    char* st;
-    while (i < len) {
-        if (arg1[i] != '%') {
-            buffer[bufptr++] = arg1[i++];
-            continue;
+    bufptr = vprintf(buffer, format, ap);
+    /*
+        int len = strlen(arg1);
+        int i = 0;
+        char* st;
+        while (i < len) {
+            if (arg1[i] != '%') {
+                buffer[bufptr++] = arg1[i++];
+                continue;
+            }
+            ++i;
+            switch (arg1[i]) {
+                case 'c':
+                    buffer[bufptr++] = (char)va_arg(ap, int);
+                    break;
+                case 's':
+                    st = (char*)va_arg(ap, char*);
+                    while (*st) {
+                        buffer[bufptr++] = *st++;
+                    }
+                    break;
+                case 'd':
+                    copy_integer(va_arg(ap, int), buffer, &bufptr);
+                    break;
+                case 'x':
+                    copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
+                    break;
+                case 'p':
+                    buffer[bufptr++] = '0';
+                    buffer[bufptr++] = 'x';
+                    copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
+                    break;
+            }
+            ++i;
         }
-        ++i;
-        switch (arg1[i]) {
-            case 'c':
-                buffer[bufptr++] = (char)va_arg(ap, int);
-                break;
-            case 's':
-                st = (char*)va_arg(ap, char*);
-                while (*st) {
-                    buffer[bufptr++] = *st++;
-                }
-                break;
-            case 'd':
-                copy_integer(va_arg(ap, int), buffer, &bufptr);
-                break;
-            case 'x':
-                copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
-                break;
-            case 'p':
-                buffer[bufptr++] = '0';
-                buffer[bufptr++] = 'x';
-                copy_hex(va_arg(ap, unsigned long), buffer, &bufptr);
-                break;
-        }
-        ++i;
-    }
-*/
+    */
     print_to_console(buffer, bufptr);
     va_end(ap);
 }

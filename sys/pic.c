@@ -80,12 +80,13 @@ register_isr(int intn, void* handler)
     idt[intn] = pic_get_idt_entry(handler);
 }
 
-void print_time(int seconds)
+void
+print_time(int seconds)
 {
     char str[20];
-    int len=0;
-    len = sprintf(str,"%d", seconds);
-    cursor_move(24,80-(len));
+    int len = 0;
+    len = sprintf(str, "%d", seconds);
+    cursor_move(24, 80 - (len));
     kprintf(str);
 }
 void
