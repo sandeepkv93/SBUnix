@@ -1,7 +1,7 @@
 #include <sys/keyboard.h>
 #include <sys/kprintf.h>
 #include <sys/pic.h>
-
+#include <sys/string.h>
 extern char g_keymap[];
 void
 outb(uint16_t port, uint8_t value)
@@ -79,6 +79,15 @@ register_isr(int intn, void* handler)
 {
     idt[intn] = pic_get_idt_entry(handler);
 }
+
+void print_time(int seconds)
+{
+    char str[20];
+    int len=0;
+    len = sprintf(str,"%d", seconds);
+    cursor_move(24,80-(len));
+    kprintf(str);
+}
 void
 timer_handler()
 {
@@ -89,7 +98,7 @@ timer_handler()
     if (counter == 41) {
         seconds++;
         counter = 0;
-        kprintf("in timer %d", seconds);
+        print_time(seconds);
     }
     outb(PIC1_COMMAND, PIC_EOI);
     pop_regs();
