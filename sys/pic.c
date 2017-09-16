@@ -147,11 +147,14 @@ pic_init()
 void
 kb_isr()
 {
+    // TODO use string functions and remove hard coding
+    char* s = "Key press:%c%c";
     push_regs();
     uint8_t code;
     code = inb(0x60);
     if ((code > 0) && (code < g_keymap[0])) {
-        signalme(g_keymap[code]);
+        cursor_move(24, (80 - 12));
+        kprintf(s, ' ', g_keymap[code]);
     }
     outb(PIC1_COMMAND, PIC_EOI);
     pop_regs();
