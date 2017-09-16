@@ -57,7 +57,7 @@ copy_integer(int i, char* buf, int* ptr)
 {
     int d;
     int k = 0;
-    char int_buffer[64];
+    char int_buffer[64] = { '\0' };
     while (i > 0) {
         d = i % 10;
         i /= 10;
@@ -129,6 +129,6 @@ kprintf(const char* arg1, ...)
         }
         ++i;
     }
-    print_to_console(buffer,bufptr);
+    print_to_console(buffer, bufptr);
     va_end(ap);
 }
