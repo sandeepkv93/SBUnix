@@ -32,6 +32,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     } __attribute__((packed)) * smap;
     while (modulep[0] != 0x9001)
         modulep += modulep[1] + 2;
+    clear_screen();
     for (smap = (struct smap_t*)(modulep + 2);
          smap < (struct smap_t*)((char*)modulep + modulep[1] + 2 * 4); ++smap) {
         if (smap->type == 1 /* memory */ && smap->length != 0) {
@@ -42,14 +43,6 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
 
-    char* s = "Alice";
-    char* st = "Wonderland";
-    char ch = 'I';
-    int i = 11;
-    kprintf("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
-            "Your score in hex is %x",
-            ch, s, st, i, &i);
-    clear_screen();
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
