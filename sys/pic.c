@@ -2,7 +2,9 @@
 #include <sys/kprintf.h>
 #include <sys/pic.h>
 #include <sys/string.h>
-extern char g_keymap[];
+
+extern char g_keymap[], g_keymap_shift[];
+
 void
 outb(uint16_t port, uint8_t value)
 {
@@ -85,7 +87,7 @@ print_time(int seconds)
 {
     char str[20];
     int len = 0;
-    len = sprintf(str, "%d", seconds);
+    len = sprintf(str, "Time since boot %d", seconds);
     cursor_move(24, 80 - (len));
     kprintf(str);
 }
@@ -158,14 +160,36 @@ void
 kb_isr()
 {
     // TODO use string functions and remove hard coding
-    char* s = "Key press:%c%c";
+    static bool is_shift_pressed = FALSE, is_ctrl_pressed = FALSE;
+    char* s = "Key press:%c%c\0";
+    char a = ' ', b;
     push_regs();
     uint8_t code;
     code = inb(0x60);
-    if ((code > 0) && (code < g_keymap[0])) {
-        cursor_move(24, (80 - 12));
-        kprintf(s, ' ', g_keymap[code]);
+    switch (code) {
+        case KEYCODE_SHIFT:
+        case KEYCODE_LSHIFT:
+            is_shift_pressed = TRUE;
+            break;
+        case (KEYCODE_SHIFT + KEYCODE_RELEASE):
+        case (KEYCODE_LSHIFT + KEYCODE_RELEASE):
+            is_shift_pressed = FALSE;
+            break;
+        case KEYCODE_LCTRL:
+            is_ctrl_pressed = TRUE;
+            break;
+        case (KEYCODE_LCTRL + KEYCODE_RELEASE):
+            is_ctrl_pressed = FALSE;
+            break;
+        default:
+            if ((code > 0) && (code < g_keymap[0])) {
+                cursor_move(24, (80 - 35));
+                a = is_ctrl_pressed ? '^' : ' ';
+                b = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
+                kprintf(s, a, b);
+            }
     }
+
     outb(PIC1_COMMAND, PIC_EOI);
     pop_regs();
     return_isr();
@@ -208,5 +232,4 @@ register_idt()
     register_isr(0x20, (void*)timer_handler);
     register_isr(0x21, (void*)kb_isr);
     lidt(idt, sizeof(struct_idt_entry) * 256 - 1);
-    kprintf("this %d", sizeof(struct_idt_entry));
 }

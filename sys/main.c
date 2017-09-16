@@ -49,6 +49,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     kprintf("Hello, %c am %s. Welcome to %s. Your score is %d. Well done! "
             "Your score in hex is %x",
             ch, s, st, i, &i);
+    clear_screen();
     register_idt();
     pic_init();
     enable_interrupts(TRUE);

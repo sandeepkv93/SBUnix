@@ -169,6 +169,7 @@ vprintf(char* buffer, const char* format, va_list ap)
         }
         ++i;
     }
+    buffer[bufptr] = '\0';
     return bufptr;
 }
 int
