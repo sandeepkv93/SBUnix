@@ -83,11 +83,14 @@ register_isr(int intn, void* handler)
 }
 
 void
-print_time(int seconds)
+print_time(int time_seconds)
 {
     char str[20];
     int len = 0;
-    len = sprintf(str, " Time since boot %d:%d", seconds / 60, seconds % 60);
+    int mins = time_seconds / 60;
+    int secs = time_seconds % 60;
+    len = sprintf(str, " Time since boot %d%s%d", mins, secs < 10 ? ":0" : ":",
+                  secs);
     cursor_move(24, 80 - (len));
     kprintf(str);
 }
