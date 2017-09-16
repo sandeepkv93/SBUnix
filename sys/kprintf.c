@@ -1,8 +1,27 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sys/kprintf.h>
+#define VC_ROW_LIMIT 25
+#define VC_COL_LIMIT 80
 
-char* vc = (char*)0xb8000;
+char *vc = (char *)0xb8000;
+int vc_col = 0;
+int vc_row = 0;
+
+void initialize_vc_memory() {
+    vc = (char *)0xb8000;
+    vc_col = 0;
+    vc_row = 0;
+}
+
+int check_if_buffer_overflow() {
+	if(vc_row >= VC_ROW_LIMIT) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
 
 int
 strlen(const char* s1)
@@ -84,8 +103,29 @@ print_to_console(const char* buf, int buflen)
 {
     int k = 0;
     while (k < buflen) {
+    	vc_col += 1;
+        if(vc_col >= VC_COL_LIMIT) {
+            vc_row += 1;
+            vc_col = 0;
+        }
+        if(buf[k] == '\n') {
+            vc_row += 1;
+            vc_col = 0;
+            vc = ((char *)(0x00000000000b8000)+(vc_row*2*VC_COL_LIMIT));
+            ++k;
+            continue;
+        }
+        if(buf[k] == '\r') {
+            vc_col = 0;
+            vc = ((char *)(0x00000000000b8000)+(vc_row*2*VC_COL_LIMIT));
+            ++k;
+            continue;
+        }
         *vc = buf[k++];
         vc += 2;
+        if(check_if_buffer_overflow()) {
+            initialize_vc_memory();
+        }
     }
 }
 
@@ -131,4 +171,19 @@ kprintf(const char* arg1, ...)
     }
     print_to_console(buffer, bufptr);
     va_end(ap);
+}
+
+void cursor_move(int row,int col) {
+    vc_row = row;
+    vc_col = col;
+    vc = ((char *)(0x00000000000b8000)+(vc_row*160 + vc_col*2));
+}
+
+void clear_screen() {
+    initialize_vc_memory();
+    int i;
+    for(i=0;i<25*80;i++) {
+        kprintf(" ");
+    }
+    initialize_vc_memory();
 }

@@ -3,5 +3,7 @@
 
 void kprintf(const char*, ...);
 void signalme(char);
+void clear_screen();
+void cursor_move(int,int);
 
 #endif
