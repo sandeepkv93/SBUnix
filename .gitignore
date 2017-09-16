@@ -1,6 +1,9 @@
 cscope.in.out
 cscope.po.out
 cscope.out
-rootfs/bin/*
-obj/bin/*
+rootfs/*
+obj/*
 *swp
+kernel
+*.img
+*.iso
