@@ -60,7 +60,7 @@ boot(void)
 
     for (temp2 = (char*)0xb8001; temp2 < (char*)0xb8000 + 160 * 25; temp2 += 2)
         *temp2 = 7 /* white */;
-    __asm__("cli;"
+    __asm__ volatile ("cli;"
             "movq %%rsp, %0;"
             "movq %1, %%rsp;"
             : "=g"(loader_stack)
@@ -74,6 +74,5 @@ boot(void)
             *temp2 = *temp1;
     }
     */
-    while (1)
-        ;
+    while (1) __asm__ volatile ("hlt");
 }
