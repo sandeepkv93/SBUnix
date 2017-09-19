@@ -8,6 +8,7 @@
 #define PIC2_COMMAND PIC2
 #define PIC2_DATA (PIC2 + 1)
 #define PIC_EOI 0x20 /* End-of-interrupt command code */
+#define PIC_INIT 0x11
 
 typedef struct
 {

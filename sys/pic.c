@@ -126,37 +126,25 @@ timer_setup()
 void
 pic_init()
 {
-    outb(0x20, 0x11);
+    // Pic init
+    outb(PIC1_COMMAND, PIC_INIT);
+    outb(PIC2_COMMAND, PIC_INIT);
 
-    outb(0xa0, 0x11);
+    // Start interrupts on master from 0x20, slave from 0x28
+    outb(PIC1_DATA, 0x20);
+    outb(PIC2_DATA, 0x28);
 
-    /*Remaps IRQ0-IRQ7 to 0x20-0x27 in interrupt vector table*/
+    // Slave at IRQ2, set slave cascade
+    outb(PIC1_DATA, 0x04);
+    outb(PIC2_DATA, 0x02);
 
-    outb(0x21, 0x20);
+    // Enable 8086 mode
+    outb(PIC1_DATA, 0x01);
+    outb(PIC2_DATA, 0x01);
 
-    /*Remaps IRQ8-IRQ15 to 0x28-0x2F in interrupt vector table*/
-
-    outb(0xa1, 0x28);
-
-    /*PIC2 is connected to PIC1 via IRQ2*/
-
-    outb(0x21, 0x04);
-
-    outb(0xa1, 0x02);
-
-    /*Enables 8086/88 mode*/
-
-    outb(0x21, 0x01);
-
-    outb(0xa1, 0x01);
-
-    /*Disables all interrupts from IRQ0-IRQ7*/
-
-    outb(0x21, 0xfc);
-
-    /*Disables all interrupts from IRQ8-IRQ15*/
-
-    outb(0xa1, 0xff);
+    // Enable only KB and PIT interrupts
+    outb(PIC1_DATA, 0xfc);
+    outb(PIC2_DATA, 0xff);
 }
 
 void

@@ -60,11 +60,11 @@ boot(void)
 
     for (temp2 = (char*)0xb8001; temp2 < (char*)0xb8000 + 160 * 25; temp2 += 2)
         *temp2 = 7 /* white */;
-    __asm__ volatile ("cli;"
-            "movq %%rsp, %0;"
-            "movq %1, %%rsp;"
-            : "=g"(loader_stack)
-            : "r"(&initial_stack[INITIAL_STACK_SIZE]));
+    __asm__ volatile("cli;"
+                     "movq %%rsp, %0;"
+                     "movq %1, %%rsp;"
+                     : "=g"(loader_stack)
+                     : "r"(&initial_stack[INITIAL_STACK_SIZE]));
     init_gdt();
     start((uint32_t*)((char*)(uint64_t)loader_stack[3] + (uint64_t)&kernmem -
                       (uint64_t)&physbase),
@@ -74,5 +74,6 @@ boot(void)
             *temp2 = *temp1;
     }
     */
-    while (1) __asm__ volatile ("hlt");
+    while (1)
+        __asm__ volatile("hlt");
 }
