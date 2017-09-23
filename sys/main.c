@@ -3,9 +3,9 @@
 #include <sys/ahci.h>
 #include <sys/defs.h>
 #include <sys/gdt.h>
+#include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/pci.h>
-#include <sys/pic.h>
 #include <sys/tarfs.h>
 
 #define INITIAL_STACK_SIZE 4096

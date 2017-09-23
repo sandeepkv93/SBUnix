@@ -1,6 +1,6 @@
+#include <sys/interrupts.h>
 #include <sys/keyboard.h>
 #include <sys/kprintf.h>
-#include <sys/pic.h>
 #include <sys/string.h>
 
 extern char g_keymap[], g_keymap_shift[];
