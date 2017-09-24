@@ -1,10 +1,10 @@
-#include <sys/ahci.h>
 #include <sys/debug.h>
 #include <sys/defs.h>
 #include <sys/kprintf.h>
+#include <sys/pci.h>
 
 uint32_t
-sysInLong(uint16_t port)
+in_dw(uint16_t port)
 {
     uint32_t value;
     __asm__("inl %1,%0;" : "=a"(value) : "d"(port));
@@ -12,70 +12,65 @@ sysInLong(uint16_t port)
 }
 
 void
-sysOutLong(uint16_t port, uint32_t value)
+out_dw(uint16_t port, uint32_t value)
 {
     __asm__("outl %0, %1;" : : "a"(value), "d"(port));
 }
 
 uint32_t
-pciConfigReadByte(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset)
+pci_get_config_address(uint32_t bus, uint32_t device, uint32_t func,
+                       uint8_t offset)
+{
+    return (uint32_t)((bus << 16) | (device << 11) | (func << 8) |
+                      (offset & 0xfc) | ((uint32_t)0x80000000));
+}
+
+void
+pci_config_write_dw(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset,
+                    uint32_t value)
 {
     uint32_t address;
-    uint32_t lbus = (uint32_t)bus;
-    uint32_t ldevice = (uint32_t)device;
-    uint32_t lfunc = (uint32_t)func;
-    uint32_t tmp = 0;
+    address = pci_get_config_address(bus, device, func, offset);
+    out_dw(0xCF8, address);
+    out_dw(0xCFC, value);
+}
 
-    /* create configuration address as per Figure 1 */
-    address = (uint32_t)((lbus << 16) | (ldevice << 11) | (lfunc << 8) |
-                         (offset & 0xfc) | ((uint32_t)0x80000000));
-
-    /* write out the address */
-    sysOutLong(0xCF8, address);
-    /* read in the data */
-    /* (offset & 2) * 8) = 0 will choose the first word of the 32 bits register
-     */
-    tmp = (sysInLong(0xCFC));
-    return (tmp);
+uint32_t
+pci_config_read_dw(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset)
+{
+    uint32_t address;
+    address = pci_get_config_address(bus, device, func, offset);
+    out_dw(0xCF8, address);
+    return in_dw(0xCFC);
 }
 
 uint16_t
-pciConfigReadWord(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset)
+pci_config_read_word(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset)
 {
     uint32_t value = 0;
-    value = pciConfigReadByte(bus, device, func, offset);
-    return (uint16_t)((value >> ((offset & 2) * 8)) & 0xffff);
+    value = pci_config_read_dw(bus, device, func, offset) & 0xFFFFFFFF;
+    return (uint16_t)((value >> ((offset & 2) * 8)) & 0xFFFF);
 }
 
-void
-pciCheckVendor(uint8_t bus, uint8_t device)
+// TODO: Make a function that returns a link list of structs that describe PCI
+// config space instead of checking each pair of bus,device
+bool
+pci_class_check(uint8_t bus, uint8_t device, uint32_t deviceClass)
 {
-    uint16_t vendor_id, device_id;
+    uint16_t vendor_id;
     uint32_t class_id;
-    uint64_t bar_5;
-    /* vendors that == 0xFFFF, it must be a non-existent device. */
-    if ((vendor_id = pciConfigReadWord(bus, device, 0, 0)) != 0xFFFF) {
-        device_id = pciConfigReadWord(bus, device, 0, 2);
-        class_id = pciConfigReadByte(bus, device, 0, 0x08);
-        if (((class_id & 0xffffff00) == 0x01060100)) {
-            kprintf("%d %d %x %x %x*\n", bus, device, vendor_id, device_id,
-                    class_id);
-            bar_5 = pciConfigReadByte(bus, device, 0, 0x24) & 0x4fffffff;
-            kprintf("Bar is %x", bar_5);
-            kprintf("Val at bar is ");
-            debugDumpData((void*)bar_5, 0x2b);
-        }
-    }
-}
 
-void
-checkAllBuses(void)
-{
-    uint8_t bus;
-    uint8_t device;
-    for (bus = 0; bus < 255; bus++) {
-        for (device = 0; device < 32; device++) {
-            pciCheckVendor(bus, device);
-        }
+    vendor_id = pci_config_read_word(bus, device, 0, 0);
+
+    if (vendor_id == 0xFFFF) {
+        // Device doesn't exist
+        return FALSE;
     }
+
+    class_id = pci_config_read_dw(bus, device, 0, 8);
+    /*
+     * Lower 8 bits of class ID are just revID, we'll ignore it
+     * We expect class argument to only have higher 24bit info
+     */
+    return ((class_id >> 8) == deviceClass);
 }

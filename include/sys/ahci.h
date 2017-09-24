@@ -2,6 +2,9 @@
 #ifndef _AHCI_H
 #define _AHCI_H
 
+#define AHCI_PCI_CLASS 0x010601 // 01:classcode, 06:subclass, 01:ProgIF
+#define AHCI_PCI_ABAR_LOCATION 0x3B800000
+
 #define HBA_GHC_AE (1U << 31)
 #define HBA_GHC_IE (1U << 1)
 #define HBA_GHC_HR (1U)
@@ -358,4 +361,6 @@ typedef volatile struct
     hba_port_t ports[MAX_PORT_CNT]; // 1 ~ 32
 } __attribute__((__packed__)) hba_mem_t;
 
+void probe_port(hba_mem_t* abar);
+void ahci_discovery();
 #endif
