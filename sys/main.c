@@ -47,7 +47,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
-    checkAllBuses();
+    ahci_discovery();
     while (1)
         ;
 }
