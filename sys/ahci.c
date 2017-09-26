@@ -5,7 +5,7 @@
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
 #define ATA_CMD_READ_DMA_EX 0x25
-#define ATA_CMD_WRITE_DMA_EX 0xCA
+#define ATA_CMD_WRITE_DMA_EX 0x35
 #define TRUE 1
 #define FALSE 0
 static int
@@ -47,7 +47,7 @@ print_range(uint8_t* buff)
     for (int i = 0; i < 10; i++) {
         kprintf("%x", buff[i]);
     }
-    for (int i = 4086; i < 4096; i++) {
+    for (int i = 502; i < 512; i++) {
         kprintf("%x", buff[i]);
     }
     kprintf("\n");
@@ -57,7 +57,7 @@ ahci_probe_port(hba_mem_t* abar)
 {
     uint32_t pi = abar->pi;
     int i = 0;
-    uint8_t buff[4096];
+    uint8_t buff[512];
     for (i = 0; i < 32; i++) {
 
         if (!(pi >> i & 0x1)) {
@@ -70,6 +70,13 @@ ahci_probe_port(hba_mem_t* abar)
                 kprintf("SATA drive found at port %d\n", i);
                 ahci_setup(abar);
                 port_rebase(&abar->ports[i], i);
+                memset(buff, 5, 512);
+                print_range(buff);
+                write_ahci(&abar->ports[i], 0, 0, 512, (uint16_t*)buff);
+                memset(buff, 0, 512);
+                print_range(buff);
+                read_ahci(&abar->ports[i], 0, 0, 512, (uint16_t*)buff);
+                print_range(buff);
                 break;
             case AHCI_DEV_SATAPI:
                 kprintf("SATAPI drive found at port %d\n", i);
@@ -82,13 +89,6 @@ ahci_probe_port(hba_mem_t* abar)
                 break;
         }
     }
-    memset(buff, 5, 4096);
-    print_range(buff);
-    write_ahci(&abar->ports[1], 0, 0, 4096 / 512, (uint16_t*)buff);
-    memset(buff, 0, 4096);
-    print_range(buff);
-    read_ahci(&abar->ports[1], 0, 0, 4096 / 512, (uint16_t*)buff);
-    print_range(buff);
 }
 
 void
