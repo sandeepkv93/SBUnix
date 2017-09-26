@@ -1,4 +1,5 @@
 #include <sys/ahci.h>
+#include <sys/debug.h>
 #include <sys/kprintf.h>
 #include <sys/pci.h>
 #define AHCI_BASE 0x400000
@@ -10,15 +11,30 @@
 #define TRUE 1
 #define FALSE 0
 
-static int
+int
 ahci_get_signature(hba_port_t* port)
 {
-    uint8_t ipm = (port->ssts >> 4) & 0x0F;
-    uint8_t spd = (port->ssts >> 8) & 0x0F;
+    uint8_t spd = (port->ssts >> 4) & 0x0F;
+    uint8_t ipm = (port->ssts >> 8) & 0x0F;
     uint8_t det = port->ssts & 0x0F;
     if (!det || !spd || !ipm) {
         return 0;
     }
+    if (spd > 3) {
+        kprintf("spd is invalid:%x.", spd);
+        return 0;
+    }
+    if (ipm != 1) {
+        kprintf("ipm is not 1:%x.", ipm);
+        return 0;
+    }
+    if (det != 3) {
+        kprintf("det is not 3:%x.", det);
+        return 0;
+    }
+
+    debug_print("Port sig %x, spd %x, ipm %x, det %x", port->sig, spd, ipm,
+                det);
     return (port->sig);
 }
 
@@ -28,6 +44,7 @@ ahci_setup(hba_mem_t* abar)
     abar->ghc |= HBA_GHC_HR;
     abar->ghc |= HBA_GHC_AE;
     abar->ghc |= HBA_GHC_IE;
+    debug_print("Ahci setup complete.");
 }
 
 void*
@@ -68,6 +85,7 @@ ahci_readwrite_test(hba_port_t* port)
         read_ahci(port, j * 8, 0, 1, (uint16_t*)buff);
         print_range(buff, 0, 0);
     }
+    kprintf("\n");
 }
 
 void
@@ -76,6 +94,7 @@ ahci_probe_port(hba_mem_t* abar)
     uint32_t pi = abar->pi;
     int i = 0;
 
+    debug_print("Inside ahci_probe_port.");
     for (i = 0; i < 32; i++) {
 
         if (!(pi >> i & 0x1)) {
@@ -83,12 +102,6 @@ ahci_probe_port(hba_mem_t* abar)
         }
 
         switch (ahci_get_signature(&abar->ports[i])) {
-            case AHCI_DEV_SATA:
-                kprintf("SATA drive found at port %d\n", i);
-                ahci_setup(abar);
-                port_rebase(&abar->ports[i], i);
-                ahci_readwrite_test(&abar->ports[i]);
-                break;
             case AHCI_DEV_SATAPI:
                 kprintf("SATAPI drive found at port %d\n", i);
                 break;
@@ -98,6 +111,15 @@ ahci_probe_port(hba_mem_t* abar)
             case AHCI_DEV_PM:
                 kprintf("PM drive found at port %d\n", i);
                 break;
+            case 0:
+                break;
+            case AHCI_DEV_SATA:
+            default:
+                kprintf("SATA drive found at port %d\n", i);
+                ahci_setup(abar);
+                port_rebase(&abar->ports[i], i);
+                ahci_readwrite_test(&abar->ports[i]);
+                return;
         }
     }
 }
@@ -114,6 +136,7 @@ ahci_discovery(void)
         for (device = 0; device < 32; device++) {
             for (func = 0; func < 8; func++) {
                 if (pci_class_check(bus, device, func, AHCI_PCI_CLASS)) {
+                    kprintf("Found AHCI controller, looking for disks...\n");
                     pci_config_write_dw(bus, device, func, 0x24,
                                         AHCI_PCI_ABAR_LOCATION);
                     abar = pci_config_read_dw(bus, device, func, 0x24);
@@ -127,15 +150,18 @@ ahci_discovery(void)
 void
 start_cmd(hba_port_t* port)
 {
+    debug_print("In start_cmd.");
     while (port->cmd & HBA_PxCMD_CR)
         ;
     port->cmd |= HBA_PxCMD_FRE;
     port->cmd |= HBA_PxCMD_ST;
+    debug_print("Out of start_cmd.");
 }
 
 void
 stop_cmd(hba_port_t* port)
 {
+    debug_print("In stop_cmd.");
     port->cmd &= ~HBA_PxCMD_ST;
 
     while (1) {
@@ -147,11 +173,13 @@ stop_cmd(hba_port_t* port)
     }
 
     port->cmd &= ~HBA_PxCMD_FRE;
+    debug_print("Out of stop_cmd");
 }
 
 void
 port_rebase(hba_port_t* port, int portno)
 {
+    debug_print("Insisde port_rebase.");
     stop_cmd(port);
     port->clb = AHCI_BASE + (portno << 10);
     memset((void*)(port->clb), 0, 1024);

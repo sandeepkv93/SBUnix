@@ -1,4 +1,3 @@
-#include <sys/debug.h>
 #include <sys/defs.h>
 #include <sys/kprintf.h>
 #include <sys/pci.h>

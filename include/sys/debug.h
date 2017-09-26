@@ -11,4 +11,13 @@ debugDumpData(const void* p, int size)
         addr++;
     }
 }
+void
+dummy()
+{
+}
+#ifdef _DEBUG
+#define debug_print kprintf
+#else
+#define debug_print dummy
+#endif
 #endif
