@@ -366,6 +366,8 @@ void ahci_discovery();
 void ahci_probe_port(hba_mem_t* abar);
 
 void port_rebase(hba_port_t* port, int portno);
-int read_ahci(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf);
-int write_ahci(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf);
+int read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth,
+              uint32_t count, uint16_t* buf);
+int write_ahci(hba_port_t* port, uint32_t startl, uint32_t starth,
+               uint32_t count, uint16_t* buf);
 #endif
