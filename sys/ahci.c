@@ -43,11 +43,39 @@ memset(void* s, int c, int n)
 }
 
 void
+print_range(uint8_t* buff, int rangeA, int rangeB)
+{
+    for (int i = rangeA; i <= rangeB; i++) {
+        kprintf("%d ", buff[i]);
+    }
+}
+
+void
+ahci_readwrite_test(hba_port_t* port)
+{
+    uint8_t* buff = (uint8_t*)(AHCI_BUFF);
+    int i, j;
+
+    kprintf("Writing 100 4KB chuncks with corresponding byte..\n");
+    for (i = 0; i < 100; i++) {
+        for (j = 0; j < 8; j++) {
+            memset(buff, i, 512);
+            write_ahci(port, (i * 8 + j), 0, 1, (uint16_t*)buff);
+        }
+    }
+
+    kprintf("Reading first byte from each 4KB chunk:\n");
+    for (j = 0; j < 100; j++) {
+        read_ahci(port, j * 8, 0, 1, (uint16_t*)buff);
+        print_range(buff, 0, 0);
+    }
+}
+
+void
 ahci_probe_port(hba_mem_t* abar)
 {
     uint32_t pi = abar->pi;
     int i = 0;
-    uint8_t* buff = (uint8_t*)(AHCI_BUFF);
 
     for (i = 0; i < 32; i++) {
 
@@ -61,21 +89,7 @@ ahci_probe_port(hba_mem_t* abar)
                 kprintf("SATA drive found at port %d\n", i);
                 ahci_setup(abar);
                 port_rebase(&abar->ports[i], i);
-                memset(buff, 8, 512);
-                for (int i = 0; i < 10; i++) {
-                    kprintf("%d ", buff[i]);
-                }
-                kprintf("\n");
-                write_ahci(&abar->ports[i], 0, 0, 1, (uint16_t*)buff);
-                memset(buff, 4, 512);
-                for (int i = 0; i < 10; i++) {
-                    kprintf("%d ", buff[i]);
-                }
-                kprintf("\n");
-                read_ahci(&abar->ports[i], 0, 0, 1, (uint16_t*)buff);
-                for (int i = 0; i < 10; i++) {
-                    kprintf("%d ", buff[i]);
-                }
+                ahci_readwrite_test(&abar->ports[i]);
                 break;
             case AHCI_DEV_SATAPI:
                 kprintf("SATAPI drive found at port %d\n", i);
