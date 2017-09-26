@@ -97,17 +97,19 @@ ahci_discovery(void)
     uint8_t bus;
     uint8_t device;
     uint64_t abar;
-
+    uint8_t func;
     for (bus = 0; bus < 255; bus++) {
         for (device = 0; device < 32; device++) {
-            if (pci_class_check(bus, device, AHCI_PCI_CLASS)) {
+           for(func=0;func<8;func++){
+            if (pci_class_check(bus, device,func, AHCI_PCI_CLASS)) {
                 // Let's relocate ABAR within 1GB
                 // ABAR is Bar[5] which is located at offset 0x24
-                pci_config_write_dw(bus, device, 0, 0x24,
+                pci_config_write_dw(bus, device, func, 0x24,
                                     AHCI_PCI_ABAR_LOCATION);
-                abar = pci_config_read_dw(bus, device, 0, 0x24);
+                abar = pci_config_read_dw(bus, device, func, 0x24);
                 ahci_probe_port((hba_mem_t*)abar);
             }
+          }
         }
     }
 }
