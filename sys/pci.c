@@ -55,7 +55,7 @@ pci_config_read_word(uint8_t bus, uint8_t device, uint8_t func, uint8_t offset)
 // TODO: Make a function that returns a link list of structs that describe PCI
 // config space instead of checking each pair of bus,device
 bool
-pci_class_check(uint8_t bus, uint8_t device, uint8_t func,uint32_t deviceClass)
+pci_class_check(uint8_t bus, uint8_t device, uint8_t func, uint32_t deviceClass)
 {
     uint16_t vendor_id;
     uint32_t class_id;

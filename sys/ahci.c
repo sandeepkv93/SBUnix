@@ -6,6 +6,7 @@
 #define ATA_DEV_DRQ 0x08
 #define ATA_CMD_READ_DMA_EX 0x25
 #define ATA_CMD_WRITE_DMA_EX 0x35
+#define AHCI_BUFF 0x410000
 #define TRUE 1
 #define FALSE 0
 static int
@@ -33,31 +34,21 @@ ahci_setup(hba_mem_t* abar)
 }
 
 void*
-memset(void* s, uint8_t c, int n)
+memset(void* s, int c, int n)
 {
-    uint8_t* p = s;
+    unsigned char* p = s;
     while (n--)
-        *p++ = c;
+        *p++ = (unsigned char)c;
     return s;
 }
 
-void
-print_range(uint8_t* buff)
-{
-    for (int i = 0; i < 10; i++) {
-        kprintf("%x", buff[i]);
-    }
-    for (int i = 502; i < 512; i++) {
-        kprintf("%x", buff[i]);
-    }
-    kprintf("\n");
-}
 void
 ahci_probe_port(hba_mem_t* abar)
 {
     uint32_t pi = abar->pi;
     int i = 0;
-    uint8_t buff[512];
+    uint8_t* buff = (uint8_t*)(AHCI_BUFF);
+
     for (i = 0; i < 32; i++) {
 
         if (!(pi >> i & 0x1)) {
@@ -70,13 +61,21 @@ ahci_probe_port(hba_mem_t* abar)
                 kprintf("SATA drive found at port %d\n", i);
                 ahci_setup(abar);
                 port_rebase(&abar->ports[i], i);
-                memset(buff, 5, 512);
-                print_range(buff);
-                write_ahci(&abar->ports[i], 0, 0, 512, (uint16_t*)buff);
-                memset(buff, 0, 512);
-                print_range(buff);
-                read_ahci(&abar->ports[i], 0, 0, 512, (uint16_t*)buff);
-                print_range(buff);
+                memset(buff, 8, 512);
+                for (int i = 0; i < 10; i++) {
+                    kprintf("%d ", buff[i]);
+                }
+                kprintf("\n");
+                write_ahci(&abar->ports[i], 0, 0, 1, (uint16_t*)buff);
+                memset(buff, 4, 512);
+                for (int i = 0; i < 10; i++) {
+                    kprintf("%d ", buff[i]);
+                }
+                kprintf("\n");
+                read_ahci(&abar->ports[i], 0, 0, 1, (uint16_t*)buff);
+                for (int i = 0; i < 10; i++) {
+                    kprintf("%d ", buff[i]);
+                }
                 break;
             case AHCI_DEV_SATAPI:
                 kprintf("SATAPI drive found at port %d\n", i);
@@ -96,20 +95,21 @@ ahci_discovery(void)
 {
     uint8_t bus;
     uint8_t device;
-    uint64_t abar;
     uint8_t func;
+    uint64_t abar;
+
     for (bus = 0; bus < 255; bus++) {
         for (device = 0; device < 32; device++) {
-           for(func=0;func<8;func++){
-            if (pci_class_check(bus, device,func, AHCI_PCI_CLASS)) {
-                // Let's relocate ABAR within 1GB
-                // ABAR is Bar[5] which is located at offset 0x24
-                pci_config_write_dw(bus, device, func, 0x24,
-                                    AHCI_PCI_ABAR_LOCATION);
-                abar = pci_config_read_dw(bus, device, func, 0x24);
-                ahci_probe_port((hba_mem_t*)abar);
+            for (func = 0; func < 32; func++) {
+                if (pci_class_check(bus, device, func, AHCI_PCI_CLASS)) {
+                    // Let's relocate ABAR within 1GB
+                    // ABAR is Bar[5] which is located at offset 0x24
+                    pci_config_write_dw(bus, device, func, 0x24,
+                                        AHCI_PCI_ABAR_LOCATION);
+                    abar = pci_config_read_dw(bus, device, func, 0x24);
+                    ahci_probe_port((hba_mem_t*)abar);
+                }
             }
-          }
         }
     }
 }
@@ -203,8 +203,8 @@ int
 read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
           uint16_t* buf)
 {
-    port->is_rwc = (uint32_t)-1; // Clear pending interrupt bits
-    int spin = 0;                // Spin lock timeout counter
+    port->is_rwc = 0xffff;
+    int spin = 0; // Spin lock timeout counter
     int slot = find_cmdslot(port);
     int i = 0;
     if (slot == -1)
@@ -223,6 +223,7 @@ read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
 
     // 8K bytes (16 sectors) per PRDT
     for (i = 0; i < cmdheader->prdtl - 1; i++) {
+        kprintf("lkjdsf");
         cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
         cmdtbl->prdt_entry[i].dbc = 8 * 1024; // 8K bytes
         cmdtbl->prdt_entry[i].i = 1;
