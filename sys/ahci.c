@@ -18,24 +18,20 @@ ahci_get_signature(hba_port_t* port)
     uint8_t ipm = (port->ssts >> 8) & 0x0F;
     uint8_t det = port->ssts & 0x0F;
     if (!det || !spd || !ipm) {
+        debug_print("Port sig %x, spd %x, ipm %x, det %x.", port->sig, spd, ipm,
+                    det);
         return 0;
     }
-    if (spd > 3) {
-        kprintf("spd is invalid:%x.", spd);
-        return 0;
-    }
-    if (ipm != 1) {
-        kprintf("ipm is not 1:%x.", ipm);
-        return 0;
-    }
-    if (det != 3) {
-        kprintf("det is not 3:%x.", det);
-        return 0;
-    }
-
-    debug_print("Port sig %x, spd %x, ipm %x, det %x", port->sig, spd, ipm,
+    debug_print("Port sig %x, spd %x, ipm %x, det %x.", port->sig, spd, ipm,
                 det);
     return (port->sig);
+}
+
+void
+ahci_fix_port(hba_port_t* port)
+{
+    port->sctl |= (0x3 << 8);
+    port->sctl |= 0x1;
 }
 
 void
@@ -80,6 +76,7 @@ ahci_readwrite_test(hba_port_t* port)
         }
     }
 
+    memset(buff, 23, 512);
     kprintf("Reading first byte from each 4KB chunk:\n");
     for (j = 0; j < 100; j++) {
         read_ahci(port, j * 8, 0, 1, (uint16_t*)buff);
@@ -114,11 +111,18 @@ ahci_probe_port(hba_mem_t* abar)
             case 0:
                 break;
             case AHCI_DEV_SATA:
-            default:
-                kprintf("SATA drive found at port %d\n", i);
-                ahci_setup(abar);
+                kprintf("\nSATA drive found at port %d.", i);
+                // ahci_fix_port(&abar->ports[i]);
+                // ahci_setup(abar);
+                debug_print("After fix_port.");
+                while (1) {
+                    ahci_get_signature(&abar->ports[i]);
+                    for (int ai = 0; ai != 32766; ai++)
+                        for (int aijb = 0; aijb != 6000; aijb++)
+                            ;
+                }
                 port_rebase(&abar->ports[i], i);
-                ahci_readwrite_test(&abar->ports[i]);
+                // ahci_readwrite_test(&abar->ports[i]);
                 return;
         }
     }
@@ -195,6 +199,7 @@ port_rebase(hba_port_t* port, int portno)
     }
 
     start_cmd(port);
+    debug_print("Port rebase exit.");
 }
 int
 find_cmdslot(hba_port_t* port)
@@ -260,7 +265,7 @@ read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
         spin++;
     }
     if (spin == 1000000) {
-        kprintf("Port is hung\n");
+        kprintf("Port is hung in read\n");
         return FALSE;
     }
 
@@ -287,6 +292,7 @@ int
 write_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
            uint16_t* buf)
 {
+    // debug_print("Inside write_ahci.");
     port->is_rwc = (uint32_t)-1;
     int spin = 0;
     int slot = find_cmdslot(port);
@@ -336,7 +342,7 @@ write_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
         spin++;
     }
     if (spin == 1000000) {
-        kprintf("Port is hung\n");
+        kprintf("Port is hung in write\n");
         return FALSE;
     }
 

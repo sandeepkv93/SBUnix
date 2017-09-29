@@ -3,7 +3,7 @@
 
 #include <sys/defs.h>
 #define AHCI_PCI_CLASS 0x010601 // 01:classcode, 06:subclass, 01:ProgIF
-#define AHCI_PCI_ABAR_LOCATION 0x3B800000
+#define AHCI_PCI_ABAR_LOCATION 0xA6000
 
 #define HBA_GHC_AE (1U << 31)
 #define HBA_GHC_IE (1U << 1)

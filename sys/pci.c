@@ -67,6 +67,7 @@ pci_class_check(uint8_t bus, uint8_t device, uint8_t func, uint32_t deviceClass)
     }
 
     class_id = pci_config_read_dw(bus, device, func, 8);
+    kprintf("Class %x. ", class_id);
     /*
      * Lower 8 bits of class ID are just revID, we'll ignore it
      * We expect class argument to only have higher 24bit info

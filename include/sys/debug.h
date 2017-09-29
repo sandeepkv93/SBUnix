@@ -15,6 +15,7 @@ void
 dummy()
 {
 }
+#define _DEBUG
 #ifdef _DEBUG
 #define debug_print kprintf
 #else
