@@ -11,6 +11,29 @@
 #define TRUE 1
 #define FALSE 0
 
+void
+sleep_()
+{
+    for (int i = 0; i != 9999; i++)
+        for (int j = 0; j != 9999; j++)
+            ;
+}
+bool
+ahci_ready_to_go(hba_port_t* port)
+{
+    uint8_t spd = (port->ssts >> 4) & 0x0F;
+    uint8_t ipm = (port->ssts >> 8) & 0x0F;
+    uint8_t det = port->ssts & 0x0F;
+
+    if (!det || !spd || !ipm) {
+        return FALSE;
+    }
+    if (det == 3 && ipm == 1) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 int
 ahci_get_signature(hba_port_t* port)
 {
@@ -30,14 +53,25 @@ ahci_get_signature(hba_port_t* port)
 void
 ahci_fix_port(hba_port_t* port)
 {
-    port->sctl |= (0x3 << 8);
+#if 0
+    port->cmd &= ~HBA_PxCMD_ST;
+    port->cmd |= (0x1 << 28); 
     port->sctl |= 0x1;
+    port->sctl |= (0x3 << 8);
+    port->cmd |= HBA_PxCMD_ST;
+#endif
+    if (port->cmd &
+        (HBA_PxCMD_ST | HBA_PxCMD_CR | HBA_PxCMD_FRE | HBA_PxCMD_FR)) {
+        // stop_cmd(port);
+        port->cmd &= ~HBA_PxCMD_FRE;
+        port->cmd &= ~HBA_PxCMD_ST;
+    }
 }
 
 void
 ahci_setup(hba_mem_t* abar)
 {
-    abar->ghc |= HBA_GHC_HR;
+    //    abar->ghc |= HBA_GHC_HR;
     abar->ghc |= HBA_GHC_AE;
     abar->ghc |= HBA_GHC_IE;
     debug_print("Ahci setup complete.");
@@ -112,17 +146,30 @@ ahci_probe_port(hba_mem_t* abar)
                 break;
             case AHCI_DEV_SATA:
                 kprintf("\nSATA drive found at port %d.", i);
-                // ahci_fix_port(&abar->ports[i]);
-                // ahci_setup(abar);
+                ahci_setup(abar);
+                kprintf("Cap is %x.", abar->cap);
+                ahci_fix_port(&abar->ports[i]);
+                port_rebase(&abar->ports[i], i);
+                abar->ports[i].sctl = 0x301;
+                sleep_();
+                abar->ports[i].sctl = 0x300;
+
+                if (abar->cap & HBA_MEM_CAP_SSS) {
+                    abar->ports[i].cmd |=
+                      (HBA_PxCMD_SUD | HBA_PxCMD_POD | HBA_PxCMD_ICC);
+                    sleep_();
+                }
+                abar->ports[i].serr_rwc = 0xFFFFFFFF;
+                abar->ports[i].is_rwc = 0xFFFFFFFF;
                 debug_print("After fix_port.");
                 while (1) {
-                    ahci_get_signature(&abar->ports[i]);
-                    for (int ai = 0; ai != 32766; ai++)
-                        for (int aijb = 0; aijb != 6000; aijb++)
-                            ;
+                    sleep_();
+                    if (ahci_ready_to_go(&abar->ports[i])) {
+                        break;
+                    }
+                    sleep_();
                 }
-                port_rebase(&abar->ports[i], i);
-                // ahci_readwrite_test(&abar->ports[i]);
+                ahci_readwrite_test(&abar->ports[i]);
                 return;
         }
     }

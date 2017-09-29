@@ -8,6 +8,7 @@
 #define HBA_GHC_AE (1U << 31)
 #define HBA_GHC_IE (1U << 1)
 #define HBA_GHC_HR (1U)
+#define HBA_MEM_CAP_SSS (1U << 27)
 
 #define HBA_PxCMD_ST (1U)
 #define HBA_PxCMD_CLO (1U << 3)
@@ -15,6 +16,9 @@
 #define HBA_PxCMD_FR (1U << 14)
 #define HBA_PxCMD_CR (1U << 15)
 #define HBA_PxIS_TFES (1U << 30)
+#define HBA_PxCMD_SUD (1U << 1)
+#define HBA_PxCMD_POD (1U << 2)
+#define HBA_PxCMD_ICC (1U << 28)
 
 #define AHCI_DEV_SATA 0x00000101   // SATA drive
 #define AHCI_DEV_SATAPI 0xEB140101 // SATAPI drive
@@ -370,4 +374,5 @@ int read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth,
               uint32_t count, uint16_t* buf);
 int write_ahci(hba_port_t* port, uint32_t startl, uint32_t starth,
                uint32_t count, uint16_t* buf);
+void stop_cmd(hba_port_t* port);
 #endif
