@@ -54,7 +54,7 @@ ahci_get_signature(hba_port_t* port)
 }
 
 void
-ahci_fix_port(hba_port_t* port, int port_num, bool support_staggered_spinup)
+ahci_fix_port(hba_port_t* port, int port_num, int support_staggered_spinup)
 {
     if (port->cmd &
         (HBA_PxCMD_ST | HBA_PxCMD_CR | HBA_PxCMD_FRE | HBA_PxCMD_FR)) {
@@ -67,6 +67,7 @@ ahci_fix_port(hba_port_t* port, int port_num, bool support_staggered_spinup)
     port->sctl = 0x300;
 
     if (support_staggered_spinup) {
+        debug_print("support_staggered_spinup.");
         port->cmd |= (HBA_PxCMD_SUD | HBA_PxCMD_POD | HBA_PxCMD_ICC);
         sleep_();
     }
@@ -80,6 +81,7 @@ ahci_fix_port(hba_port_t* port, int port_num, bool support_staggered_spinup)
         }
         sleep_();
     }
+    debug_print("Ready to go");
 }
 
 void
@@ -149,6 +151,7 @@ ahci_probe_port(hba_mem_t* abar)
             case AHCI_DEV_SATA:
                 kprintf("SATA drive found at port %d.\n", i);
                 debug_print("Cap is %x.", abar->cap);
+                ahci_setup(abar);
                 ahci_fix_port(&abar->ports[i], i, abar->cap & HBA_MEM_CAP_SSS);
                 g_ahci_disk.abar = abar;
                 g_ahci_disk.port = &(abar->ports[i]);
@@ -177,7 +180,6 @@ ahci_discovery(void)
                     abar = (hba_mem_t*)((uint64_t)pci_config_read_dw(
                       bus, device, func, 0x24));
 
-                    ahci_setup(abar);
                     ahci_probe_port(abar);
                 }
             }
