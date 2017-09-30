@@ -2,6 +2,7 @@
 #include <sys/debug.h>
 #include <sys/kprintf.h>
 #include <sys/pci.h>
+#include <sys/string.h>
 #define AHCI_BASE 0x400000
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
@@ -10,6 +11,8 @@
 #define AHCI_BUFF 0x410000
 #define TRUE 1
 #define FALSE 0
+
+hba_wrap_t g_ahci_disk;
 
 void
 sleep_()
@@ -51,41 +54,40 @@ ahci_get_signature(hba_port_t* port)
 }
 
 void
-ahci_fix_port(hba_port_t* port)
+ahci_fix_port(hba_port_t* port, int port_num, bool support_staggered_spinup)
 {
-#if 0
-    port->cmd &= ~HBA_PxCMD_ST;
-    port->cmd |= (0x1 << 28); 
-    port->sctl |= 0x1;
-    port->sctl |= (0x3 << 8);
-    port->cmd |= HBA_PxCMD_ST;
-#endif
     if (port->cmd &
         (HBA_PxCMD_ST | HBA_PxCMD_CR | HBA_PxCMD_FRE | HBA_PxCMD_FR)) {
-        // stop_cmd(port);
         port->cmd &= ~HBA_PxCMD_FRE;
         port->cmd &= ~HBA_PxCMD_ST;
+    }
+    port_rebase(port, port_num);
+    port->sctl = 0x301;
+    sleep_();
+    port->sctl = 0x300;
+
+    if (support_staggered_spinup) {
+        port->cmd |= (HBA_PxCMD_SUD | HBA_PxCMD_POD | HBA_PxCMD_ICC);
+        sleep_();
+    }
+    port->serr_rwc = 0xFFFFFFFF;
+    port->is_rwc = 0xFFFFFFFF;
+    debug_print("After fix_port.");
+    while (1) {
+        sleep_();
+        if (ahci_ready_to_go(port)) {
+            break;
+        }
+        sleep_();
     }
 }
 
 void
 ahci_setup(hba_mem_t* abar)
 {
-    //    abar->ghc |= HBA_GHC_HR;
     abar->ghc |= HBA_GHC_AE;
     abar->ghc |= HBA_GHC_IE;
     debug_print("Ahci setup complete.");
-}
-
-void*
-memset(void* s, int c, int n)
-{
-    unsigned char* p = s;
-    while (n) {
-        *p++ = (unsigned char)c;
-        n--;
-    }
-    return s;
 }
 
 void
@@ -97,7 +99,7 @@ print_range(uint8_t* buff, int rangeA, int rangeB)
 }
 
 void
-ahci_readwrite_test(hba_port_t* port)
+ahci_readwrite_test()
 {
     uint8_t* buff = (uint8_t*)(AHCI_BUFF);
     int i, j;
@@ -106,20 +108,20 @@ ahci_readwrite_test(hba_port_t* port)
     for (i = 0; i < 100; i++) {
         for (j = 0; j < 8; j++) {
             memset(buff, i, 512);
-            write_ahci(port, (i * 8 + j), 0, 1, (uint16_t*)buff);
+            write_ahci(g_ahci_disk.port, (i * 8 + j), 0, 1, (uint16_t*)buff);
         }
     }
 
     memset(buff, 23, 512);
     kprintf("Reading first byte from each 4KB chunk:\n");
     for (j = 0; j < 100; j++) {
-        read_ahci(port, j * 8, 0, 1, (uint16_t*)buff);
+        read_ahci(g_ahci_disk.port, j * 8, 0, 1, (uint16_t*)buff);
         print_range(buff, 0, 0);
     }
     kprintf("\n");
 }
 
-void
+int
 ahci_probe_port(hba_mem_t* abar)
 {
     uint32_t pi = abar->pi;
@@ -145,34 +147,15 @@ ahci_probe_port(hba_mem_t* abar)
             case 0:
                 break;
             case AHCI_DEV_SATA:
-                kprintf("\nSATA drive found at port %d.", i);
-                ahci_setup(abar);
-                kprintf("Cap is %x.", abar->cap);
-                ahci_fix_port(&abar->ports[i]);
-                port_rebase(&abar->ports[i], i);
-                abar->ports[i].sctl = 0x301;
-                sleep_();
-                abar->ports[i].sctl = 0x300;
-
-                if (abar->cap & HBA_MEM_CAP_SSS) {
-                    abar->ports[i].cmd |=
-                      (HBA_PxCMD_SUD | HBA_PxCMD_POD | HBA_PxCMD_ICC);
-                    sleep_();
-                }
-                abar->ports[i].serr_rwc = 0xFFFFFFFF;
-                abar->ports[i].is_rwc = 0xFFFFFFFF;
-                debug_print("After fix_port.");
-                while (1) {
-                    sleep_();
-                    if (ahci_ready_to_go(&abar->ports[i])) {
-                        break;
-                    }
-                    sleep_();
-                }
-                ahci_readwrite_test(&abar->ports[i]);
-                return;
+                kprintf("SATA drive found at port %d.\n", i);
+                debug_print("Cap is %x.", abar->cap);
+                ahci_fix_port(&abar->ports[i], i, abar->cap & HBA_MEM_CAP_SSS);
+                g_ahci_disk.abar = abar;
+                g_ahci_disk.port = &(abar->ports[i]);
+                return 0;
         }
     }
+    return -1;
 }
 
 void
@@ -181,7 +164,7 @@ ahci_discovery(void)
     uint8_t bus;
     uint8_t device;
     uint8_t func;
-    uint64_t abar;
+    hba_mem_t* abar;
 
     for (bus = 0; bus < 255; bus++) {
         for (device = 0; device < 32; device++) {
@@ -190,8 +173,12 @@ ahci_discovery(void)
                     kprintf("Found AHCI controller, looking for disks...\n");
                     pci_config_write_dw(bus, device, func, 0x24,
                                         AHCI_PCI_ABAR_LOCATION);
-                    abar = pci_config_read_dw(bus, device, func, 0x24);
-                    ahci_probe_port((hba_mem_t*)abar);
+
+                    abar = (hba_mem_t*)((uint64_t)pci_config_read_dw(
+                      bus, device, func, 0x24));
+
+                    ahci_setup(abar);
+                    ahci_probe_port(abar);
                 }
             }
         }
@@ -339,7 +326,7 @@ int
 write_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
            uint16_t* buf)
 {
-    // debug_print("Inside write_ahci.");
+    debug_print("Inside write_ahci.");
     port->is_rwc = (uint32_t)-1;
     int spin = 0;
     int slot = find_cmdslot(port);

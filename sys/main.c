@@ -48,6 +48,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     pic_init();
     enable_interrupts(TRUE);
     ahci_discovery();
+    ahci_readwrite_test();
     while (1)
         ;
 }

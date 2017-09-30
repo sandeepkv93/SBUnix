@@ -365,9 +365,16 @@ typedef volatile struct
     hba_port_t ports[MAX_PORT_CNT]; // 1 ~ 32
 } __attribute__((__packed__)) hba_mem_t;
 
+typedef struct
+{
+    // We'll use this struct to quick access the disk
+    volatile hba_mem_t* abar;
+    volatile hba_port_t* port;
+} hba_wrap_t;
+
 void probe_port(hba_mem_t* abar);
 void ahci_discovery();
-void ahci_probe_port(hba_mem_t* abar);
+int ahci_probe_port(hba_mem_t* abar);
 
 void port_rebase(hba_port_t* port, int portno);
 int read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth,
@@ -375,4 +382,5 @@ int read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth,
 int write_ahci(hba_port_t* port, uint32_t startl, uint32_t starth,
                uint32_t count, uint16_t* buf);
 void stop_cmd(hba_port_t* port);
+void ahci_readwrite_test();
 #endif
