@@ -177,8 +177,8 @@ ahci_discovery(void)
                     pci_config_write_dw(bus, device, func, 0x24,
                                         AHCI_PCI_ABAR_LOCATION);
 
-                    abar = (hba_mem_t*)((uint64_t)pci_config_read_dw(
-                      bus, device, func, 0x24));
+                    abar = (hba_mem_t*)((uint64_t) pci_config_read_dw(bus, 
+                                                        device, func, 0x24));
 
                     ahci_probe_port(abar);
                 }
