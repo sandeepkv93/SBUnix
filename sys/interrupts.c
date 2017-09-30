@@ -4,6 +4,8 @@
 #include <sys/string.h>
 
 extern char g_keymap[], g_keymap_shift[];
+extern void timer_isr_asm();
+extern void kb_isr_asm();
 
 void
 outb(uint16_t port, uint8_t value)
@@ -95,11 +97,10 @@ print_time(int time_seconds)
     kprintf(str);
 }
 void
-timer_handler()
+timer_isr()
 {
     static int seconds = 0;
     static int counter = 0;
-    push_regs();
     counter++;
     if (counter == 41) {
         seconds++;
@@ -107,8 +108,6 @@ timer_handler()
         print_time(seconds);
     }
     outb(PIC1_COMMAND, PIC_EOI);
-    pop_regs();
-    return_isr();
 }
 
 void
@@ -166,7 +165,6 @@ kb_isr()
     static bool is_shift_pressed = FALSE, is_ctrl_pressed = FALSE;
     char* s = "Key press:%c%c\0";
     char a = ' ', b;
-    push_regs();
     uint8_t code;
     code = inb(0x60);
     switch (code) {
@@ -194,22 +192,24 @@ kb_isr()
     }
 
     outb(PIC1_COMMAND, PIC_EOI);
-    pop_regs();
-    return_isr();
+}
+
+void
+exception_handler()
+{
+    kprintf("Exception!! :O ");
+    outb(PIC1_COMMAND, PIC_EOI);
 }
 
 void
 fake_isr()
 {
-    push_regs();
-    kprintf("unregistered interrupt");
+    kprintf("unregistered interrupt :( ");
     outb(PIC1_COMMAND, PIC_EOI);
     /*
         if (irq > 7)
             outb(PIC2_COMMAND, PIC_EOI);
     */
-    pop_regs();
-    return_isr();
 }
 
 void
@@ -228,11 +228,14 @@ void
 register_idt()
 {
     int i;
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < 32; i++) {
+        idt[i] = pic_get_idt_entry((void*)exception_handler);
+    }
+    for (; i < 256; i++) {
         idt[i] = pic_get_idt_entry((void*)fake_isr);
     }
     timer_setup(); // setup PIT
-    register_isr(0x20, (void*)timer_handler);
-    register_isr(0x21, (void*)kb_isr);
+    register_isr(0x20, (void*)timer_isr_asm);
+    register_isr(0x21, (void*)kb_isr_asm);
     lidt(idt, sizeof(struct_idt_entry) * 256 - 1);
 }
