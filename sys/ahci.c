@@ -176,7 +176,6 @@ ahci_discovery(void)
                     kprintf("Found AHCI controller, looking for disks...\n");
                     pci_config_write_dw(bus, device, func, 0x24,
                                         AHCI_PCI_ABAR_LOCATION);
-
                     abar = (hba_mem_t*)((uint64_t)pci_config_read_dw(
                       bus, device, func, 0x24));
 
