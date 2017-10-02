@@ -9,8 +9,13 @@
 #define ATA_CMD_READ_DMA_EX 0x25
 #define ATA_CMD_WRITE_DMA_EX 0x35
 #define AHCI_BUFF 0x410000
+#define SET_DET 0x301
+#define RESET_DET 0x300
 #define TRUE 1
 #define FALSE 0
+#define READ 0
+#define WRITE 1
+#define STAG_SPINUP (HBA_PxCMD_SUD | HBA_PxCMD_POD | HBA_PxCMD_ICC)
 
 hba_wrap_t g_ahci_disk;
 
@@ -62,13 +67,13 @@ ahci_fix_port(hba_port_t* port, int port_num, int support_staggered_spinup)
         port->cmd &= ~HBA_PxCMD_ST;
     }
     port_rebase(port, port_num);
-    port->sctl = 0x301;
+    port->sctl = SET_DET;
     sleep_();
-    port->sctl = 0x300;
+    port->sctl = RESET_DET;
 
     if (support_staggered_spinup) {
         debug_print("support_staggered_spinup.");
-        port->cmd |= (HBA_PxCMD_SUD | HBA_PxCMD_POD | HBA_PxCMD_ICC);
+        port->cmd |= STAG_SPINUP;
         sleep_();
     }
     port->serr_rwc = 0xFFFFFFFF;
@@ -110,14 +115,15 @@ ahci_readwrite_test()
     for (i = 0; i < 100; i++) {
         for (j = 0; j < 8; j++) {
             memset(buff, i, 512);
-            write_ahci(g_ahci_disk.port, (i * 8 + j), 0, 1, (uint16_t*)buff);
+            ahci_rw(g_ahci_disk.port, (i * 8 + j), 0, 1, (uint16_t*)buff,
+                    WRITE);
         }
     }
 
-    memset(buff, 23, 512);
+    memset(buff, 23, 512); // clear buffer
     kprintf("Reading first byte from each 4KB chunk:\n");
     for (j = 0; j < 100; j++) {
-        read_ahci(g_ahci_disk.port, j * 8, 0, 1, (uint16_t*)buff);
+        ahci_rw(g_ahci_disk.port, j * 8, 0, 1, (uint16_t*)buff, READ);
         print_range(buff, 0, 0);
     }
     kprintf("\n");
@@ -176,9 +182,8 @@ ahci_discovery(void)
                     kprintf("Found AHCI controller, looking for disks...\n");
                     pci_config_write_dw(bus, device, func, 0x24,
                                         AHCI_PCI_ABAR_LOCATION);
-
-                    abar = (hba_mem_t*)((uint64_t) pci_config_read_dw(bus, 
-                                                        device, func, 0x24));
+                    abar = (hba_mem_t*)((uint64_t)pci_config_read_dw(
+                      bus, device, func, 0x24));
 
                     ahci_probe_port(abar);
                 }
@@ -186,6 +191,8 @@ ahci_discovery(void)
         }
     }
 }
+
+// code reference : OSdev.org
 
 void
 start_cmd(hba_port_t* port)
@@ -252,9 +259,10 @@ find_cmdslot(hba_port_t* port)
 }
 
 int
-read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
-          uint16_t* buf)
+ahci_rw(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
+        uint16_t* buf, uint8_t op)
 {
+    char* op_str[] = { "READ", "WRITE" };
     port->is_rwc = 0xffff;
     int spin = 0;
     int slot = find_cmdslot(port);
@@ -285,7 +293,7 @@ read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
     fis_reg_h2d_t* cmdfis = (fis_reg_h2d_t*)(&cmdtbl->cfis);
     cmdfis->fis_type = FIS_TYPE_REG_H2D;
     cmdfis->c = 1;
-    cmdfis->command = ATA_CMD_READ_DMA_EX;
+    cmdfis->command = (op == READ ? ATA_CMD_READ_DMA_EX : ATA_CMD_WRITE_DMA_EX);
 
     cmdfis->lba0 = (uint8_t)startl;
     cmdfis->lba1 = (uint8_t)(startl >> 8);
@@ -301,7 +309,7 @@ read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
         spin++;
     }
     if (spin == 1000000) {
-        kprintf("Port is hung in read\n");
+        kprintf("Port is hung in %s\n", op_str[op]);
         return FALSE;
     }
 
@@ -311,92 +319,14 @@ read_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
         if ((port->ci & (1 << slot)) == 0)
             break;
         if (port->is_rwc & HBA_PxIS_TFES) {
-            kprintf("Read disk error\n");
+            kprintf("%s disk error\n", op_str[op]);
             return FALSE;
         }
     }
 
     if (port->is_rwc & HBA_PxIS_TFES) {
-        kprintf("Read disk error\n");
+        kprintf("%s disk error\n", op_str[op]);
         return FALSE;
     }
-
-    return TRUE;
-}
-
-int
-write_ahci(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
-           uint16_t* buf)
-{
-    debug_print("Inside write_ahci.");
-    port->is_rwc = (uint32_t)-1;
-    int spin = 0;
-    int slot = find_cmdslot(port);
-    int i = 0;
-    if (slot == -1)
-        return FALSE;
-
-    hba_cmd_header_t* cmdheader = (hba_cmd_header_t*)port->clb;
-    cmdheader += slot;
-    cmdheader->cfl = sizeof(fis_reg_h2d_t) / sizeof(uint32_t);
-    cmdheader->w = 1;
-    cmdheader->prdtl = (uint16_t)((count - 1) >> 4) + 1;
-
-    hba_cmd_tbl_t* cmdtbl = (hba_cmd_tbl_t*)(cmdheader->ctba);
-    memset(cmdtbl, 0, sizeof(hba_cmd_tbl_t) +
-                        (cmdheader->prdtl - 1) * sizeof(hba_prdt_entry_t));
-
-    for (i = 0; i < cmdheader->prdtl - 1; i++) {
-        cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
-        cmdtbl->prdt_entry[i].dbc = 8 * 1024;
-        cmdtbl->prdt_entry[i].i = 1;
-        buf += 4 * 1024;
-        count -= 16;
-    }
-    cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
-    cmdtbl->prdt_entry[i].dbc = count << 9;
-    cmdtbl->prdt_entry[i].i = 1;
-
-    fis_reg_h2d_t* cmdfis = (fis_reg_h2d_t*)(&cmdtbl->cfis);
-
-    cmdfis->fis_type = FIS_TYPE_REG_H2D;
-    cmdfis->c = 1;
-    cmdfis->command = ATA_CMD_WRITE_DMA_EX;
-
-    cmdfis->lba0 = (uint8_t)startl;
-    cmdfis->lba1 = (uint8_t)(startl >> 8);
-    cmdfis->lba2 = (uint8_t)(startl >> 16);
-    cmdfis->device = 1 << 6;
-
-    cmdfis->lba3 = (uint8_t)(startl >> 24);
-    cmdfis->lba4 = (uint8_t)starth;
-    cmdfis->lba5 = (uint8_t)(starth >> 8);
-
-    cmdfis->count = count;
-
-    while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000) {
-        spin++;
-    }
-    if (spin == 1000000) {
-        kprintf("Port is hung in write\n");
-        return FALSE;
-    }
-
-    port->ci = 1 << slot;
-
-    while (1) {
-        if ((port->ci & (1 << slot)) == 0)
-            break;
-        if (port->is_rwc & HBA_PxIS_TFES) {
-            kprintf("Write disk error\n");
-            return FALSE;
-        }
-    }
-
-    if (port->is_rwc & HBA_PxIS_TFES) {
-        kprintf("Write disk error\n");
-        return FALSE;
-    }
-
     return TRUE;
 }
