@@ -11,8 +11,6 @@
 #define AHCI_BUFF 0x410000
 #define SET_DET 0x301
 #define RESET_DET 0x300
-#define TRUE 1
-#define FALSE 0
 #define READ 0
 #define WRITE 1
 #define STAG_SPINUP (HBA_PxCMD_SUD | HBA_PxCMD_POD | HBA_PxCMD_ICC)
@@ -273,7 +271,7 @@ ahci_rw(hba_port_t* port, uint32_t startl, uint32_t starth, uint32_t count,
     hba_cmd_header_t* cmdheader = (hba_cmd_header_t*)port->clb;
     cmdheader += slot;
     cmdheader->cfl = sizeof(fis_reg_h2d_t) / sizeof(uint32_t);
-    cmdheader->w = 0;
+    cmdheader->w = op;
     cmdheader->prdtl = (uint16_t)((count - 1) >> 4) + 1;
 
     hba_cmd_tbl_t* cmdtbl = (hba_cmd_tbl_t*)(cmdheader->ctba);
