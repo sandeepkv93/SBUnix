@@ -1,7 +1,7 @@
 #include <stdarg.h>
+#include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/string.h>
-#include <sys/interrupts.h>
 #define VC_ROW_LIMIT 25
 #define VC_COL_LIMIT 80
 
