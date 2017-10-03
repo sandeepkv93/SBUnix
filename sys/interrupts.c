@@ -88,13 +88,16 @@ void
 print_time(int time_seconds)
 {
     char str[20];
+    int x = 0, y = 0;
     int len = 0;
     int mins = time_seconds / 60;
     int secs = time_seconds % 60;
     len = sprintf(str, " Time since boot %d%s%d", mins, secs < 10 ? ":0" : ":",
                   secs);
+    get_cursor_position(&x, &y);
     cursor_move(24, 80 - (len));
     kprintf(str);
+    cursor_move(x, y);
 }
 void
 timer_isr()
@@ -166,6 +169,7 @@ kb_isr()
     char* s = "Key press:%c%c\0";
     char a = ' ', b;
     uint8_t code;
+    int x, y;
     code = inb(0x60);
     switch (code) {
         case KEYCODE_SHIFT:
@@ -184,10 +188,12 @@ kb_isr()
             break;
         default:
             if ((code > 0) && (code < g_keymap[0])) {
-                cursor_move(24, (80 - 35));
                 a = is_ctrl_pressed ? '^' : ' ';
                 b = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
+                get_cursor_position(&x, &y);
+                cursor_move(24, (80 - 35));
                 kprintf(s, a, b);
+                cursor_move(x, y);
             }
     }
 
