@@ -26,5 +26,7 @@ struct_idt_entry idt[256];
 void pic_init();
 void register_idt();
 void enable_interrupts(bool);
+void print_time(int);
+void outb(uint16_t port, uint8_t value);
 
 #endif

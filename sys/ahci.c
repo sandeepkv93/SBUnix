@@ -3,6 +3,7 @@
 #include <sys/kprintf.h>
 #include <sys/pci.h>
 #include <sys/string.h>
+#include <sys/timer.h>
 #define AHCI_BASE 0x400000
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
@@ -17,13 +18,6 @@
 
 hba_wrap_t g_ahci_disk;
 
-void
-sleep_()
-{
-    for (int i = 0; i != 9999; i++)
-        for (int j = 0; j != 9999; j++)
-            ;
-}
 bool
 ahci_ready_to_go(hba_port_t* port)
 {
@@ -66,23 +60,23 @@ ahci_fix_port(hba_port_t* port, int port_num, int support_staggered_spinup)
     }
     port_rebase(port, port_num);
     port->sctl = SET_DET;
-    sleep_();
+    sleep(10);
     port->sctl = RESET_DET;
 
     if (support_staggered_spinup) {
         debug_print("support_staggered_spinup.");
         port->cmd |= STAG_SPINUP;
-        sleep_();
+        sleep(10);
     }
     port->serr_rwc = 0xFFFFFFFF;
     port->is_rwc = 0xFFFFFFFF;
     debug_print("After fix_port.");
     while (1) {
-        sleep_();
+        sleep(10);
         if (ahci_ready_to_go(port)) {
             break;
         }
-        sleep_();
+        sleep(10);
     }
     debug_print("Ready to go");
 }

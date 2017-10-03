@@ -2,6 +2,7 @@
 #include <sys/keyboard.h>
 #include <sys/kprintf.h>
 #include <sys/string.h>
+#include <sys/timer.h>
 
 extern char g_keymap[], g_keymap_shift[];
 extern void timer_isr_asm();
@@ -84,6 +85,7 @@ register_isr(int intn, void* handler)
     idt[intn] = pic_get_idt_entry(handler);
 }
 
+// TODO Move this to terminal.c once it is added
 void
 print_time(int time_seconds)
 {
@@ -98,30 +100,6 @@ print_time(int time_seconds)
     cursor_move(24, 80 - (len));
     kprintf(str);
     cursor_move(x, y);
-}
-void
-timer_isr()
-{
-    static int seconds = 0;
-    static int counter = 0;
-    counter++;
-    if (counter == 41) {
-        seconds++;
-        counter = 0;
-        print_time(seconds);
-    }
-    outb(PIC1_COMMAND, PIC_EOI);
-}
-
-void
-timer_setup()
-{
-    __asm__("mov $0x34, %al;"
-            "out %al, $0x43;"   // load control register
-            "mov $29102, %eax;" // 1193182 = (41 * 29102) = 41*2*14551//
-            "out %al, $0x40;"
-            "mov %ah, %al;"
-            "out %al, $0x40;");
 }
 
 // TODO
