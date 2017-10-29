@@ -7,6 +7,7 @@
 #include <sys/kprintf.h>
 #include <sys/pci.h>
 #include <sys/tarfs.h>
+#include <sys/vma.h>
 
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE] __attribute__((aligned(16)));
@@ -39,16 +40,20 @@ start(uint32_t* modulep, void* physbase, void* physfree)
         if (smap->type == 1 /* memory */ && smap->length != 0) {
             kprintf("Available Physical Memory [%p-%p]\n", smap->base,
                     smap->base + smap->length);
+            vma_pagelist_add_addresses(smap->base, smap->base + smap->length);
         }
     }
+    vma_pagelist_create(physfree);
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
 
+    /*
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
     ahci_discovery();
     ahci_readwrite_test();
+    */
     while (1)
         ;
 }
