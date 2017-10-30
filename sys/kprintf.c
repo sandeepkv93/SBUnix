@@ -4,15 +4,16 @@
 #include <sys/string.h>
 #define VC_ROW_LIMIT 25
 #define VC_COL_LIMIT 80
+#define VIDEO_MEMORY (0x00000000000b8000)
 
-char* vc = (char*)0xb8000;
+char* vc = (char*)VIDEO_MEMORY;
 int vc_col = 0;
 int vc_row = 0;
 
 void
 initialize_vc_memory()
 {
-    vc = (char*)0xb8000;
+    vc = (char*)VIDEO_MEMORY;
     vc_col = 0;
     vc_row = 0;
 }
@@ -102,7 +103,7 @@ void
 signalme(char c)
 {
     char* t;
-    t = (char*)0xb8000;
+    t = (char*)VIDEO_MEMORY;
     t += (160 * 4);
     *t = c;
 }
@@ -120,13 +121,13 @@ print_to_console(const char* buf, int buflen)
         if (buf[k] == '\n') {
             vc_row += 1;
             vc_col = 0;
-            vc = ((char*)(0x00000000000b8000) + (vc_row * 2 * VC_COL_LIMIT));
+            vc = ((char*)(VIDEO_MEMORY) + (vc_row * 2 * VC_COL_LIMIT));
             ++k;
             continue;
         }
         if (buf[k] == '\r') {
             vc_col = 0;
-            vc = ((char*)(0x00000000000b8000) + (vc_row * 2 * VC_COL_LIMIT));
+            vc = ((char*)(VIDEO_MEMORY) + (vc_row * 2 * VC_COL_LIMIT));
             ++k;
             continue;
         }
@@ -282,7 +283,7 @@ cursor_move(int row, int col)
 {
     vc_row = row;
     vc_col = col;
-    vc = ((char*)(0x00000000000b8000) + (vc_row * 160 + vc_col * 2));
+    vc = ((char*)(VIDEO_MEMORY) + (vc_row * 160 + vc_col * 2));
 }
 
 void

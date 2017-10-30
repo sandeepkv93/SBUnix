@@ -44,9 +44,10 @@ start(uint32_t* modulep, void* physbase, void* physfree)
         }
     }
     vma_pagelist_create(physfree);
+    vma_create_pagetables();
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-
+    kprintf("smap add is %p", &smap);
     /*
     register_idt();
     pic_init();
