@@ -24,6 +24,9 @@ are_interrupts_enabled()
     return flags & (1 << 9);
 }
 
+void trial() {
+}
+
 void
 start(uint32_t* modulep, void* physbase, void* physfree)
 {
@@ -43,11 +46,11 @@ start(uint32_t* modulep, void* physbase, void* physfree)
             vma_pagelist_add_addresses(smap->base, smap->base + smap->length);
         }
     }
-    vma_pagelist_create(physfree);
-    vma_create_pagetables();
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-    kprintf("smap add is %p", &smap);
+    vma_pagelist_create(physfree);
+    vma_create_pagetables();
+    trial();
     /*
     register_idt();
     pic_init();

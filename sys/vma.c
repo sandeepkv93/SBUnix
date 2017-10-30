@@ -2,7 +2,7 @@
 #include <sys/vma.h>
 
 #define VMA_KERNMEM 0xffffffff80000000
-#define PAGELIST_ENTRIES (256 * 1024)
+#define PAGELIST_ENTRIES (1024 * 256)
 #define PAGE_SIZE 4096
 #define TABLE_ENTRIES 512
 
@@ -68,7 +68,6 @@ vma_add_table_mapping(uint64_t* table, uint32_t offset)
         for (int i = 0; i < PAGE_SIZE; i++) {
             temp_byte[i] = 0;
         }
-        table[offset] <<= 12;
         table[offset] |= 0x3;
     }
     return (uint64_t*)(table[offset] & 0xfffffffffffff000);
@@ -86,7 +85,8 @@ vma_create_pagetables()
     for (int i = 0; i < TABLE_ENTRIES; i++) {
         pml4_table[i] = 0;
     }
-    for (int i = 0; i < PAGELIST_ENTRIES; i++) {
+
+    for (int i = 0; i < 2048; i++) {
         v_addr = VMA_KERNMEM + i * (PAGE_SIZE);
         pdp_table = vma_add_table_mapping(pml4_table, VMA_PML4_OFFSET(v_addr));
         pd_table =
@@ -96,7 +96,8 @@ vma_create_pagetables()
 
         pt_table[VMA_PAGE_TABLE_OFFSET(v_addr)] = (0x0 + i * (PAGE_SIZE)) | 0x3;
     }
-    for (int i = 0; i < 1024; i++) {
+
+    for (int i = 0; i < 2048; i++) {
         v_addr = i * (PAGE_SIZE);
         pdp_table = vma_add_table_mapping(pml4_table, VMA_PML4_OFFSET(v_addr));
         pd_table =
