@@ -2,6 +2,7 @@
 #include <sys/vma.h>
 
 #define VMA_KERNMEM 0xffffffff80000000
+#define VMA_VIDEO (VMA_KERNMEM + 0x800000) // 2nd part is 2048 * PAGESIZE
 #define PAGELIST_ENTRIES (1024 * 256)
 #define PAGE_SIZE 4096
 #define TABLE_ENTRIES 512
@@ -19,6 +20,8 @@ extern void paging_enable(void*);
 void
 vma_pagelist_add_addresses(uint64_t start, uint64_t end)
 {
+    // Call with start and end physical addresses that you want to
+    // be bookkept in the FREELIST
     for (int i = start / PAGE_SIZE; i < end / PAGE_SIZE; i++) {
         pages[i].present = TRUE;
     }
@@ -27,6 +30,11 @@ vma_pagelist_add_addresses(uint64_t start, uint64_t end)
 void
 vma_pagelist_create(uint64_t physfree)
 {
+    // Once you add all addresses to be bookkept in the FREELIST by
+    // calling vma_pagelist_add_addresses, call vma_pagelist_create
+    // The parameter signifies the page boundary from where free
+    // pages are assigned
+
     int i = physfree / PAGE_SIZE;
     bool isLastPage = FALSE;
     while (!isLastPage) {
@@ -46,6 +54,7 @@ vma_pagelist_create(uint64_t physfree)
 void*
 vma_pagelist_getpage()
 {
+    // Returns a freepage from the FREELIST
     uint64_t pageAddress = (freepage_head - pages) * PAGE_SIZE;
     if (freepage_head == NULL) {
         return NULL;
@@ -76,6 +85,7 @@ vma_add_table_mapping(uint64_t* table, uint32_t offset)
 void
 vma_create_pagetables()
 {
+    // Creates the 4 level pagetables needed and switches CR3
     uint64_t* pml4_table = vma_pagelist_getpage();
     uint64_t* pdp_table;
     uint64_t* pd_table;
@@ -86,6 +96,10 @@ vma_create_pagetables()
         pml4_table[i] = 0;
     }
 
+    // Self referencing trick
+    pml4_table[TABLE_ENTRIES - 1] = ((uint64_t)pml4_table) | 0x3;
+
+    //TODO Remove this hard coding of 2048. Map only physbase to physfree
     for (int i = 0; i < 2048; i++) {
         v_addr = VMA_KERNMEM + i * (PAGE_SIZE);
         pdp_table = vma_add_table_mapping(pml4_table, VMA_PML4_OFFSET(v_addr));
@@ -97,15 +111,13 @@ vma_create_pagetables()
         pt_table[VMA_PAGE_TABLE_OFFSET(v_addr)] = (0x0 + i * (PAGE_SIZE)) | 0x3;
     }
 
-    for (int i = 0; i < 2048; i++) {
-        v_addr = i * (PAGE_SIZE);
-        pdp_table = vma_add_table_mapping(pml4_table, VMA_PML4_OFFSET(v_addr));
-        pd_table =
-          vma_add_table_mapping(pdp_table, VMA_PD_POINTER_OFFSET(v_addr));
-        pt_table =
-          vma_add_table_mapping(pd_table, VMA_PAGE_DIRECTORY_OFFSET(v_addr));
+    //TODO add new function to create the mapping making the following code generic
+    v_addr = VMA_VIDEO;
+    pdp_table = vma_add_table_mapping(pml4_table, VMA_PML4_OFFSET(v_addr));
+    pd_table = vma_add_table_mapping(pdp_table, VMA_PD_POINTER_OFFSET(v_addr));
+    pt_table =
+      vma_add_table_mapping(pd_table, VMA_PAGE_DIRECTORY_OFFSET(v_addr));
+    pt_table[VMA_PAGE_TABLE_OFFSET(v_addr)] = (0xb8000) | 0x3;
 
-        pt_table[VMA_PAGE_TABLE_OFFSET(v_addr)] = (0x0 + i * (PAGE_SIZE)) | 0x3;
-    }
     paging_enable(pml4_table);
 }

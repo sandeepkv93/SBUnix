@@ -24,7 +24,10 @@ are_interrupts_enabled()
     return flags & (1 << 9);
 }
 
-void trial() {
+void
+trial()
+{
+    kprintf("Success");
 }
 
 void
@@ -46,15 +49,15 @@ start(uint32_t* modulep, void* physbase, void* physfree)
             vma_pagelist_add_addresses(smap->base, smap->base + smap->length);
         }
     }
-    kprintf("physfree %p\n", (uint64_t)physfree);
-    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     vma_pagelist_create(physfree);
     vma_create_pagetables();
+    kprintf("physfree %p\n", (uint64_t)physfree);
+    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     trial();
-    /*
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
+    /*
     ahci_discovery();
     ahci_readwrite_test();
     */

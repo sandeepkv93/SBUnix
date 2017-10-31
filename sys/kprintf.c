@@ -4,7 +4,7 @@
 #include <sys/string.h>
 #define VC_ROW_LIMIT 25
 #define VC_COL_LIMIT 80
-#define VIDEO_MEMORY (0x00000000000b8000)
+#define VIDEO_MEMORY 0xffffffff80800000
 
 char* vc = (char*)VIDEO_MEMORY;
 int vc_col = 0;
