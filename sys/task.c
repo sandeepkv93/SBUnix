@@ -8,46 +8,55 @@ task_struct tasks[2];
 task_struct *me, *next;
 
 void
-sched()
+task_sched()
 {
-    next = &tasks[0];
-    me = &tasks[1];
+    task_struct* tmp;
+    tmp = next;
+    next = me;
+    me = tmp;
 }
 
 void
-yield()
+task_yield()
 {
+    task_sched();
     switch_to(me, next);
 }
-void
-yield2()
-{
-    switch_to(next, me);
-}
 
 void
-thread2()
+sample_thread()
 {
     while (1) {
-        yield2();
+        task_yield();
         kprintf("Thread2! Yo :D\n");
     }
 }
 
 void
-trial_sched()
+task_create_thread(void thread_callback())
 {
+    // TODO use kmalloc to allocate stack space. create task on the go
+    uint64_t* stack_top;
     me = &tasks[0];
     next = &tasks[1];
-    uint64_t* stack_top;
     stack_top = (uint64_t*)&second_stack[4096];
     stack_top--;
-    *stack_top = (uint64_t)thread2;
+    *stack_top = (uint64_t)thread_callback;
     stack_top--;
     *stack_top = (uint64_t)next;
     next->regs.rsp = (uint64_t)stack_top;
+
+    // TODO This call is a hack, because we need to setup next and me initially
+    task_sched();
+}
+
+void
+trial_sched()
+{
+    task_create_thread(sample_thread);
+
     while (1) {
-        yield();
+        task_yield();
         kprintf("Thread1| Yo :D\n");
     }
 }
