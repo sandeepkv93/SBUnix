@@ -3,7 +3,7 @@
 
 #define VMA_KERNMEM 0xffffffff80000000
 #define VMA_VIDEO (VMA_KERNMEM + 0x800000) // 2nd part is 2048 * PAGESIZE
-#define PAGELIST_ENTRIES (1024 * 256)
+#define PAGELIST_ENTRIES (1024 * 1024)
 #define PAGE_SIZE 4096
 #define TABLE_ENTRIES 512
 
@@ -99,8 +99,8 @@ vma_create_pagetables()
     // Self referencing trick
     pml4_table[TABLE_ENTRIES - 1] = ((uint64_t)pml4_table) | 0x3;
 
-    //TODO Remove this hard coding of 2048. Map only physbase to physfree
-    for (int i = 0; i < 2048; i++) {
+    // TODO Remove this hard coding of 2048. Map only physbase to physfree
+    for (int i = 0; i < 4735; i++) {
         v_addr = VMA_KERNMEM + i * (PAGE_SIZE);
         pdp_table = vma_add_table_mapping(pml4_table, VMA_PML4_OFFSET(v_addr));
         pd_table =
@@ -111,7 +111,8 @@ vma_create_pagetables()
         pt_table[VMA_PAGE_TABLE_OFFSET(v_addr)] = (0x0 + i * (PAGE_SIZE)) | 0x3;
     }
 
-    //TODO add new function to create the mapping making the following code generic
+    // TODO add new function to create the mapping making the following code
+    // generic
     v_addr = VMA_VIDEO;
     pdp_table = vma_add_table_mapping(pml4_table, VMA_PML4_OFFSET(v_addr));
     pd_table = vma_add_table_mapping(pdp_table, VMA_PD_POINTER_OFFSET(v_addr));

@@ -8,3 +8,4 @@ obj/*
 kernel
 *.img
 *.iso
+.gdb_history

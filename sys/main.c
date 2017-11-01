@@ -7,6 +7,7 @@
 #include <sys/kprintf.h>
 #include <sys/pci.h>
 #include <sys/tarfs.h>
+#include <sys/task.h>
 #include <sys/vma.h>
 
 #define INITIAL_STACK_SIZE 4096
@@ -49,6 +50,8 @@ start(uint32_t* modulep, void* physbase, void* physfree)
             vma_pagelist_add_addresses(smap->base, smap->base + smap->length);
         }
     }
+    kprintf("physfree %p\n", (uint64_t)physfree);
+    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     vma_pagelist_create(physfree);
     vma_create_pagetables();
     kprintf("physfree %p\n", (uint64_t)physfree);
@@ -57,6 +60,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
+    trial_sched();
     /*
     ahci_discovery();
     ahci_readwrite_test();
