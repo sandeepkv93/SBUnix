@@ -9,11 +9,11 @@ typedef struct _regstruct
     uint64_t rdx;
     uint64_t rsp;
     uint64_t flags;
-} __attribute__((packed)) reg_struct;
+} __attribute__((packed)) __attribute__((aligned(64))) reg_struct;
 
 typedef struct _taskstruct
 {
     reg_struct regs;
-} __attribute__((packed)) task_struct;
+} __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 void trial_sched();
 #endif

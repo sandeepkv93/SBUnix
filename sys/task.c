@@ -8,18 +8,30 @@ task_struct tasks[2];
 task_struct *me, *next;
 
 void
+sched()
+{
+    next = &tasks[0];
+    me = &tasks[1];
+}
+
+void
 yield()
 {
     switch_to(me, next);
+}
+void
+yield2()
+{
+    switch_to(next, me);
 }
 
 void
 thread2()
 {
-    kprintf("Thread X! Hello from the other side\n");
-    while (1)
-        ;
-    yield();
+    while (1) {
+        yield2();
+        signalme('-');
+    }
 }
 
 void
@@ -30,16 +42,12 @@ trial_sched()
     uint64_t* stack_top;
     stack_top = (uint64_t*)&second_stack[4096];
     stack_top--;
-    stack_top--;
-    stack_top--;
-    stack_top--;
-    stack_top--;
-    stack_top--;
     *stack_top = (uint64_t)thread2;
     stack_top--;
     *stack_top = (uint64_t)next;
     next->regs.rsp = (uint64_t)stack_top;
-    next->regs.rbp = (uint64_t)stack_top;
-    yield();
-    kprintf("Thread 1! Hello from the other side\n");
+    while (1) {
+        yield();
+        signalme('|');
+    }
 }

@@ -14,16 +14,19 @@ switch_to:
     push %rdi
     movq %rsp, 40(%rdi)
 
+    //======== Epic Magic
+
     movq 40(%rsi), %rsp
     pop %rdi
+
+    push 48(%rdi)
+    popf
 
     movq  0(%rdi), %rbp
     movq  8(%rdi), %rax
     movq 16(%rdi), %rbx
     movq 24(%rdi), %rcx
     movq 32(%rdi), %rdx
-    push 48(%rdi)
-    popf
 
     retq
 .end

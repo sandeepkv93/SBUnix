@@ -28,7 +28,7 @@ are_interrupts_enabled()
 void
 trial()
 {
-    kprintf("Success");
+    kprintf("Success\n");
 }
 
 void
