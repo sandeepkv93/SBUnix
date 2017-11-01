@@ -26,12 +26,6 @@ are_interrupts_enabled()
 }
 
 void
-trial()
-{
-    kprintf("Success\n");
-}
-
-void
 start(uint32_t* modulep, void* physbase, void* physfree)
 {
     struct smap_t
@@ -56,7 +50,6 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     vma_create_pagetables();
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-    trial();
     register_idt();
     pic_init();
     enable_interrupts(TRUE);

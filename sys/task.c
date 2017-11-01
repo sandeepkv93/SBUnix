@@ -30,7 +30,7 @@ thread2()
 {
     while (1) {
         yield2();
-        signalme('-');
+        kprintf("Thread2! Yo :D\n");
     }
 }
 
@@ -48,6 +48,6 @@ trial_sched()
     next->regs.rsp = (uint64_t)stack_top;
     while (1) {
         yield();
-        signalme('|');
+        kprintf("Thread1| Yo :D\n");
     }
 }

@@ -7,6 +7,8 @@
 #define VIDEO_MEMORY 0xffffffff80800000
 
 char* vc = (char*)VIDEO_MEMORY;
+
+// TODO use a structure for col and row
 int vc_col = 0;
 int vc_row = 0;
 
@@ -99,6 +101,7 @@ copy_integer(int i, char* buf, int* ptr)
         *ptr += 1;
     }
 }
+
 void
 signalme(char c)
 {
@@ -186,6 +189,7 @@ sprintf(char* buffer, const char* format, ...)
     va_list ap;
     va_start(ap, format);
     bufptr = vprintf(buffer, format, ap);
+    // TODO remove following lines if not needed
     /*    int len = strlen(format);
         int i = 0;
         char* st;
@@ -227,11 +231,13 @@ sprintf(char* buffer, const char* format, ...)
 void
 kprintf(const char* format, ...)
 {
-    char buffer[4096] = { '\0' };
+    // TODO Don't allocate big chunks on stack. Use kmalloc
+    char buffer[1024] = { '\0' };
     int bufptr = 0;
     va_list ap;
     va_start(ap, format);
     bufptr = vprintf(buffer, format, ap);
+    // TODO remove following lines if not needed
     /*
         int len = strlen(arg1);
         int i = 0;

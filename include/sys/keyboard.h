@@ -49,10 +49,10 @@ char g_keymap_shift[] = {
     ' ', // Enter
     ' ', // LCtrl
     'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',
-    ' ', // TODO
+    ' ', //
     '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',
     ' ', // Rshift
-    ' ', // TODO
+    ' ', //
     ' ', // Left Alt
     ' ', // Spacebar
     ' ', // Capslock

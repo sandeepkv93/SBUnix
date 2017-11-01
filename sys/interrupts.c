@@ -102,7 +102,7 @@ print_time(int time_seconds)
     cursor_move(x, y);
 }
 
-// TODO
+// TODO Make more readable
 void
 pic_init()
 {
