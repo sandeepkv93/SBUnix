@@ -13,6 +13,7 @@
 #define VMA_PD_POINTER_OFFSET(x) ((x >> 30) & 0x1ff)
 #define VMA_PML4_OFFSET(x) ((x >> 39) & 0x1ff)
 
+// TODO Allocate pages array dynamically
 struct pagelist_t pages[PAGELIST_ENTRIES];
 struct pagelist_t* freepage_head;
 extern void paging_enable(void*);
