@@ -53,7 +53,9 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
-    trial_sched();
+    // trial_sched();
+    // int* p = (int*)get_free_pages();
+    // kprintf("%p", p);
     /*
     ahci_discovery();
     ahci_readwrite_test();

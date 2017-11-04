@@ -9,4 +9,5 @@ struct pagelist_t
 void vma_pagelist_add_addresses(uint64_t start, uint64_t end);
 void vma_pagelist_create();
 void vma_create_pagetables();
+void* get_free_pages();
 #endif

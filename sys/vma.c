@@ -14,6 +14,7 @@
 #define VMA_PML4_OFFSET(x) ((x >> 39) & 0x1ff)
 
 // TODO Allocate pages array dynamically
+uint64_t cur_kern_heap = VMA_VIDEO + 0x10000;
 struct pagelist_t pages[PAGELIST_ENTRIES];
 struct pagelist_t* freepage_head;
 extern void paging_enable(void*);
@@ -111,7 +112,6 @@ vma_create_pagetables()
 
         pt_table[VMA_PAGE_TABLE_OFFSET(v_addr)] = (0x0 + i * (PAGE_SIZE)) | 0x3;
     }
-
     // TODO add new function to create the mapping making the following code
     // generic
     v_addr = VMA_VIDEO;
@@ -120,6 +120,36 @@ vma_create_pagetables()
     pt_table =
       vma_add_table_mapping(pd_table, VMA_PAGE_DIRECTORY_OFFSET(v_addr));
     pt_table[VMA_PAGE_TABLE_OFFSET(v_addr)] = (0xb8000) | 0x3;
-
     paging_enable(pml4_table);
+    kprintf("end of page create func!");
+    uint64_t p = 0xfffffffffff1ff;
+    // uint64_t* p = (uint64_t*)0xffffffffffff;
+    kprintf("\n%x\n", VMA_PML4_OFFSET(p));
+    kprintf("\n%x\n", VMA_PD_POINTER_OFFSET(p));
+    kprintf("\n%x\n", VMA_PAGE_DIRECTORY_OFFSET(p));
+    kprintf("\n%x\n", VMA_PAGE_TABLE_OFFSET(p));
+    uint64_t* ptr = (uint64_t*)p;
+    kprintf("\n%d\n", *ptr);
+}
+
+void*
+get_free_pages()
+{
+    uint64_t phy_addr;
+    uint64_t v_addr;
+    uint64_t* pml4_table = (uint64_t*)0xffffffffffff;
+    uint64_t* pdp_table;
+    uint64_t* pd_table;
+    uint64_t* pt_table;
+    // phy_addr = vma_pagelist_getpage();
+    phy_addr = (uint64_t)(4000 * PAGE_SIZE);
+    v_addr = cur_kern_heap;
+    kprintf("%p \n%p", phy_addr, v_addr);
+    cur_kern_heap += PAGE_SIZE;
+    pdp_table = vma_add_table_mapping(pml4_table, VMA_PML4_OFFSET(v_addr));
+    pd_table = vma_add_table_mapping(pdp_table, VMA_PD_POINTER_OFFSET(v_addr));
+    pt_table =
+      vma_add_table_mapping(pd_table, VMA_PAGE_DIRECTORY_OFFSET(v_addr));
+    pt_table[VMA_PAGE_TABLE_OFFSET(v_addr)] = (uint64_t)(phy_addr) | 0x3;
+    return (void*)v_addr;
 }
