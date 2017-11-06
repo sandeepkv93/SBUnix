@@ -98,9 +98,10 @@ print_time(int time_seconds)
     len = sprintf(str, " Time since boot %d%s%d", mins, secs < 10 ? ":0" : ":",
                   secs);
     term_get_cursor(&x, &y);
-    term_set_cursor(0, 80 - (len));
+    term_set_cursor(0, 80 - (len),
+                    TERM_BG_FG_COLOR(term_color_lightgreen, term_color_black));
     kprintf(str);
-    term_set_cursor(x, y);
+    term_set_cursor(x, y, -1);
 }
 
 // TODO Make more readable
@@ -170,9 +171,9 @@ kb_isr()
                 a = is_ctrl_pressed ? '^' : ' ';
                 b = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
                 term_get_cursor(&x, &y);
-                term_set_cursor(0, (80 - 35));
+                term_set_cursor(0, (80 - 35), term_color_blue);
                 kprintf(s, a, b);
-                term_set_cursor(x, y);
+                term_set_cursor(x, y, -1);
             }
     }
 

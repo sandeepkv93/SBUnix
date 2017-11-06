@@ -153,7 +153,7 @@ void
 kprintf_test()
 {
     for (int i = 0; i < 100; i++) {
-        kprintf("more%d\n", i);
+        kprintf("more %d\n", i);
     }
     kprintf("This is a sample text that is going to test my kprintf big time. "
             "Let's see if we can find any bugs. The hope is that there won't "

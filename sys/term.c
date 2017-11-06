@@ -3,13 +3,14 @@
 #define VC_ROW_LIMIT 25
 #define VC_COL_LIMIT 80
 #define VC_CHAR_PER_COL 2
+#define TERM_DEFAULT_COLOR 0x07
 
 struct
 {
     uint8_t row;
     uint8_t column;
     uint8_t color;
-} v_cursor = { 1, 0, 0 };
+} v_cursor = {.row = 1, .column = 0, .color = TERM_DEFAULT_COLOR };
 
 void
 term_write(const char* buf, int buflen)
@@ -74,6 +75,7 @@ term_write(const char* buf, int buflen)
                 (v_cursor.column * 2);
 
         v_mem[index] = buf[i];
+        v_mem[index + 1] = v_cursor.color;
 
         v_cursor.column++;
     }
@@ -88,10 +90,11 @@ term_get_cursor(int* row, int* col)
 }
 
 void
-term_set_cursor(int row, int column)
+term_set_cursor(uint8_t row, uint8_t column, uint8_t color)
 {
     v_cursor.row = row;
     v_cursor.column = column;
+    v_cursor.color = color;
 }
 
 void
@@ -102,5 +105,5 @@ term_clear_screen()
         *vc = ' ';
         vc += 2;
     }
-    term_set_cursor(1, 0);
+    term_set_cursor(1, 0, TERM_DEFAULT_COLOR);
 }
