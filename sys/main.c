@@ -44,20 +44,18 @@ start(uint32_t* modulep, void* physbase, void* physfree)
             vma_pagelist_add_addresses(smap->base, smap->base + smap->length);
         }
     }
-    kprintf("physfree %p\n", (uint64_t)physfree);
-    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     vma_pagelist_create(physfree);
     vma_create_pagetables();
+    clear_screen();
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
+    walk_through_tarfs(&_binary_tarfs_start);
     trial_sched();
-    /*
     ahci_discovery();
     ahci_readwrite_test();
-    */
     while (1)
         ;
 }
@@ -67,11 +65,11 @@ boot(void)
 {
     // note: function changes rsp, local stack variables can't be practically
     // used
-    // register char *temp1, *temp2;
-    register char* temp2;
+    // register char *offset1, *offset2;
+    register char* offset2;
 
-    for (temp2 = (char*)0xb8001; temp2 < (char*)0xb8000 + 160 * 25; temp2 += 2)
-        *temp2 = 7 /* white */;
+    for (offset2 = (char*)0xb8001; offset2 < (char*)0xb8000 + 160 * 25; offset2 += 2)
+        *offset2 = 7 /* white */;
     __asm__ volatile("cli;"
                      "movq %%rsp, %0;"
                      "movq %1, %%rsp;"
@@ -82,8 +80,8 @@ boot(void)
                       (uint64_t)&physbase),
           (uint64_t*)&physbase, (uint64_t*)(uint64_t)loader_stack[4]);
     /*
-    for(temp1 = "\0", temp2 = (char*)0xb8000; *temp1; temp1 += 1, temp2 += 2) {
-            *temp2 = *temp1;
+    for(offset1 = "\0", offset2 = (char*)0xb8000; *offset1; offset1 += 1, offset2 += 2) {
+            *offset2 = *offset1;
     }
     */
     while (1)
