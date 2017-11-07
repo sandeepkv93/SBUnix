@@ -2,6 +2,7 @@
 #include <sys/keyboard.h>
 #include <sys/kprintf.h>
 #include <sys/string.h>
+#include <sys/term.h>
 #include <sys/timer.h>
 
 extern char g_keymap[], g_keymap_shift[];
@@ -96,10 +97,12 @@ print_time(int time_seconds)
     int secs = time_seconds % 60;
     len = sprintf(str, " Time since boot %d%s%d", mins, secs < 10 ? ":0" : ":",
                   secs);
-    get_cursor_position(&x, &y);
-    cursor_move(24, 80 - (len));
+    // TODO Don't use kprintf
+    term_get_cursor(&x, &y);
+    term_set_cursor(0, 80 - (len),
+                    TERM_BG_FG_COLOR(term_color_lightgreen, term_color_black));
     kprintf(str);
-    cursor_move(x, y);
+    term_set_cursor(x, y, -1);
 }
 
 // TODO Make more readable
@@ -168,10 +171,11 @@ kb_isr()
             if ((code > 0) && (code < g_keymap[0])) {
                 a = is_ctrl_pressed ? '^' : ' ';
                 b = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
-                get_cursor_position(&x, &y);
-                cursor_move(24, (80 - 35));
+                // TODO Don't use kprintf
+                term_get_cursor(&x, &y);
+                term_set_cursor(0, (80 - 35), term_color_blue);
                 kprintf(s, a, b);
-                cursor_move(x, y);
+                term_set_cursor(x, y, -1);
             }
     }
 

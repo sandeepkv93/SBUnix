@@ -8,6 +8,7 @@
 #include <sys/pci.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
+#include <sys/term.h>
 #include <sys/vma.h>
 
 #define INITIAL_STACK_SIZE 4096
@@ -35,27 +36,27 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     } __attribute__((packed)) * smap;
     while (modulep[0] != 0x9001)
         modulep += modulep[1] + 2;
-    clear_screen();
     for (smap = (struct smap_t*)(modulep + 2);
          smap < (struct smap_t*)((char*)modulep + modulep[1] + 2 * 4); ++smap) {
         if (smap->type == 1 /* memory */ && smap->length != 0) {
-            kprintf("Available Physical Memory [%p-%p]\n", smap->base,
-                    smap->base + smap->length);
+            /*kprintf("Available Physical Memory [%p-%p]\n", smap->base,*/
+            /*smap->base + smap->length);*/
             vma_pagelist_add_addresses(smap->base, smap->base + smap->length);
         }
     }
     vma_pagelist_create(physfree);
     vma_create_pagetables();
-    clear_screen();
+    term_clear_screen();
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
     walk_through_tarfs(&_binary_tarfs_start);
-    trial_sched();
-    ahci_discovery();
-    ahci_readwrite_test();
+    kprintf_test();
+    /*trial_sched();*/
+    /*ahci_discovery();*/
+    /*ahci_readwrite_test();*/
     while (1)
         ;
 }
@@ -68,7 +69,8 @@ boot(void)
     // register char *offset1, *offset2;
     register char* offset2;
 
-    for (offset2 = (char*)0xb8001; offset2 < (char*)0xb8000 + 160 * 25; offset2 += 2)
+    for (offset2 = (char*)0xb8001; offset2 < (char*)0xb8000 + 160 * 25;
+         offset2 += 2)
         *offset2 = 7 /* white */;
     __asm__ volatile("cli;"
                      "movq %%rsp, %0;"
@@ -80,7 +82,8 @@ boot(void)
                       (uint64_t)&physbase),
           (uint64_t*)&physbase, (uint64_t*)(uint64_t)loader_stack[4]);
     /*
-    for(offset1 = "\0", offset2 = (char*)0xb8000; *offset1; offset1 += 1, offset2 += 2) {
+    for(offset1 = "\0", offset2 = (char*)0xb8000; *offset1; offset1 += 1,
+    offset2 += 2) {
             *offset2 = *offset1;
     }
     */
