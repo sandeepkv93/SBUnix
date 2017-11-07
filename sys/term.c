@@ -83,10 +83,11 @@ term_write(const char* buf, int buflen)
 }
 
 void
-term_get_cursor(int* row, int* col)
+term_get_cursor(uint8_t* row, uint8_t* column, uint8_t* color)
 {
     *row = v_cursor.row;
-    *col = v_cursor.column;
+    *column = v_cursor.column;
+    *color = v_cursor.color;
 }
 
 void

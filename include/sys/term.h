@@ -25,5 +25,5 @@ enum term_colors
 void term_write(const char* buf, int buflen);
 void term_clear_screen();
 void term_set_cursor(uint8_t row, uint8_t column, uint8_t color);
-void term_get_cursor(int* row, int* col);
+void term_get_cursor(uint8_t* row, uint8_t* column, uint8_t* color);
 #endif
