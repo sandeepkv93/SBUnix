@@ -97,6 +97,7 @@ print_time(int time_seconds)
     int secs = time_seconds % 60;
     len = sprintf(str, " Time since boot %d%s%d", mins, secs < 10 ? ":0" : ":",
                   secs);
+    // TODO Don't use kprintf
     term_get_cursor(&x, &y);
     term_set_cursor(0, 80 - (len),
                     TERM_BG_FG_COLOR(term_color_lightgreen, term_color_black));
@@ -170,6 +171,7 @@ kb_isr()
             if ((code > 0) && (code < g_keymap[0])) {
                 a = is_ctrl_pressed ? '^' : ' ';
                 b = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
+                // TODO Don't use kprintf
                 term_get_cursor(&x, &y);
                 term_set_cursor(0, (80 - 35), term_color_blue);
                 kprintf(s, a, b);
