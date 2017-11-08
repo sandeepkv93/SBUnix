@@ -28,7 +28,7 @@ sample_thread()
 {
     while (1) {
         task_yield();
-        kprintf("Thread2! Yo :D\n");
+        signalme('2');
     }
 }
 
@@ -57,6 +57,6 @@ trial_sched()
 
     while (1) {
         task_yield();
-        kprintf("Thread1| Yo :D\n");
+        signalme('1');
     }
 }

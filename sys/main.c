@@ -54,7 +54,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     enable_interrupts(TRUE);
     walk_through_tarfs(&_binary_tarfs_start);
     kprintf_test();
-    /*trial_sched();*/
+    trial_sched();
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
     while (1)

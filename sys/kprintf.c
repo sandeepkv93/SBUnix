@@ -81,7 +81,6 @@ signalme(char c)
 {
     char* t;
     t = (char*)VIDEO_MEMORY;
-    t += (160 * 4);
     *t = c;
 }
 
