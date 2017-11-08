@@ -1,6 +1,6 @@
 #include <sys/defs.h>
-#include <sys/kprintf.h>
 #include <sys/task.h>
+#include <sys/term.h>
 
 extern void switch_to(task_struct*, task_struct*);
 uint8_t second_stack[4096] __attribute__((aligned(16)));
@@ -28,7 +28,7 @@ sample_thread()
 {
     while (1) {
         task_yield();
-        signalme('2');
+        term_set_glyph('2');
     }
 }
 
@@ -57,6 +57,6 @@ trial_sched()
 
     while (1) {
         task_yield();
-        signalme('1');
+        term_set_glyph('1');
     }
 }

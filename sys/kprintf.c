@@ -76,14 +76,6 @@ copy_integer(int i, char* buf, int* ptr)
     }
 }
 
-void
-signalme(char c)
-{
-    char* t;
-    t = (char*)VIDEO_MEMORY;
-    *t = c;
-}
-
 int
 vprintf(char* buffer, const char* format, va_list ap)
 {

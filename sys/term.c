@@ -19,7 +19,7 @@ void
 term_write(const char* buf, int buflen)
 {
     uint32_t index = 0;
-    char* v_mem = (char*)VIDEO_MEMORY;
+    char* v_mem = (char*)TERM_VIDEO_MEMORY;
 
     /*
      TODO Handle this interrupt thing gracefully. This hack is needed for the
@@ -104,7 +104,7 @@ term_set_cursor(uint8_t row, uint8_t column, uint8_t color)
 void
 term_clear_screen()
 {
-    char* vc = (char*)VIDEO_MEMORY;
+    char* vc = (char*)TERM_VIDEO_MEMORY;
     for (int i = 0; i < VC_ROW_LIMIT * VC_COL_LIMIT * VC_CHAR_PER_COL; i++) {
         *vc = ' ';
         vc += 2;
@@ -125,7 +125,7 @@ term_set_keypress(uint8_t code, uint8_t is_ctrl_pressed,
     char prefix = is_ctrl_pressed ? '^' : ' ';
     char key = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
 
-    uint8_t* vc = (uint8_t*)VIDEO_MEMORY;
+    uint8_t* vc = (uint8_t*)TERM_VIDEO_MEMORY;
     for (int i = 0; i < strlen; i++) {
         vc[2 * i + start_position] = str[i];
         vc[2 * i + start_position + 1] = term_color_blue;
@@ -144,7 +144,7 @@ term_set_time(uint64_t seconds)
     char str[20];
     uint8_t strlen;
 
-    uint8_t* vc = (uint8_t*)VIDEO_MEMORY;
+    uint8_t* vc = (uint8_t*)TERM_VIDEO_MEMORY;
     uint8_t start_position = 118;
 
     int mins = seconds / 60;
@@ -158,4 +158,12 @@ term_set_time(uint64_t seconds)
         vc[2 * i + start_position + 1] =
           TERM_BG_FG_COLOR(term_color_lightgreen, term_color_black);
     }
+}
+void
+term_set_glyph(char c)
+{
+    // This prints a character in column 0 of top line
+    char* t;
+    t = (char*)TERM_VIDEO_MEMORY;
+    *t = c;
 }
