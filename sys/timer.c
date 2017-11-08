@@ -1,4 +1,5 @@
 #include <sys/interrupts.h>
+#include <sys/term.h>
 #include <sys/timer.h>
 
 volatile s_time g_clock;
@@ -14,7 +15,7 @@ timer_isr()
         g_clock.milliseconds = 0;
         g_clock.counter = 0;
         // Print every second
-        print_time(g_clock.seconds);
+        term_set_time(g_clock.seconds);
     }
     outb(PIC1_COMMAND, PIC_EOI);
 }

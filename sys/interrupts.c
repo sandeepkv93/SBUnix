@@ -91,14 +91,14 @@ void
 print_time(int time_seconds)
 {
     char str[20];
-    int x = 0, y = 0;
+    uint8_t x = 0, y = 0, color;
     int len = 0;
     int mins = time_seconds / 60;
     int secs = time_seconds % 60;
     len = sprintf(str, " Time since boot %d%s%d", mins, secs < 10 ? ":0" : ":",
                   secs);
     // TODO Don't use kprintf
-    term_get_cursor(&x, &y);
+    term_get_cursor(&x, &y, &color);
     term_set_cursor(0, 80 - (len),
                     TERM_BG_FG_COLOR(term_color_lightgreen, term_color_black));
     kprintf(str);
@@ -147,10 +147,7 @@ kb_isr()
 {
     // TODO use string functions and remove hard coding
     static bool is_shift_pressed = FALSE, is_ctrl_pressed = FALSE;
-    char* s = "Key press:%c%c\0";
-    char a = ' ', b;
     uint8_t code;
-    int x, y;
     code = inb(0x60);
     switch (code) {
         case KEYCODE_SHIFT:
@@ -169,13 +166,7 @@ kb_isr()
             break;
         default:
             if ((code > 0) && (code < g_keymap[0])) {
-                a = is_ctrl_pressed ? '^' : ' ';
-                b = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
-                // TODO Don't use kprintf
-                term_get_cursor(&x, &y);
-                term_set_cursor(0, (80 - 35), term_color_blue);
-                kprintf(s, a, b);
-                term_set_cursor(x, y, -1);
+                term_set_keypress(code, is_ctrl_pressed, is_shift_pressed);
             }
     }
 
