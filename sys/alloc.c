@@ -1,5 +1,5 @@
+#include <sys/kprintf.h>
 #include <sys/vma.h>
-#include <unistd.h>
 uint64_t cur_kern_heap = VMA_VIDEO + 0x10000;
 
 union header
@@ -29,14 +29,14 @@ get_free_pages()
 void*
 pls_giv_mem(int num_bytes)
 {
-    void* cur_brk = NULL;
-    /*    static int bytes_left = 4096;
-        if (bytes_left < num_bytes) {
-            v_addr = get_free_pages();
-        }
-        brk(cur_brk + num_bytes);
-    */
-    return cur_brk;
+    static void* cur_page_va = NULL;
+    static int cur_page_offset = PAGE_SIZE;
+    if (num_bytes + cur_page_offset > (PAGE_SIZE)) {
+        cur_page_va = get_free_pages();
+        cur_page_offset = 0;
+    }
+    cur_page_offset += num_bytes;
+    return (cur_page_va + cur_page_offset);
 }
 
 void
@@ -106,34 +106,3 @@ kmalloc(size_t num_bytes)
         cur = cur->meta.next;
     }
 }
-
-#ifdef __TEST__
-int
-main(int argc, char** argv)
-{
-
-    printf("START %ld\n", (long)brk_(NULL));
-    struct stringllnode* Head = NULL;
-    append_all(&Head, argv, argc);
-    print_list(Head);
-    print_kmalloc_list();
-    printf("first alloc %ld Head = %ld\n", (long)brk_(NULL), (long)Head);
-    kfree_list(Head);
-    printf("after free %ld Head = %ld\n", (long)brk_(NULL), (long)Head);
-
-    Head = NULL;
-
-    print_kfree_list();
-    print_kmalloc_list();
-    append_all(&Head, argv, argc);
-    print_list(Head);
-    print_kmalloc_list();
-    printf("first alloc %ld Head = %ld\n", (long)brk_(NULL), (long)Head);
-    kfree_list(Head);
-    printf("after free %ld Head = %ld\n", (long)brk_(NULL), (long)Head);
-
-    Head = NULL;
-
-    print_kfree_list();
-}
-#endif

@@ -38,3 +38,26 @@ test_get_free_pages()
             ele2->next);
     kprintf("ele1 present %d\nele2 present %d\n", ele1->present, ele2->present);
 }
+
+void
+test_kmalloc_kfree()
+{
+    // basic tests for different data types
+    int* p[20];
+    int i;
+    for (i = 0; i < 5; i++) {
+        p[i] = kmalloc(sizeof(int));
+        kprintf("\naddress %p\n", p[i]);
+        *(p[i]) = i;
+        kprintf("value %d\n", *(p[i]));
+    }
+    for (i = 0; i < 5; i++) {
+        kfree(p[i]);
+    }
+    for (i = 0; i < 5; i++) {
+        p[i] = kmalloc(sizeof(int));
+        kprintf("\naddress %p\n", p[i]);
+        *(p[i]) = i;
+        kprintf("value %d\n", *(p[i]));
+    }
+}
