@@ -39,19 +39,22 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     for (smap = (struct smap_t*)(modulep + 2);
          smap < (struct smap_t*)((char*)modulep + modulep[1] + 2 * 4); ++smap) {
         if (smap->type == 1 /* memory */ && smap->length != 0) {
-            /*kprintf("Available Physical Memory [%p-%p]\n", smap->base,*/
-            /*smap->base + smap->length);*/
             vma_pagelist_add_addresses(smap->base, smap->base + smap->length);
         }
     }
     vma_pagelist_create(physfree);
     vma_create_pagetables();
     term_clear_screen();
-    kprintf("physfree %p\n", (uint64_t)physfree);
-    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
+
+    //
+    // kprintf only after this and live a happy life
+    //
+
+    kprintf("physfree %p\n", (uint64_t)physfree);
+    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     walk_through_tarfs(&_binary_tarfs_start);
     kprintf_test();
     trial_sched();
