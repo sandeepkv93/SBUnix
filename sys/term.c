@@ -57,7 +57,7 @@ term_write(const char* buf, int buflen)
             v_cursor.column = 0;*/
 
             // We don't scroll the first line. Hence start from VC_COL_LIMIT
-            for (int j = VC_COL_LIMIT;
+            for (int j = VC_CHAR_PER_COL * VC_COL_LIMIT;
                  j < VC_ROW_LIMIT * VC_COL_LIMIT * VC_CHAR_PER_COL; j++) {
                 if (j >= (VC_ROW_LIMIT - 1) * VC_COL_LIMIT * VC_CHAR_PER_COL) {
                     // This writes a blank line in the end
