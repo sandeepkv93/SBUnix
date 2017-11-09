@@ -143,7 +143,8 @@ kprintf(const char* format, ...)
 void
 kprintf_test()
 {
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 20; i++) {
+        kprintf("\nTest\n");
         kprintf("more %d\n", i);
     }
     kprintf("This is a sample text that is going to test my kprintf big time. "
