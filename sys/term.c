@@ -16,6 +16,32 @@ struct
 } v_cursor = {.row = 1, .column = 0, .color = TERM_DEFAULT_COLOR };
 
 void
+term_scroll_on_overflow()
+{
+    char* v_mem = (char*)TERM_VIDEO_MEMORY;
+    if (v_cursor.row >= VC_ROW_LIMIT) {
+        /* If we just need to overwrite use following. Else we'll scroll
+        v_cursor.row = 0;
+        v_cursor.column = 0;*/
+
+        // We don't scroll the first line. Hence start from VC_COL_LIMIT
+        for (int j = VC_CHAR_PER_COL * VC_COL_LIMIT;
+             j < VC_ROW_LIMIT * VC_COL_LIMIT * VC_CHAR_PER_COL; j++) {
+            if (j >= (VC_ROW_LIMIT - 1) * VC_COL_LIMIT * VC_CHAR_PER_COL) {
+                // This writes a blank line in the end
+                v_mem[j] = ' ';
+                j++;
+            } else {
+                // Reset of the lines are copies of the next line
+                v_mem[j] = v_mem[j + VC_COL_LIMIT * VC_CHAR_PER_COL];
+            }
+        }
+        // Cursor set to last line
+        v_cursor.row = VC_ROW_LIMIT - 1;
+        v_cursor.column = 0;
+    }
+}
+void
 term_write(const char* buf, int buflen)
 {
     uint32_t index = 0;
@@ -38,6 +64,7 @@ term_write(const char* buf, int buflen)
         if (buf[i] == '\n') {
             v_cursor.row++;
             v_cursor.column = 0;
+            term_scroll_on_overflow();
             continue;
         } else if (buf[i] == '\r') {
             v_cursor.column = 0;
@@ -50,29 +77,7 @@ term_write(const char* buf, int buflen)
             v_cursor.column = 0;
         }
 
-        // Row overflows should scroll
-        if (v_cursor.row >= VC_ROW_LIMIT) {
-            /* If we just need to overwrite use following. Else we'll scroll
-            v_cursor.row = 0;
-            v_cursor.column = 0;*/
-
-            // We don't scroll the first line. Hence start from VC_COL_LIMIT
-            for (int j = VC_CHAR_PER_COL * VC_COL_LIMIT;
-                 j < VC_ROW_LIMIT * VC_COL_LIMIT * VC_CHAR_PER_COL; j++) {
-                if (j >= (VC_ROW_LIMIT - 1) * VC_COL_LIMIT * VC_CHAR_PER_COL) {
-                    // This writes a blank line in the end
-                    v_mem[j] = ' ';
-                    j++;
-                } else {
-                    // Reset of the lines are copies of the next line
-                    v_mem[j] = v_mem[j + VC_COL_LIMIT * VC_CHAR_PER_COL];
-                }
-            }
-            // Cursor set to last line
-            v_cursor.row = VC_ROW_LIMIT - 1;
-            v_cursor.column = 0;
-        }
-
+        term_scroll_on_overflow();
         // Compute index to write from cursor location. Bad?
         index = (v_cursor.row * VC_COL_LIMIT * VC_CHAR_PER_COL) +
                 (v_cursor.column * 2);
@@ -120,7 +125,7 @@ term_set_keypress(uint8_t code, uint8_t is_ctrl_pressed,
     // Perhaps hardcoding here is not as bad, we tradeoff everything for speed
     char str[] = "Key pressed : ";
     uint8_t strlen = 14;
-    uint8_t start_position = 84;
+    uint8_t start_position = 82;
 
     char prefix = is_ctrl_pressed ? '^' : ' ';
     char key = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
@@ -145,7 +150,7 @@ term_set_time(uint64_t seconds)
     uint8_t strlen;
 
     uint8_t* vc = (uint8_t*)TERM_VIDEO_MEMORY;
-    uint8_t start_position = 118;
+    uint8_t start_position = 116;
 
     int mins = seconds / 60;
     int secs = seconds % 60;
