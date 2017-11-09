@@ -2,6 +2,7 @@
 #include <sys/keyboard.h>
 #include <sys/kprintf.h>
 #include <sys/string.h>
+#include <sys/term.h>
 #include <sys/timer.h>
 
 extern char g_keymap[], g_keymap_shift[];
@@ -90,16 +91,18 @@ void
 print_time(int time_seconds)
 {
     char str[20];
-    int x = 0, y = 0;
+    uint8_t x = 0, y = 0, color;
     int len = 0;
     int mins = time_seconds / 60;
     int secs = time_seconds % 60;
     len = sprintf(str, " Time since boot %d%s%d", mins, secs < 10 ? ":0" : ":",
                   secs);
-    get_cursor_position(&x, &y);
-    cursor_move(24, 80 - (len));
+    // TODO Don't use kprintf
+    term_get_cursor(&x, &y, &color);
+    term_set_cursor(0, 80 - (len),
+                    TERM_BG_FG_COLOR(term_color_lightgreen, term_color_black));
     kprintf(str);
-    cursor_move(x, y);
+    term_set_cursor(x, y, -1);
 }
 
 // TODO Make more readable
@@ -144,10 +147,7 @@ kb_isr()
 {
     // TODO use string functions and remove hard coding
     static bool is_shift_pressed = FALSE, is_ctrl_pressed = FALSE;
-    char* s = "Key press:%c%c\0";
-    char a = ' ', b;
     uint8_t code;
-    int x, y;
     code = inb(0x60);
     switch (code) {
         case KEYCODE_SHIFT:
@@ -166,12 +166,7 @@ kb_isr()
             break;
         default:
             if ((code > 0) && (code < g_keymap[0])) {
-                a = is_ctrl_pressed ? '^' : ' ';
-                b = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
-                get_cursor_position(&x, &y);
-                cursor_move(24, (80 - 35));
-                kprintf(s, a, b);
-                cursor_move(x, y);
+                term_set_keypress(code, is_ctrl_pressed, is_shift_pressed);
             }
     }
 
