@@ -3,6 +3,7 @@
 #include <unistd.h>
 void* kmalloc(size_t size);
 void* kfree(void* pt);
-void* get_free_pages();
+void* get_free_page();
+void update_pagetable(uint64_t v_addr);
 
 #endif
