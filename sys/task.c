@@ -3,6 +3,7 @@
 #include <sys/term.h>
 
 extern void switch_to(task_struct*, task_struct*);
+extern void switch_to_userland();
 uint8_t second_stack[4096] __attribute__((aligned(16)));
 task_struct tasks[2];
 task_struct *me, *next;
@@ -59,4 +60,10 @@ trial_sched()
         task_yield();
         term_set_glyph('1');
     }
+}
+
+void
+task_trial_userland()
+{
+    switch_to_userland();
 }

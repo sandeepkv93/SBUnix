@@ -1,5 +1,23 @@
-.globl switch_to
-switch_to:
+.globl switch_to, switch_to_userland
+ switch_to_userland:
+    cli
+    pop %r8
+    /*
+    mov $0x23, %ax
+    mov %ax, %ds
+    mov %ax, %es  
+    mov %ax, %fs  
+    mov %ax, %gs 
+    */
+    mov %rsp, %rax
+    push $0x23
+    push %rax
+    pushf
+    push $0x1B
+    push %r8
+    iretq
+
+ switch_to:
 // rdi: me
 // rsi: next
     movq %rbp,  0(%rdi)
