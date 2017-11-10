@@ -17,11 +17,27 @@ typedef union header Header;
 Header start;
 Header* freep = NULL;
 
+void
+update_pagetable(uint64_t v_addr)
+{
+    uint64_t masked_addr = (~0 << 12);
+    vma_get_table_entry((uint64_t*)masked_addr, VMA_PML4_OFFSET(v_addr));
+    masked_addr = ((masked_addr << 9) | (VMA_PML4_OFFSET(v_addr) << 12));
+    vma_get_table_entry((uint64_t*)masked_addr, VMA_PD_POINTER_OFFSET(v_addr));
+    masked_addr = ((masked_addr << 9) | (VMA_PD_POINTER_OFFSET(v_addr) << 12));
+    vma_get_table_entry((uint64_t*)masked_addr,
+                        VMA_PAGE_DIRECTORY_OFFSET(v_addr));
+    masked_addr =
+      ((masked_addr << 9) | (VMA_PAGE_DIRECTORY_OFFSET(v_addr) << 12));
+    vma_get_table_entry((uint64_t*)masked_addr, VMA_PAGE_TABLE_OFFSET(v_addr));
+}
+
 void*
-get_free_pages()
+get_free_page()
 {
     uint64_t* v_addr = (uint64_t*)cur_kern_heap;
-    vma_add_pagetable_mapping_va(cur_kern_heap);
+    kprintf("new page %p\n", v_addr);
+    update_pagetable(cur_kern_heap);
     cur_kern_heap += PAGE_SIZE;
     return (void*)v_addr;
 }
@@ -30,13 +46,27 @@ void*
 pls_giv_mem(int num_bytes)
 {
     static void* cur_page_va = NULL;
-    static int cur_page_offset = PAGE_SIZE;
-    if (num_bytes + cur_page_offset > (PAGE_SIZE)) {
-        cur_page_va = get_free_pages();
-        cur_page_offset = 0;
+    static int cur_page_offset = 0;
+    int num_of_pages;
+    void* va_addr;
+
+    if (cur_page_va == NULL) {
+        cur_page_va = get_free_page();
     }
-    cur_page_offset += num_bytes;
-    return (cur_page_va + cur_page_offset);
+
+    va_addr = cur_page_va + cur_page_offset;
+    if (num_bytes > (PAGE_SIZE - cur_page_offset)) {
+        num_bytes = num_bytes - (PAGE_SIZE - cur_page_offset);
+        num_of_pages = ((num_bytes - 1) / PAGE_SIZE) + 1;
+
+        while (num_of_pages--) {
+            cur_page_va = get_free_page();
+        }
+        cur_page_offset += num_bytes % PAGE_SIZE;
+    } else {
+        cur_page_offset += num_bytes;
+    }
+    return va_addr;
 }
 
 void

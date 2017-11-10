@@ -24,6 +24,6 @@ void vma_pagelist_add_addresses(uint64_t start, uint64_t end);
 void vma_pagelist_create();
 void* vma_pagelist_getpage();
 void vma_create_pagetables();
-void vma_add_pagetable_mapping_va(uint64_t v_addr);
 void* vma_pagelist_getpage();
+uint64_t* vma_get_table_entry(uint64_t* table, uint32_t offset);
 #endif

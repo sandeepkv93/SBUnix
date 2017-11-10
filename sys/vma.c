@@ -91,21 +91,6 @@ vma_add_pagetable_mapping(uint64_t* pml4_phys_addr, uint64_t v_addr,
 }
 
 void
-vma_add_pagetable_mapping_va(uint64_t v_addr)
-{
-    uint64_t masked_addr = (~0 << 12);
-    vma_get_table_entry((uint64_t*)masked_addr, VMA_PML4_OFFSET(v_addr));
-    masked_addr = ((masked_addr << 9) | (VMA_PML4_OFFSET(v_addr) << 12));
-    vma_get_table_entry((uint64_t*)masked_addr, VMA_PD_POINTER_OFFSET(v_addr));
-    masked_addr = ((masked_addr << 9) | (VMA_PD_POINTER_OFFSET(v_addr) << 12));
-    vma_get_table_entry((uint64_t*)masked_addr,
-                        VMA_PAGE_DIRECTORY_OFFSET(v_addr));
-    masked_addr =
-      ((masked_addr << 9) | (VMA_PAGE_DIRECTORY_OFFSET(v_addr) << 12));
-    vma_get_table_entry((uint64_t*)masked_addr, VMA_PAGE_TABLE_OFFSET(v_addr));
-}
-
-void
 vma_create_pagetables()
 {
     // Creates the 4 level pagetables needed and switches CR3
