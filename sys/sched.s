@@ -1,5 +1,7 @@
-.globl switch_to, switch_to_userland
- switch_to_userland:
+.globl sched_switch_kthread, sched_enter_ring3
+ sched_enter_ring3:
+ // rdi : rsp3
+ // rsi : __start
     cli
     pop %r8
     /*
@@ -9,15 +11,18 @@
     mov %ax, %fs  
     mov %ax, %gs 
     */
-    mov %rsp, %rax
-    push $0x23
-    push %rax
-    pushf
-    push $0x1B
-    push %r8
+    mov %rdi, %rax
+    push $0x23   // Pushing SS
+    push %rax    // Push next RSP 
+    pushf        // Push flags
+    //pop %rax
+    //or $0x200, %rax
+    //push %rax
+    push $0x1B   // Push CS
+    push %rsi     // Push return address
     iretq
 
- switch_to:
+ sched_switch_kthread:
 // rdi: me
 // rsi: next
     movq %rbp,  0(%rdi)

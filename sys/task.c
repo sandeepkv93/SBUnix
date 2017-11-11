@@ -2,8 +2,8 @@
 #include <sys/task.h>
 #include <sys/term.h>
 
-extern void switch_to(task_struct*, task_struct*);
-extern void switch_to_userland();
+extern void sched_switch_kthread(task_struct*, task_struct*);
+extern void sched_enter_ring3(uint64_t* rsp, void* __start);
 uint8_t second_stack[4096] __attribute__((aligned(16)));
 task_struct tasks[2];
 task_struct *me, *next;
@@ -21,7 +21,7 @@ void
 task_yield()
 {
     task_sched();
-    switch_to(me, next);
+    sched_switch_kthread(me, next);
 }
 
 void
@@ -63,7 +63,15 @@ trial_sched()
 }
 
 void
+sample_userthread()
+{
+    while (1)
+        ;
+}
+
+void
 task_trial_userland()
 {
-    switch_to_userland();
+    uint64_t small_stack[10];
+    sched_enter_ring3(small_stack, sample_userthread);
 }
