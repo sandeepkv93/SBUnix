@@ -10,7 +10,7 @@
 #include <sys/task.h>
 #include <sys/term.h>
 #include <sys/vma.h>
-
+#include <test.h>
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE] __attribute__((aligned(16)));
 uint32_t* loader_stack;
@@ -56,8 +56,9 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     walk_through_tarfs(&_binary_tarfs_start);
+    task_trial_userland();
     kprintf_test();
-    trial_sched();
+    /*trial_sched();*/
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
     while (1)

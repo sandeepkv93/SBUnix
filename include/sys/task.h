@@ -16,4 +16,5 @@ typedef struct _taskstruct
     reg_struct regs;
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 void trial_sched();
+void task_trial_userland();
 #endif

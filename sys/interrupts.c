@@ -181,6 +181,13 @@ exception_handler()
 }
 
 void
+pagefault_exception()
+{
+    kprintf("Pagefault exception!!");
+    outb(PIC1_COMMAND, PIC_EOI);
+}
+
+void
 fake_isr()
 {
     kprintf("unregistered interrupt :( ");
@@ -213,6 +220,7 @@ register_idt()
     for (; i < 256; i++) {
         idt[i] = pic_get_idt_entry((void*)fake_isr);
     }
+    idt[14] = pic_get_idt_entry((void*)pagefault_exception);
     timer_setup(); // setup PIT
     register_isr(0x20, (void*)timer_isr_asm);
     register_isr(0x21, (void*)kb_isr_asm);
