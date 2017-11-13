@@ -1,4 +1,5 @@
 #include <sys/defs.h>
+#include <sys/gdt.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/task.h>
@@ -76,7 +77,6 @@ void
 sample_userthread__start()
 {
     uint8_t i = 30;
-    kprintf("user process starts");
     while (1) {
         i += 1;
         term_set_glyph((char)i);
@@ -94,6 +94,7 @@ task_trial_userland()
     vma_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
 
     // Stack grows downwards so we need to give the address of next page
+    set_tss_rsp((void*)&second_stack[4096]);
     sched_enter_ring3((uint64_t*)stackpage_v_addr + PAGE_SIZE,
                       sample_userthread__start);
 }

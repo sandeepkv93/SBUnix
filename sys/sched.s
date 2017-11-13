@@ -15,9 +15,12 @@
     push $0x23   // Pushing SS
     push %rax    // Push next RSP 
     pushf        // Push flags
-    //pop %rax
-    //or $0x200, %rax
-    //push %rax
+
+    /* We cleverly pop the flags from stack and set the interrupts bit*/
+    pop %rax
+    or $0x200, %rax
+    push %rax
+
     push $0x1B   // Push CS
     push %rsi    // Push return address
     iretq
