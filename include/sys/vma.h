@@ -4,10 +4,7 @@
 
 #define VMA_KERNMEM 0xffffffff80000000
 #define VMA_VIDEO (VMA_KERNMEM + 0x800000) // 2nd part is 2048 * PAGESIZE
-#define PAGELIST_ENTRIES (1024 * 1024)
-#define PAGE_SIZE 4096
-#define TABLE_ENTRIES 512
-#define TEST_VMA (VMA_KERNMEM + 0x801000)
+#define VMA_PAGE_SIZE 4096
 
 #define VMA_PHYSICAL_PAGE_OFFSET(x) (x & 0xfff)
 #define VMA_PAGE_TABLE_OFFSET(x) ((x >> 12) & 0x1ff)

@@ -33,7 +33,7 @@ sample_thread()
 {
     while (1) {
         task_yield();
-        term_set_glyph('2');
+        term_set_glyph(0, '2');
     }
 }
 
@@ -58,11 +58,13 @@ task_create_thread(void thread_callback())
 void
 trial_sched()
 {
-    task_create_thread(sample_thread);
-
+    uint8_t j = 0;
+    task_create_thread(task_trial_userland);
     while (1) {
+        j++;
         task_yield();
-        term_set_glyph('1');
+        term_set_glyph(0, '1' + j);
+        j %= 15;
     }
 }
 
@@ -79,8 +81,9 @@ sample_userthread__start()
     uint8_t i = 30;
     while (1) {
         i += 1;
-        term_set_glyph((char)i);
+        term_set_glyph(1, (char)i);
         smalle(&i);
+        task_yield();
     }
 }
 
@@ -89,12 +92,12 @@ task_trial_userland()
 {
     // Get one page_frame for stack, we'll make user stack as the page just
     // below the kernel boundary
-    uint64_t stackpage_v_addr = VMA_KERNMEM - PAGE_SIZE;
+    uint64_t stackpage_v_addr = VMA_KERNMEM - VMA_PAGE_SIZE;
     uint64_t stackpage_p_addr = (uint64_t)vma_pagelist_getpage();
     vma_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
 
     // Stack grows downwards so we need to give the address of next page
     set_tss_rsp((void*)&second_stack[4096]);
-    sched_enter_ring3((uint64_t*)stackpage_v_addr + PAGE_SIZE,
+    sched_enter_ring3((uint64_t*)stackpage_v_addr + VMA_PAGE_SIZE,
                       sample_userthread__start);
 }

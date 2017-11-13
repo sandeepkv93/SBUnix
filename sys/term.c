@@ -132,7 +132,7 @@ term_set_keypress(uint8_t code, uint8_t is_ctrl_pressed,
     // Perhaps hardcoding here is not as bad, we tradeoff everything for speed
     char str[] = "Key pressed : ";
     uint8_t strlen = 14;
-    uint8_t start_position = 82;
+    uint8_t start_position = 80;
 
     char prefix = is_ctrl_pressed ? '^' : ' ';
     char key = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
@@ -172,10 +172,10 @@ term_set_time(uint64_t seconds)
     }
 }
 void
-term_set_glyph(char c)
+term_set_glyph(uint8_t pos, char c)
 {
     // This prints a character in column 0 of top line
     char* t;
-    t = (char*)TERM_VIDEO_MEMORY;
+    t = (char*)TERM_VIDEO_MEMORY + pos * 2;
     *t = c;
 }

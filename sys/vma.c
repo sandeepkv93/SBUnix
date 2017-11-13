@@ -4,9 +4,12 @@
 #include <test.h>
 
 #define VMA_PAGETABLE_PERMISSIONS 0x7
+#define VMA_PAGELIST_ENTRIES (1024 * 1024)
+#define VMA_TABLE_ENTRIES 512
+#define TEST_VMA (VMA_KERNMEM + 0x801000)
 
 // TODO Allocate pages array dynamically
-struct pagelist_t pages[PAGELIST_ENTRIES];
+struct pagelist_t pages[VMA_PAGELIST_ENTRIES];
 struct pagelist_t* freepage_head;
 extern void paging_enable(void*);
 
@@ -15,7 +18,7 @@ vma_pagelist_add_addresses(uint64_t start, uint64_t end)
 {
     // Call with start and end physical addresses that you want to
     // be bookkept in the FREELIST
-    for (int i = start / PAGE_SIZE; i < end / PAGE_SIZE; i++) {
+    for (int i = start / VMA_PAGE_SIZE; i < end / VMA_PAGE_SIZE; i++) {
         pages[i].present = TRUE;
     }
 }
@@ -28,11 +31,11 @@ vma_pagelist_create(uint64_t physfree)
     // The parameter signifies the page boundary from where free
     // pages are assigned
 
-    int i = physfree / PAGE_SIZE;
+    int i = physfree / VMA_PAGE_SIZE;
     bool isLastPage = FALSE;
     while (!isLastPage) {
         isLastPage = TRUE;
-        for (int j = i + 1; j < PAGELIST_ENTRIES; j++) {
+        for (int j = i + 1; j < VMA_PAGELIST_ENTRIES; j++) {
             if (pages[j].present) {
                 pages[i].next = &pages[j];
                 isLastPage = FALSE;
@@ -41,14 +44,14 @@ vma_pagelist_create(uint64_t physfree)
             }
         }
     }
-    freepage_head = &pages[(physfree / PAGE_SIZE)];
+    freepage_head = &pages[(physfree / VMA_PAGE_SIZE)];
 }
 
 void*
 vma_pagelist_getpage()
 {
     // Returns a freepage from the FREELIST
-    uint64_t pageAddress = (freepage_head - pages) * PAGE_SIZE;
+    uint64_t pageAddress = (freepage_head - pages) * VMA_PAGE_SIZE;
     if (freepage_head == NULL) {
         return NULL;
         kprintf("Out of memory");
@@ -68,7 +71,7 @@ vma_get_table_entry(uint64_t* table, uint32_t offset)
         table[offset] = (uint64_t)vma_pagelist_getpage();
         /*
         temp_byte = (char*)table[offset];
-        for (int i = 0; i < PAGE_SIZE; i++) {
+        for (int i = 0; i < VMA_PAGE_SIZE; i++) {
             temp_byte[i] = 0;
         }
         */
@@ -141,19 +144,19 @@ vma_create_pagetables()
     uint64_t* pml4_table = vma_pagelist_getpage();
     uint64_t v_addr;
 
-    for (int i = 0; i < TABLE_ENTRIES; i++) {
+    for (int i = 0; i < VMA_TABLE_ENTRIES; i++) {
         pml4_table[i] = 0;
     }
 
     // Self referencing trick
-    pml4_table[TABLE_ENTRIES - 1] =
+    pml4_table[VMA_TABLE_ENTRIES - 1] =
       ((uint64_t)pml4_table) | VMA_PAGETABLE_PERMISSIONS;
 
     // TODO Remove this hard coding of 2048. Map only physbase to physfree
     for (int i = 0; i < 5000; i++) {
-        v_addr = VMA_KERNMEM + i * (PAGE_SIZE);
+        v_addr = VMA_KERNMEM + i * (VMA_PAGE_SIZE);
         vma_add_initial_pagetable_mapping(
-          pml4_table, v_addr, (i * PAGE_SIZE) | VMA_PAGETABLE_PERMISSIONS);
+          pml4_table, v_addr, (i * VMA_PAGE_SIZE) | VMA_PAGETABLE_PERMISSIONS);
     }
 
     testing_function();

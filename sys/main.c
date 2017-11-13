@@ -46,10 +46,10 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     walk_through_tarfs(&_binary_tarfs_start);
-    task_trial_userland();
+    /*task_trial_userland();*/
     kprintf_test();
     /*test_kmalloc_kfree();*/
-    /*trial_sched();*/
+    trial_sched();
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
     while (1)
