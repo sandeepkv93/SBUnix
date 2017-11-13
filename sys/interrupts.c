@@ -5,6 +5,7 @@
 #include <sys/term.h>
 #include <sys/timer.h>
 
+extern void* g_exceptions[];
 extern char g_keymap[], g_keymap_shift[];
 extern void timer_isr_asm();
 extern void kb_isr_asm();
@@ -21,6 +22,16 @@ inb(uint16_t port)
     uint8_t value;
     __asm__("inb %1,%0;" : "=a"(value) : "Nd"(port));
     return value;
+}
+
+bool
+are_interrupts_enabled()
+{
+    unsigned long flags;
+    __asm__ __volatile("pushf\n\t"
+                       "pop %0"
+                       : "=g"(flags));
+    return flags & (1 << 9);
 }
 
 void
@@ -174,20 +185,6 @@ kb_isr()
 }
 
 void
-exception_handler()
-{
-    kprintf("Exception!! :O ");
-    outb(PIC1_COMMAND, PIC_EOI);
-}
-
-void
-pagefault_exception()
-{
-    kprintf("Pagefault exception!!");
-    outb(PIC1_COMMAND, PIC_EOI);
-}
-
-void
 fake_isr()
 {
     kprintf("unregistered interrupt :( ");
@@ -213,14 +210,14 @@ lidt(void* idt_address, uint16_t size)
 void
 register_idt()
 {
-    int i;
-    for (i = 0; i < 32; i++) {
-        idt[i] = pic_get_idt_entry((void*)exception_handler);
+
+    for (int i = 0; i < 32; i++) {
+        idt[i] = pic_get_idt_entry(g_exceptions[i]);
     }
-    for (; i < 256; i++) {
+
+    for (int i = 32; i < 256; i++) {
         idt[i] = pic_get_idt_entry((void*)fake_isr);
     }
-    idt[14] = pic_get_idt_entry((void*)pagefault_exception);
     timer_setup(); // setup PIT
     register_isr(0x20, (void*)timer_isr_asm);
     register_isr(0x21, (void*)kb_isr_asm);

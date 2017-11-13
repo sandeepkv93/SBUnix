@@ -1,9 +1,12 @@
 #include <sys/defs.h>
+#include <sys/interrupts.h>
+#include <sys/kprintf.h>
 #include <sys/task.h>
 #include <sys/term.h>
+#include <sys/vma.h>
 
 extern void sched_switch_kthread(task_struct*, task_struct*);
-extern void sched_enter_ring3(uint64_t* rsp, void* __start);
+extern void sched_enter_ring3(uint64_t* stack_top, void* __start);
 uint8_t second_stack[4096] __attribute__((aligned(16)));
 task_struct tasks[2];
 task_struct *me, *next;
@@ -63,15 +66,34 @@ trial_sched()
 }
 
 void
-sample_userthread()
+smalle(uint8_t* x)
 {
-    while (1)
-        ;
+    if (*x > 100)
+        *x = 20;
+}
+
+void
+sample_userthread__start()
+{
+    uint8_t i = 30;
+    kprintf("user process starts");
+    while (1) {
+        i += 1;
+        term_set_glyph((char)i);
+        smalle(&i);
+    }
 }
 
 void
 task_trial_userland()
 {
-    uint64_t small_stack[10];
-    sched_enter_ring3(small_stack, sample_userthread);
+    // Get one page_frame for stack, we'll make user stack as the page just
+    // below the kernel boundary
+    uint64_t stackpage_v_addr = VMA_KERNMEM - PAGE_SIZE;
+    uint64_t stackpage_p_addr = (uint64_t)vma_pagelist_getpage();
+    vma_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
+
+    // Stack grows downwards so we need to give the address of next page
+    sched_enter_ring3((uint64_t*)stackpage_v_addr + PAGE_SIZE,
+                      sample_userthread__start);
 }

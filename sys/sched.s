@@ -19,7 +19,7 @@
     //or $0x200, %rax
     //push %rax
     push $0x1B   // Push CS
-    push %rsi     // Push return address
+    push %rsi    // Push return address
     iretq
 
  sched_switch_kthread:

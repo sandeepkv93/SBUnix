@@ -46,6 +46,7 @@ term_write(const char* buf, int buflen)
 {
     uint32_t index = 0;
     char* v_mem = (char*)TERM_VIDEO_MEMORY;
+    bool interrupts_enabled = are_interrupts_enabled();
 
     /*
      TODO Handle this interrupt thing gracefully. This hack is needed for the
@@ -57,7 +58,10 @@ term_write(const char* buf, int buflen)
      could dedicate a kernel thread to that.
      */
 
-    enable_interrupts(FALSE);
+    if (interrupts_enabled) {
+        enable_interrupts(FALSE);
+    }
+
     for (int i = 0; i < buflen; i++) {
 
         // Handle newline and carriage return
@@ -87,7 +91,10 @@ term_write(const char* buf, int buflen)
 
         v_cursor.column++;
     }
-    enable_interrupts(TRUE);
+
+    if (interrupts_enabled) {
+        enable_interrupts(TRUE);
+    }
 }
 
 void

@@ -26,4 +26,5 @@ void* vma_pagelist_getpage();
 void vma_create_pagetables();
 void* vma_pagelist_getpage();
 uint64_t* vma_get_table_entry(uint64_t* table, uint32_t offset);
+bool vma_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr);
 #endif

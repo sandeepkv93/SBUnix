@@ -16,16 +16,6 @@ uint8_t initial_stack[INITIAL_STACK_SIZE] __attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
 
-static inline int
-are_interrupts_enabled()
-{
-    unsigned long flags;
-    __asm__ __volatile("pushf\n\t"
-                       "pop %0"
-                       : "=g"(flags));
-    return flags & (1 << 9);
-}
-
 void
 start(uint32_t* modulep, void* physbase, void* physfree)
 {
@@ -58,6 +48,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     walk_through_tarfs(&_binary_tarfs_start);
     task_trial_userland();
     kprintf_test();
+    /*test_kmalloc_kfree();*/
     /*trial_sched();*/
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
