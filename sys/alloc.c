@@ -38,7 +38,7 @@ get_free_page()
     uint64_t* v_addr = (uint64_t*)cur_kern_heap;
     kprintf("new page %p\n", v_addr);
     update_pagetable(cur_kern_heap);
-    cur_kern_heap += PAGE_SIZE;
+    cur_kern_heap += VMA_PAGE_SIZE;
     return (void*)v_addr;
 }
 
@@ -55,14 +55,14 @@ pls_giv_mem(int num_bytes)
     }
 
     va_addr = cur_page_va + cur_page_offset;
-    if (num_bytes > (PAGE_SIZE - cur_page_offset)) {
-        num_bytes = num_bytes - (PAGE_SIZE - cur_page_offset);
-        num_of_pages = ((num_bytes - 1) / PAGE_SIZE) + 1;
+    if (num_bytes > (VMA_PAGE_SIZE - cur_page_offset)) {
+        num_bytes = num_bytes - (VMA_PAGE_SIZE - cur_page_offset);
+        num_of_pages = ((num_bytes - 1) / VMA_PAGE_SIZE) + 1;
 
         while (num_of_pages--) {
             cur_page_va = get_free_page();
         }
-        cur_page_offset += num_bytes % PAGE_SIZE;
+        cur_page_offset += num_bytes % VMA_PAGE_SIZE;
     } else {
         cur_page_offset += num_bytes;
     }
