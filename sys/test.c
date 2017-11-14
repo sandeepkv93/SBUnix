@@ -1,6 +1,9 @@
 #include <string.h>
 #include <sys/alloc.h>
 #include <sys/kprintf.h>
+#include <sys/task.h>
+#include <sys/tasklist.h>
+#include <sys/term.h>
 #include <sys/vma.h>
 #include <test.h>
 
@@ -84,5 +87,29 @@ test_kmalloc_kfree()
         (struct_p[i]->str)[2] = '\0';
         // strcpy(struct_p[i]->str, "Hello world!");
         kprintf("str = %s  num = %d\n", struct_p[i]->str, struct_p[i]->num);
+    }
+}
+
+void
+test_tasklist()
+{
+    task_struct s[3];
+    s[0].pid = 1;
+    s[1].pid = 2;
+    s[2].pid = 3;
+    s[3].pid = 4;
+
+    tasklist_add_task(&s[0]);
+    tasklist_add_task(&s[1]);
+    tasklist_add_task(&s[2]);
+    tasklist_add_task(&s[3]);
+
+    kprintf("%d\n", tasklist_remove_task(2)); // Success
+    kprintf("%d\n", tasklist_remove_task(2)); // Fail
+    kprintf("%d\n", tasklist_remove_task(0)); // Fail
+
+    while (1) {
+        // Set character to pid number
+        term_set_glyph(2, '0' + tasklist_schedule_task()->pid);
     }
 }

@@ -49,6 +49,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     /*task_trial_userland();*/
     kprintf_test();
     /*test_kmalloc_kfree();*/
+    test_tasklist();
     trial_sched();
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
