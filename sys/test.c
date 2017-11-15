@@ -4,6 +4,7 @@
 #include <sys/task.h>
 #include <sys/tasklist.h>
 #include <sys/term.h>
+#include <sys/timer.h>
 #include <sys/vma.h>
 #include <test.h>
 
@@ -18,7 +19,7 @@ struct test_struct
 void
 testing_function()
 {
-    test_address = (uint64_t)vma_pagelist_getpage();
+    test_address = (uint64_t)vma_pagelist_get_frame();
     uint8_t* test_ptr = (uint8_t*)test_address;
     for (int i = 0; i < 1024; i++) {
         test_ptr[i] = i;
@@ -26,18 +27,18 @@ testing_function()
 }
 
 void
-test_get_free_page()
+test_alloc_get_page()
 {
-    uint64_t* p = (uint64_t*)get_free_page();
+    uint64_t* p = (uint64_t*)alloc_get_page();
     *p = 20;
     kprintf("First page alloc\nValue at %x is %d\n", p, *p);
-    p = (uint64_t*)get_free_page();
+    p = (uint64_t*)alloc_get_page();
     *p = 40;
     kprintf("Second page alloc\nValue at %x is %d\n", p, *p);
 
     // create a linked list with two struct pagelist_t
     kprintf("Third page alloc\n");
-    struct pagelist_t* ele1 = (struct pagelist_t*)get_free_page();
+    struct pagelist_t* ele1 = (struct pagelist_t*)alloc_get_page();
 
     ele1->present = 1;
     ele1->next = NULL;
@@ -62,8 +63,8 @@ test_kmalloc_kfree()
         *(p[i]) = i;
         kprintf("value %d\n", *(p[i]));
     }
-    // simulate a call to get_free_page from a different function
-    void* dummy = get_free_page();
+    // simulate a call to alloc_get_page from a different function
+    void* dummy = alloc_get_page();
     kprintf("Dummy page %p", dummy);
     for (i = 0; i < loop_size; i++) {
         kfree(p[i]);
@@ -112,4 +113,44 @@ test_tasklist()
         // Set character to pid number
         term_set_glyph(2, '0' + tasklist_schedule_task()->pid);
     }
+}
+
+void
+test_sample_userspace_function()
+{
+    uint8_t i = 30;
+    while (1) {
+        i += 1;
+        term_set_glyph(1, (char)i);
+        task_yield();
+        sleep(90);
+        i %= 45;
+    }
+}
+
+void
+test_sample_thread_handler()
+{
+    while (1) {
+        task_yield();
+        term_set_glyph(0, '0' + task_get_this_task_struct()->pid);
+        sleep(90);
+    }
+}
+
+void
+test_sample_thread_handler2()
+{
+    task_enter_ring3(test_sample_userspace_function);
+}
+
+void
+test_sched()
+{
+    task_create(test_sample_thread_handler);
+    task_create(test_sample_thread_handler2);
+    task_create(test_sample_thread_handler);
+    task_create(test_sample_thread_handler);
+    task_create(test_sample_thread_handler);
+    task_yield();
 }

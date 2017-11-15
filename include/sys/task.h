@@ -21,8 +21,14 @@ typedef struct _taskstruct
     reg_struct regs;
     pid_t pid;
     pid_t ppid;
+    void* stack_page;
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 
 void trial_sched();
 void task_trial_userland();
+task_struct* task_create();
+void task_destroy(task_struct* t);
+void task_yield();
+task_struct* task_get_this_task_struct();
+void task_enter_ring3(void* start);
 #endif

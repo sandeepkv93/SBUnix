@@ -1,103 +1,86 @@
+#include <sys/alloc.h>
 #include <sys/defs.h>
 #include <sys/gdt.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/task.h>
-#include <sys/term.h>
+#include <sys/tasklist.h>
 #include <sys/vma.h>
 
 extern void sched_switch_kthread(task_struct*, task_struct*);
 extern void sched_enter_ring3(uint64_t* stack_top, void* __start);
-uint8_t second_stack[4096] __attribute__((aligned(16)));
-task_struct tasks[2];
-task_struct *me, *next;
+
+task_struct t;
+task_struct *next, *me = &t;
+pid_t g_pid = 1;
+
+task_struct*
+task_get_this_task_struct()
+{
+    return me;
+}
+void
+task_initial_setup()
+{
+    me = next;
+}
+
+task_struct*
+task_create(void* callback)
+{
+    uint64_t* stack_top;
+
+    // Allocate memory for task struct and stack
+    task_struct* this_task = kmalloc(sizeof(task_struct));
+    this_task->stack_page = alloc_get_page();
+
+    // Stack grows downwards, we'll start stack_top from page boundary
+    stack_top = (uint64_t*)((uint64_t)this_task->stack_page + VMA_PAGE_SIZE);
+    stack_top--;
+
+    // This will allow us to call the callback once initialization is run
+    *stack_top = (uint64_t)callback;
+    stack_top--;
+
+    // For first time, we need some initialization to run
+    *stack_top = (uint64_t)task_initial_setup;
+    stack_top--;
+
+    // Save the task_struct on the stack
+    *stack_top = (uint64_t)this_task;
+
+    this_task->regs.rsp = (uint64_t)stack_top;
+    this_task->pid = g_pid++;
+
+    tasklist_add_task(this_task);
+    return this_task;
+}
 
 void
-task_sched()
+task_destroy(task_struct* t)
 {
-    task_struct* tmp;
-    tmp = next;
-    next = me;
-    me = tmp;
+    alloc_free_page(t->stack_page);
+    kfree(t);
 }
 
 void
 task_yield()
 {
-    task_sched();
+    next = tasklist_schedule_task();
     sched_switch_kthread(me, next);
+    me = next;
 }
 
 void
-sample_thread()
-{
-    while (1) {
-        task_yield();
-        term_set_glyph(0, '2');
-    }
-}
-
-void
-task_create_thread(void thread_callback())
-{
-    // TODO use kmalloc to allocate stack space. create task on the go
-    uint64_t* stack_top;
-    me = &tasks[0];
-    next = &tasks[1];
-    stack_top = (uint64_t*)&second_stack[4096];
-    stack_top--;
-    *stack_top = (uint64_t)thread_callback;
-    stack_top--;
-    *stack_top = (uint64_t)next;
-    next->regs.rsp = (uint64_t)stack_top;
-
-    // TODO This call is a hack, because we need to setup next and me initially
-    task_sched();
-}
-
-void
-trial_sched()
-{
-    uint8_t j = 0;
-    task_create_thread(task_trial_userland);
-    while (1) {
-        j++;
-        task_yield();
-        term_set_glyph(0, '1' + j);
-        j %= 15;
-    }
-}
-
-void
-smalle(uint8_t* x)
-{
-    if (*x > 100)
-        *x = 20;
-}
-
-void
-sample_userthread__start()
-{
-    uint8_t i = 30;
-    while (1) {
-        i += 1;
-        term_set_glyph(1, (char)i);
-        smalle(&i);
-        task_yield();
-    }
-}
-
-void
-task_trial_userland()
+task_enter_ring3(void* __start)
 {
     // Get one page_frame for stack, we'll make user stack as the page just
     // below the kernel boundary
     uint64_t stackpage_v_addr = VMA_KERNMEM - VMA_PAGE_SIZE;
-    uint64_t stackpage_p_addr = (uint64_t)vma_pagelist_getpage();
+    uint64_t stackpage_p_addr = (uint64_t)vma_pagelist_get_frame();
     vma_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
 
     // Stack grows downwards so we need to give the address of next page
-    set_tss_rsp((void*)&second_stack[4096]);
-    sched_enter_ring3((uint64_t*)stackpage_v_addr + VMA_PAGE_SIZE,
-                      sample_userthread__start);
+    set_tss_rsp((void*)me->stack_page + VMA_PAGE_SIZE);
+    sched_enter_ring3((uint64_t*)stackpage_v_addr + VMA_PAGE_SIZE, __start);
 }

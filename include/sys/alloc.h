@@ -3,7 +3,7 @@
 #include <sys/defs.h>
 void* kmalloc(size_t size);
 void* kfree(void* pt);
-void* get_free_page();
-void update_pagetable(uint64_t v_addr);
+void* alloc_get_page();
+void alloc_free_page(void* v_addr);
 
 #endif

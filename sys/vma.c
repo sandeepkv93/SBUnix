@@ -48,7 +48,7 @@ vma_pagelist_create(uint64_t physfree)
 }
 
 void*
-vma_pagelist_getpage()
+vma_pagelist_get_frame()
 {
     // Returns a freepage from the FREELIST
     uint64_t pageAddress = (freepage_head - pages) * VMA_PAGE_SIZE;
@@ -62,13 +62,19 @@ vma_pagelist_getpage()
     return (void*)pageAddress;
 }
 
+void
+vma_pagelist_free_frame()
+{
+    // TODO Free frame
+}
+
 uint64_t*
 vma_get_table_entry(uint64_t* table, uint32_t offset)
 {
     // Adds entry into offset of the table if not present, returns entry
     /*char* temp_byte;*/
     if (!(table[offset] & 0x1)) {
-        table[offset] = (uint64_t)vma_pagelist_getpage();
+        table[offset] = (uint64_t)vma_pagelist_get_frame();
         /*
         temp_byte = (char*)table[offset];
         for (int i = 0; i < VMA_PAGE_SIZE; i++) {
@@ -106,7 +112,7 @@ vma_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
     if ((pagetable[pt_offset] & 0x1)) {
         return FALSE;
     } else {
-        pagetable[pt_offset] = (uint64_t)vma_pagelist_getpage();
+        pagetable[pt_offset] = (uint64_t)vma_pagelist_get_frame();
         /*
         char* temp_byte = (char*)pagetable[pt_offset];
         for (int i = 0; i < PAGE_SIZE; i++) {
@@ -141,7 +147,7 @@ void
 vma_create_pagetables()
 {
     // Creates the 4 level pagetables needed and switches CR3
-    uint64_t* pml4_table = vma_pagelist_getpage();
+    uint64_t* pml4_table = vma_pagelist_get_frame();
     uint64_t v_addr;
 
     for (int i = 0; i < VMA_TABLE_ENTRIES; i++) {
