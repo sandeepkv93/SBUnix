@@ -24,8 +24,6 @@ typedef struct _taskstruct
     void* stack_page;
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 
-void trial_sched();
-void task_trial_userland();
 task_struct* task_create();
 void task_destroy(task_struct* t);
 void task_yield();

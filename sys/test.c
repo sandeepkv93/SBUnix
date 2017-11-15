@@ -17,16 +17,6 @@ struct test_struct
 };
 
 void
-testing_function()
-{
-    test_address = (uint64_t)vma_pagelist_get_frame();
-    uint8_t* test_ptr = (uint8_t*)test_address;
-    for (int i = 0; i < 1024; i++) {
-        test_ptr[i] = i;
-    }
-}
-
-void
 test_alloc_get_page()
 {
     uint64_t* p = (uint64_t*)alloc_get_page();
@@ -153,4 +143,20 @@ test_sched()
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_yield();
+}
+
+void
+test_kprintf()
+{
+    for (int i = 0; i < 20; i++) {
+        kprintf("\nTest\n");
+        kprintf("more %d\n", i);
+        kprintf("more %d\n", i);
+    }
+    kprintf("This is a sample text that is going to test my kprintf big time. "
+            "Let's see if we can find any bugs. The hope is that there won't "
+            "be any bugs and the code works as is without any problem. Now "
+            "let's go catch'em all. We are the developers. We are the testers. "
+            "One ring to rule them all. If you reading this much garbage, it "
+            "is time to go work on OS");
 }

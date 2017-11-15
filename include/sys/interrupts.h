@@ -23,10 +23,10 @@ typedef struct
 
 struct_idt_entry idt[256];
 
+// TODO add prefix to these functions to easily distinguish
 void pic_init();
 void register_idt();
 void enable_interrupts(bool);
-void print_time(int);
 void outb(uint16_t port, uint8_t value);
 bool are_interrupts_enabled();
 

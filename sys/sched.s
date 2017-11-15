@@ -3,14 +3,8 @@
  // rdi : rsp3
  // rsi : __start
     cli
+    // TODO will this cause problem? use add instead
     pop %r8
-    /*
-    mov $0x23, %ax
-    mov %ax, %ds
-    mov %ax, %es  
-    mov %ax, %fs  
-    mov %ax, %gs 
-    */
     mov %rdi, %rax
     push $0x23   // Pushing SS
     push %rax    // Push next RSP 

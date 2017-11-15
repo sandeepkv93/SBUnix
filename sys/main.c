@@ -35,21 +35,19 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     vma_pagelist_create(physfree);
     vma_create_pagetables();
     term_clear_screen();
+
+    kprintf("physfree %p\n", (uint64_t)physfree);
+    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
 
-    //
-    // kprintf only after this and live a happy life
-    //
-
-    kprintf("physfree %p\n", (uint64_t)physfree);
-    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     walk_through_tarfs(&_binary_tarfs_start);
     /*task_trial_userland();*/
-    kprintf_test();
+    test_kprintf();
     /*test_kmalloc_kfree();*/
-    test_tasklist();
+    /*test_tasklist();*/
     test_sched();
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/

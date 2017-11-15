@@ -75,7 +75,9 @@ vma_get_table_entry(uint64_t* table, uint32_t offset)
     /*char* temp_byte;*/
     if (!(table[offset] & 0x1)) {
         table[offset] = (uint64_t)vma_pagelist_get_frame();
+
         /*
+        // TODO Decide if it is needed to set page to 0
         temp_byte = (char*)table[offset];
         for (int i = 0; i < VMA_PAGE_SIZE; i++) {
             temp_byte[i] = 0;
@@ -114,6 +116,7 @@ vma_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
     } else {
         pagetable[pt_offset] = (uint64_t)vma_pagelist_get_frame();
         /*
+        // TODO Decide if it is needed to set page to 0
         char* temp_byte = (char*)pagetable[pt_offset];
         for (int i = 0; i < PAGE_SIZE; i++) {
             temp_byte[i] = 0;
@@ -164,8 +167,6 @@ vma_create_pagetables()
         vma_add_initial_pagetable_mapping(
           pml4_table, v_addr, (i * VMA_PAGE_SIZE) | VMA_PAGETABLE_PERMISSIONS);
     }
-
-    testing_function();
 
     vma_add_initial_pagetable_mapping(pml4_table, VMA_VIDEO,
                                       (0xb8000) | VMA_PAGETABLE_PERMISSIONS);

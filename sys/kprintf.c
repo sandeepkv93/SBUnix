@@ -139,19 +139,3 @@ kprintf(const char* format, ...)
     term_write(buffer, buflen);
     va_end(ap);
 }
-
-void
-kprintf_test()
-{
-    for (int i = 0; i < 20; i++) {
-        kprintf("\nTest\n");
-        kprintf("more %d\n", i);
-        kprintf("more %d\n", i);
-    }
-    kprintf("This is a sample text that is going to test my kprintf big time. "
-            "Let's see if we can find any bugs. The hope is that there won't "
-            "be any bugs and the code works as is without any problem. Now "
-            "let's go catch'em all. We are the developers. We are the testers. "
-            "One ring to rule them all. If you reading this much garbage, it "
-            "is time to go work on OS");
-}

@@ -3,5 +3,4 @@
 
 void kprintf(const char*, ...);
 int sprintf(char*, const char*, ...);
-void kprintf_test();
 #endif
