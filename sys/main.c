@@ -16,16 +16,6 @@ uint8_t initial_stack[INITIAL_STACK_SIZE] __attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
 
-static inline int
-are_interrupts_enabled()
-{
-    unsigned long flags;
-    __asm__ __volatile("pushf\n\t"
-                       "pop %0"
-                       : "=g"(flags));
-    return flags & (1 << 9);
-}
-
 void
 start(uint32_t* modulep, void* physbase, void* physfree)
 {
@@ -45,21 +35,20 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     vma_pagelist_create(physfree);
     vma_create_pagetables();
     term_clear_screen();
+
+    kprintf("physfree %p\n", (uint64_t)physfree);
+    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
 
-    //
-    // kprintf only after this and live a happy life
-    //
-
-    kprintf("physfree %p\n", (uint64_t)physfree);
-    kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
     walk_through_tarfs(&_binary_tarfs_start);
-    // kprintf_test();
-    // test_get_free_pages();
-    test_kmalloc_kfree();
-    trial_sched();
+    /*task_trial_userland();*/
+    test_kprintf();
+    /*test_kmalloc_kfree();*/
+    /*test_tasklist();*/
+    test_sched();
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
     while (1)

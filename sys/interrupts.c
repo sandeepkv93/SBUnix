@@ -5,6 +5,7 @@
 #include <sys/term.h>
 #include <sys/timer.h>
 
+extern void* g_exceptions[];
 extern char g_keymap[], g_keymap_shift[];
 extern void timer_isr_asm();
 extern void kb_isr_asm();
@@ -21,6 +22,16 @@ inb(uint16_t port)
     uint8_t value;
     __asm__("inb %1,%0;" : "=a"(value) : "Nd"(port));
     return value;
+}
+
+bool
+are_interrupts_enabled()
+{
+    unsigned long flags;
+    __asm__ __volatile("pushf\n\t"
+                       "pop %0"
+                       : "=g"(flags));
+    return flags & (1 << 9);
 }
 
 void
@@ -84,25 +95,6 @@ void
 register_isr(int intn, void* handler)
 {
     idt[intn] = pic_get_idt_entry(handler);
-}
-
-// TODO Move this to terminal.c once it is added
-void
-print_time(int time_seconds)
-{
-    char str[20];
-    uint8_t x = 0, y = 0, color;
-    int len = 0;
-    int mins = time_seconds / 60;
-    int secs = time_seconds % 60;
-    len = sprintf(str, " Time since boot %d%s%d", mins, secs < 10 ? ":0" : ":",
-                  secs);
-    // TODO Don't use kprintf
-    term_get_cursor(&x, &y, &color);
-    term_set_cursor(0, 80 - (len),
-                    TERM_BG_FG_COLOR(term_color_lightgreen, term_color_black));
-    kprintf(str);
-    term_set_cursor(x, y, -1);
 }
 
 // TODO Make more readable
@@ -174,13 +166,6 @@ kb_isr()
 }
 
 void
-exception_handler()
-{
-    kprintf("Exception!! :O ");
-    outb(PIC1_COMMAND, PIC_EOI);
-}
-
-void
 fake_isr()
 {
     kprintf("unregistered interrupt :( ");
@@ -206,11 +191,12 @@ lidt(void* idt_address, uint16_t size)
 void
 register_idt()
 {
-    int i;
-    for (i = 0; i < 32; i++) {
-        idt[i] = pic_get_idt_entry((void*)exception_handler);
+
+    for (int i = 0; i < 32; i++) {
+        idt[i] = pic_get_idt_entry(g_exceptions[i]);
     }
-    for (; i < 256; i++) {
+
+    for (int i = 32; i < 256; i++) {
         idt[i] = pic_get_idt_entry((void*)fake_isr);
     }
     timer_setup(); // setup PIT

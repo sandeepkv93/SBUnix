@@ -20,26 +20,24 @@ Header* freep = NULL;
 void
 update_pagetable(uint64_t v_addr)
 {
-    uint64_t masked_addr = (~0 << 12);
-    vma_get_table_entry((uint64_t*)masked_addr, VMA_PML4_OFFSET(v_addr));
-    masked_addr = ((masked_addr << 9) | (VMA_PML4_OFFSET(v_addr) << 12));
-    vma_get_table_entry((uint64_t*)masked_addr, VMA_PD_POINTER_OFFSET(v_addr));
-    masked_addr = ((masked_addr << 9) | (VMA_PD_POINTER_OFFSET(v_addr) << 12));
-    vma_get_table_entry((uint64_t*)masked_addr,
-                        VMA_PAGE_DIRECTORY_OFFSET(v_addr));
-    masked_addr =
-      ((masked_addr << 9) | (VMA_PAGE_DIRECTORY_OFFSET(v_addr) << 12));
-    vma_get_table_entry((uint64_t*)masked_addr, VMA_PAGE_TABLE_OFFSET(v_addr));
+    uint64_t p_addr = (uint64_t)vma_pagelist_get_frame();
+    vma_add_pagetable_mapping(v_addr, p_addr);
 }
 
 void*
-get_free_page()
+alloc_get_page()
 {
     uint64_t* v_addr = (uint64_t*)cur_kern_heap;
     kprintf("new page %p\n", v_addr);
     update_pagetable(cur_kern_heap);
     cur_kern_heap += VMA_PAGE_SIZE;
     return (void*)v_addr;
+}
+
+void
+alloc_free_page(void* v_addr)
+{
+    // TODO Set page table entry to not present
 }
 
 void*
@@ -51,7 +49,7 @@ pls_giv_mem(int num_bytes)
     void* va_addr;
 
     if (cur_page_va == NULL) {
-        cur_page_va = get_free_page();
+        cur_page_va = alloc_get_page();
     }
 
     va_addr = cur_page_va + cur_page_offset;
@@ -60,7 +58,7 @@ pls_giv_mem(int num_bytes)
         num_of_pages = ((num_bytes - 1) / VMA_PAGE_SIZE) + 1;
 
         while (num_of_pages--) {
-            cur_page_va = get_free_page();
+            cur_page_va = alloc_get_page();
         }
         cur_page_offset += num_bytes % VMA_PAGE_SIZE;
     } else {
