@@ -31,7 +31,11 @@ are_interrupts_enabled()
     __asm__ __volatile("pushf\n\t"
                        "pop %0"
                        : "=g"(flags));
-    return flags & (1 << 9);
+    if (flags & (1 << 9)) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }
 
 void
