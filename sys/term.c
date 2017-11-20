@@ -117,7 +117,7 @@ void
 term_clear_screen()
 {
     char* vc = (char*)TERM_VIDEO_MEMORY;
-    for (int i = 0; i < VC_ROW_LIMIT * VC_COL_LIMIT * VC_CHAR_PER_COL; i++) {
+    for (int i = 0; i < VC_ROW_LIMIT * VC_COL_LIMIT; i++) {
         *vc = ' ';
         vc += 2;
     }

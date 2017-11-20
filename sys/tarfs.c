@@ -1,11 +1,11 @@
-#include <stdarg.h>
-#include <string.h>
 #include <sys/ahci.h>
 #include <sys/defs.h>
 #include <sys/gdt.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
+#include <sys/nary.h>
 #include <sys/pci.h>
+#include <sys/string.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
 #include <sys/vma.h>
@@ -53,6 +53,17 @@ char_array_to_int(char* array)
 void
 walk_through_tarfs(char* tarfs_start_address)
 {
+    struct node* root = NULL;
+    insert(&root, "bin");
+    insert(&root, "bin/cat");
+    insert(&root, "bin/cat/cat.o");
+    insert(&root, "crt");
+    insert(&root, "bin/ls");
+    insert(&root, "bin/ls/ls.o");
+    insert(&root, "bin/ls/blah");
+    insert(&root, "bin/ls/blah/lol");
+    insert(&root, "boot");
+    traverse(root, 0);
     struct posix_header_ustar* tarfs_structure =
       (struct posix_header_ustar*)tarfs_start_address;
     int offset = 0;
@@ -64,15 +75,17 @@ walk_through_tarfs(char* tarfs_start_address)
             break;
 
         size = octal_to_decimal(char_array_to_int(tarfs_structure->size));
-        kprintf("Name: %s\tSize:%s Address:%p\n", tarfs_structure->name,
+        kprintf("Name: %s    Size:%s Address:%p\n", tarfs_structure->name,
                 tarfs_structure->size, tarfs_structure);
         if (size == 0)
-            offset = offset + 512;
+            offset = offset + sizeof(struct posix_header_ustar);
         else {
-            if (size % 512 == 0) {
-                offset += size + 512;
+            if (size % sizeof(struct posix_header_ustar) == 0) {
+                offset += size + sizeof(struct posix_header_ustar);
             } else {
-                offset += size + (512 - size % 512) + 512;
+                offset += size + (sizeof(struct posix_header_ustar) -
+                                  size % sizeof(struct posix_header_ustar)) +
+                          sizeof(struct posix_header_ustar);
             }
         }
     }

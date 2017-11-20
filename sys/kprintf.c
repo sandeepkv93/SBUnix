@@ -4,31 +4,6 @@
 #include <sys/string.h>
 #include <sys/term.h>
 
-int
-strlen(const char* s1)
-{
-    int len = 0;
-    while (*s1++ != '\0') {
-        len++;
-    }
-    return len;
-}
-
-char*
-strrev(char* str)
-{
-    char *p1, *p2;
-
-    if (!str || !*str)
-        return str;
-    for (p1 = str, p2 = str + strlen(str) - 1; p2 > p1; ++p1, --p2) {
-        *p1 ^= *p2;
-        *p2 ^= *p1;
-        *p1 ^= *p2;
-    }
-    return str;
-}
-
 void
 copy_hex(unsigned long num, char* buf, int* ptr)
 {

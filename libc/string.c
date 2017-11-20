@@ -1,3 +1,4 @@
+#include <sys/defs.h>
 void
 charcpy(char* dest, char* src, int char_num)
 {
@@ -83,4 +84,16 @@ strcat(char* dest, const char* src)
         ;
     *temp = '\0';
     return dest;
+}
+
+char*
+strchr(char* s, char p)
+{
+    while (*s) {
+        if (*s == p) {
+            return (char*)s;
+        }
+        s++;
+    }
+    return NULL;
 }
