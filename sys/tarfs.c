@@ -53,7 +53,7 @@ char_array_to_int(char* array)
 void
 walk_through_tarfs(char* tarfs_start_address)
 {
-    struct node* root = NULL;
+    struct nary_tree_node* root = NULL;
     insert(&root, "bin");
     insert(&root, "bin/cat");
     insert(&root, "bin/cat/cat.o");

@@ -9,4 +9,5 @@ void memcpy(void* dest, void* src, int size);
 void* memset(void* s, int c, int n);
 char* strchr(char* s, char p);
 char* strrev(char* str);
+char* strrchr(char* s, char p);
 #endif

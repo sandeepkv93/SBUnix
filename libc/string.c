@@ -1,4 +1,15 @@
 #include <sys/defs.h>
+void*
+memset(void* s, int c, int n)
+{
+    unsigned char* p = s;
+    while (n) {
+        *p++ = (unsigned char)c;
+        n--;
+    }
+    return s;
+}
+
 void
 charcpy(char* dest, char* src, int char_num)
 {
@@ -96,4 +107,19 @@ strchr(char* s, char p)
         s++;
     }
     return NULL;
+}
+
+char*
+strrev(char* str)
+{
+    char *p1, *p2;
+
+    if (!str || !*str)
+        return str;
+    for (p1 = str, p2 = str + strlen(str) - 1; p2 > p1; ++p1, --p2) {
+        *p1 ^= *p2;
+        *p2 ^= *p1;
+        *p1 ^= *p2;
+    }
+    return str;
 }

@@ -125,3 +125,16 @@ strrev(char* str)
     }
     return str;
 }
+
+char*
+strrchr(char* s, char p)
+{
+    char* ret = NULL;
+    while (*s) {
+        if (*s == p) {
+            ret = (char*)s;
+        }
+        s++;
+    }
+    return ret;
+}

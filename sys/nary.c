@@ -3,15 +3,15 @@
 #include <sys/nary.h>
 #include <sys/string.h>
 
-struct node*
+struct nary_tree_node*
 createNode(char* data)
 {
-    struct node* node = kmalloc(sizeof(struct node));
-    node->data = kmalloc(strlen(data));
-    strcpy(node->data, data);
-    node->sibling = NULL;
-    node->firstChild = NULL;
-    return node;
+    struct nary_tree_node* nary_node = kmalloc(sizeof(struct nary_tree_node));
+    nary_node->data = kmalloc(strlen(data));
+    strcpy(nary_node->data, data);
+    nary_node->sibling = NULL;
+    nary_node->firstChild = NULL;
+    return nary_node;
 }
 
 void
@@ -32,7 +32,7 @@ calcPaths(char* path, char** subPath, char** remPath)
 }
 
 void
-insertInPath(struct node* root, char* path)
+insertInPath(struct nary_tree_node* root, char* path)
 {
     char* subPath = NULL;
     char* remPath = NULL;
@@ -58,7 +58,7 @@ insertInPath(struct node* root, char* path)
 }
 
 void
-traverse(struct node* root, int tab)
+traverse(struct nary_tree_node* root, int tab)
 {
     int td = tab;
     if (root != NULL) {
@@ -73,7 +73,7 @@ traverse(struct node* root, int tab)
 }
 
 void
-insert(struct node** root, char* path)
+insert(struct nary_tree_node** root, char* path)
 {
     if (*root == NULL) {
         char* dot = ".";
