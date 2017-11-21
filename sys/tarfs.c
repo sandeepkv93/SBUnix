@@ -5,10 +5,10 @@
 #include <sys/gdt.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/pci.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
-#include <sys/vma.h>
 
 uint64_t
 power(uint64_t x, int e)
