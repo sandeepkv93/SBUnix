@@ -105,17 +105,30 @@ test_tasklist()
     }
 }
 
+long
+test_sample_unistd_call()
+{
+    long sys_no = 41, arg1 = 42, arg2 = 43, arg3 = 44;
+    long x = 0;
+    __asm__("movq	%1,%%rdi;"
+            "movq	%2,%%rsi;"
+            "movq	%3,%%rdx;"
+            "movq	%4,%%rcx;"
+            "int $0x46;"
+            "movq    %%rax,%0;"
+            : "=r"(x)
+            : "r"(sys_no), "r"(arg1), "r"(arg2), "r"(arg3)
+            : "%rdi", "%rsi", "%rdx", "%rcx", "%rax");
+    return x;
+}
+
 void
 test_sample_userspace_function()
 {
-    uint8_t i = 30;
-    while (1) {
-        i += 1;
-        term_set_glyph(1, (char)i);
+    char m = test_sample_unistd_call();
+    term_set_glyph(1, m);
+    while (1)
         task_yield();
-        sleep(90);
-        i %= 45;
-    }
 }
 
 void
