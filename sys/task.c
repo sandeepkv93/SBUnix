@@ -3,9 +3,9 @@
 #include <sys/gdt.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
-#include <sys/vma.h>
 
 extern void sched_switch_kthread(task_struct*, task_struct*);
 extern void sched_enter_ring3(uint64_t* stack_top, void* __start);
@@ -35,7 +35,7 @@ task_create(void* callback)
     this_task->stack_page = alloc_get_page();
 
     // Stack grows downwards, we'll start stack_top from page boundary
-    stack_top = (uint64_t*)((uint64_t)this_task->stack_page + VMA_PAGE_SIZE);
+    stack_top = (uint64_t*)((uint64_t)this_task->stack_page + PAGING_PAGE_SIZE);
     stack_top--;
 
     // This will allow us to call the callback once initialization is run
@@ -76,11 +76,11 @@ task_enter_ring3(void* __start)
 {
     // Get one page_frame for stack, we'll make user stack as the page just
     // below the kernel boundary
-    uint64_t stackpage_v_addr = VMA_KERNMEM - VMA_PAGE_SIZE;
-    uint64_t stackpage_p_addr = (uint64_t)vma_pagelist_get_frame();
-    vma_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
+    uint64_t stackpage_v_addr = PAGING_KERNMEM - PAGING_PAGE_SIZE;
+    uint64_t stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();
+    paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
 
     // Stack grows downwards so we need to give the address of next page
-    set_tss_rsp((void*)me->stack_page + VMA_PAGE_SIZE);
-    sched_enter_ring3((uint64_t*)stackpage_v_addr + VMA_PAGE_SIZE, __start);
+    set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
+    sched_enter_ring3((uint64_t*)stackpage_v_addr + PAGING_PAGE_SIZE, __start);
 }

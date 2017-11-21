@@ -2,14 +2,15 @@
 #include <string.h>
 #include <sys/ahci.h>
 #include <sys/defs.h>
+#include <sys/elf64.h>
 #include <sys/gdt.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/pci.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
 #include <sys/term.h>
-#include <sys/vma.h>
 #include <test.h>
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE] __attribute__((aligned(16)));
@@ -29,11 +30,12 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     for (smap = (struct smap_t*)(modulep + 2);
          smap < (struct smap_t*)((char*)modulep + modulep[1] + 2 * 4); ++smap) {
         if (smap->type == 1 /* memory */ && smap->length != 0) {
-            vma_pagelist_add_addresses(smap->base, smap->base + smap->length);
+            paging_pagelist_add_addresses(smap->base,
+                                          smap->base + smap->length);
         }
     }
-    vma_pagelist_create(physfree);
-    vma_create_pagetables();
+    paging_pagelist_create(physfree);
+    paging_create_pagetables();
     term_clear_screen();
 
     kprintf("physfree %p\n", (uint64_t)physfree);
@@ -42,13 +44,13 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
-
     walk_through_tarfs(&_binary_tarfs_start);
     /*task_trial_userland();*/
     test_kprintf();
     /*test_kmalloc_kfree();*/
     /*test_tasklist();*/
     test_sched();
+    elf_read();
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
     while (1)

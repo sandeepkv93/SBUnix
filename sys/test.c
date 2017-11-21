@@ -1,11 +1,11 @@
 #include <string.h>
 #include <sys/alloc.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
 #include <sys/term.h>
 #include <sys/timer.h>
-#include <sys/vma.h>
 #include <test.h>
 
 uint64_t test_address;
