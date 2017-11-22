@@ -41,7 +41,8 @@ term_scroll_on_overflow()
         v_cursor.column = 0;
     }
 }
-void
+
+int
 term_write(const char* buf, int buflen)
 {
     uint32_t index = 0;
@@ -95,6 +96,8 @@ term_write(const char* buf, int buflen)
     if (interrupts_enabled) {
         enable_interrupts(TRUE);
     }
+
+    return buflen;
 }
 
 void

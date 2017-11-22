@@ -106,9 +106,9 @@ test_tasklist()
 }
 
 long
-test_sample_unistd_call()
+test_sample_write(int fd, char* buff, int size)
 {
-    long sys_no = 41, arg1 = 42, arg2 = 43, arg3 = 44;
+    long sys_no = 1, arg1 = fd, arg2 = (long)buff, arg3 = size;
     long x = 0;
     __asm__("movq	%1,%%rdi;"
             "movq	%2,%%rsi;"
@@ -125,7 +125,11 @@ test_sample_unistd_call()
 void
 test_sample_userspace_function()
 {
-    char m = test_sample_unistd_call();
+    char m;
+    m = test_sample_write(1, "Hello there\n", 12);
+    m = test_sample_write(2, "Hello there\n", 12);
+    m = test_sample_write(1, "Hello there\n", 12);
+    m = test_sample_write(1, "Hello there\n", 12);
     term_set_glyph(1, m);
     while (1)
         task_yield();

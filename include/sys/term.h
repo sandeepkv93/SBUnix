@@ -26,7 +26,7 @@ enum term_colors
 void term_set_time(uint64_t seconds);
 void term_set_keypress(uint8_t code, uint8_t is_ctrl_pressed,
                        uint8_t is_shift_pressed);
-void term_write(const char* buf, int buflen);
+int term_write(const char* buf, int buflen);
 void term_clear_screen();
 void term_set_cursor(uint8_t row, uint8_t column, uint8_t color);
 void term_get_cursor(uint8_t* row, uint8_t* column, uint8_t* color);
