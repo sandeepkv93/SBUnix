@@ -25,6 +25,6 @@ struct posix_header_ustar
     char pad[12];
 };
 
-void walk_through_tarfs(char* tarfs_start_address);
+void walk_through_tarfs();
 
 #endif

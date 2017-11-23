@@ -12,15 +12,15 @@
 #include <sys/vma.h>
 
 void
-walk_through_tarfs(char* tarfs_start_address)
+walk_through_tarfs()
 {
     struct posix_header_ustar* tarfs_structure =
-      (struct posix_header_ustar*)tarfs_start_address;
+      (struct posix_header_ustar*)&_binary_tarfs_start;
     int offset = 0;
     uint64_t size;
     while (1) {
         tarfs_structure =
-          (struct posix_header_ustar*)(tarfs_start_address + offset);
+          (struct posix_header_ustar*)(&_binary_tarfs_start + offset);
         if (strlen(tarfs_structure->name) == 0)
             break;
         char node_id[100];
