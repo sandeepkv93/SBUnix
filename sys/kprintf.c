@@ -91,6 +91,7 @@ vprintf(char* buffer, const char* format, va_list ap)
     buffer[bufptr] = '\0';
     return bufptr;
 }
+
 int
 sprintf(char* buffer, const char* format, ...)
 {

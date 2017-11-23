@@ -1,13 +1,6 @@
 #ifndef NARY_H
 #define NARY_H
 
-struct nary_tree_node
-{
-    char* data;
-    struct nary_tree_node* sibling;
-    struct nary_tree_node* firstChild;
-};
-
 struct fs_node_entry
 {
     char node_id[100];
@@ -28,9 +21,17 @@ struct fs_node_entry
     char devminor[8];
     char prefix[155];
     char pad[12];
+    int fs_type;
 };
 
-void insert(struct nary_tree_node** root, char* path);
-void traverse(struct nary_tree_node* root, int tab);
+struct nary_tree_node
+{
+    struct fs_node_entry data;
+    struct nary_tree_node* sibling;
+    struct nary_tree_node* firstChild;
+};
 
+void insert(struct nary_tree_node** root, struct fs_node_entry data);
+void traverse(struct nary_tree_node* root, int tab);
+int checkIfExists(struct nary_tree_node* root, char* path);
 #endif
