@@ -5,6 +5,20 @@
 #pragma GCC push_options
 #pragma GCC optimize("O0")
 extern void syscall_isr_return(long);
+
+long
+syscall_read(uint64_t fd, char* buf, uint64_t count)
+{
+    long ret;
+    if (fd == STDIN) {
+        ret = term_read_from_buffer(buf, count);
+    } else {
+        // TODO add vfs read here
+    }
+
+    return ret;
+}
+
 long
 syscall_write(uint64_t fd, char* buff, uint64_t count)
 {
@@ -30,12 +44,14 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
     switch (syscall_num) {
         case _SYS__open:
         /* For each case implement syscall, update ret_val */
-        case _SYS__close:
-        case _SYS__read:
         case _SYS__write:
             ret_val =
               syscall_write((uint64_t)arg1, (char*)arg2, (uint64_t)arg3);
             break;
+        case _SYS__read:
+            ret_val = syscall_read((uint64_t)arg1, (char*)arg2, (uint64_t)arg3);
+            break;
+        case _SYS__close:
         case _SYS__fork:
         case _SYS__execve:
         case _SYS__wait4:

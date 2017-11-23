@@ -31,4 +31,5 @@ void term_clear_screen();
 void term_set_cursor(uint8_t row, uint8_t column, uint8_t color);
 void term_get_cursor(uint8_t* row, uint8_t* column, uint8_t* color);
 void term_set_glyph(uint8_t pos, char c);
+int term_read_from_buffer(char* buff, int count);
 #endif

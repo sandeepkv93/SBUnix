@@ -49,6 +49,7 @@ are_interrupts_enabled()
         return FALSE;
     }
 }
+// TODO we need to be able to enable and disable specific interrupts
 
 void
 enable_interrupts(bool status)
