@@ -119,10 +119,11 @@ walk_through_tarfs(char* tarfs_start_address)
             }
         }
     }
-    /*
+
     traverse(root, 0);
+    /*
     kprintf("Found: bin/ls/myls/ls.o => %d\n",
-            checkIfExists(root, "bin/ls/myls/ls.o"));
+             checkIfExists(root, "bin/ls/myls/ls.o"));
     kprintf("Found: bin/ls => %d\n", checkIfExists(root, "bin/ls"));
     kprintf("Found: bin/cat => %d\n", checkIfExists(root, "bin/cat"));
     kprintf("Found: crt => %d\n", checkIfExists(root, "crt"));

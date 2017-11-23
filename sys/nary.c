@@ -54,9 +54,8 @@ insertInPath(struct nary_tree_node* root, struct fs_node_entry data)
     /*kprintf("Insert %s <-> %s\n", data.name, data.node_id);*/
     char* subPath = NULL;
     char* remPath = NULL;
+    char* path = data.name;
     while (1) {
-        char* path;
-        path = data.name;
         calcPaths(path, &subPath, &remPath);
         while (1) {
             if (strcmp((root->data).node_id, subPath) == 0) {
@@ -79,6 +78,47 @@ insertInPath(struct nary_tree_node* root, struct fs_node_entry data)
             root = root->sibling;
         }
     }
+}
+
+void
+findNaryNode(struct fs_node_entry* fs_node, struct nary_tree_node* root,
+             char* path)
+{
+    if (root == NULL) {
+        return;
+    }
+    char* subPath = NULL;
+    char* remPath = NULL;
+    while (root->firstChild != NULL) {
+        calcPaths(path, &subPath, &remPath);
+        if (strcmp(((root->firstChild)->data).node_id, subPath) == 0) {
+            if (remPath == NULL) {
+                *fs_node = (root->firstChild)->data;
+                return;
+            }
+            root = root->firstChild;
+            path = remPath;
+        } else {
+            root = root->firstChild;
+            int flag = 1;
+            while (root->sibling != NULL) {
+                if (strcmp(((root->sibling)->data).node_id, subPath) == 0) {
+                    if (remPath == NULL) {
+                        *fs_node = (root->sibling)->data;
+                        return;
+                    }
+                    root = root->sibling;
+                    path = remPath;
+                    flag = 0;
+                    break;
+                }
+                root = root->sibling;
+            }
+            if (flag == 1)
+                return;
+        }
+    }
+    return;
 }
 
 int
