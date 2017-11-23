@@ -82,12 +82,12 @@ insertInPath(struct nary_tree_node* root, struct fs_node_entry data)
     }
 }
 
-void
-findNaryNode(struct fs_node_entry* fs_node, char* path)
+struct fs_node_entry*
+findNaryNode(char* path)
 {
     struct nary_tree_node* root = nary_root;
     if (root == NULL) {
-        return;
+        return NULL;
     }
     char* subPath = NULL;
     char* remPath = NULL;
@@ -95,8 +95,7 @@ findNaryNode(struct fs_node_entry* fs_node, char* path)
         calcPaths(path, &subPath, &remPath);
         if (strcmp(((root->firstChild)->data).node_id, subPath) == 0) {
             if (remPath == NULL) {
-                *fs_node = (root->firstChild)->data;
-                return;
+                return &((root->firstChild)->data);
             }
             root = root->firstChild;
             path = remPath;
@@ -106,8 +105,7 @@ findNaryNode(struct fs_node_entry* fs_node, char* path)
             while (root->sibling != NULL) {
                 if (strcmp(((root->sibling)->data).node_id, subPath) == 0) {
                     if (remPath == NULL) {
-                        *fs_node = (root->sibling)->data;
-                        return;
+                        return &((root->sibling)->data);
                     }
                     root = root->sibling;
                     path = remPath;
@@ -117,10 +115,10 @@ findNaryNode(struct fs_node_entry* fs_node, char* path)
                 root = root->sibling;
             }
             if (flag == 1)
-                return;
+                return NULL;
         }
     }
-    return;
+    return NULL;
 }
 
 int

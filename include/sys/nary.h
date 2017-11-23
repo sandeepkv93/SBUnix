@@ -34,5 +34,5 @@ struct nary_tree_node
 void insert_into_nary_tree(struct fs_node_entry data);
 void traverse_nary_tree();
 int checkIfExists(char* path);
-void findNaryNode(struct fs_node_entry* fs_node, char* path);
+struct fs_node_entry* findNaryNode(char* path);
 #endif
