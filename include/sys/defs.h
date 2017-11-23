@@ -5,6 +5,9 @@
 #define NULL ((void*)0)
 #define TRUE 1
 #define FALSE 0
+#define STDIN 0
+#define STDOUT 1
+#define STDERR 2
 
 typedef unsigned long uint64_t;
 typedef long int64_t;

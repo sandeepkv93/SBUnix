@@ -2,13 +2,25 @@
 #include <sys/keyboard.h>
 #include <sys/kprintf.h>
 #include <sys/string.h>
+#include <sys/syscall.h>
 #include <sys/term.h>
 #include <sys/timer.h>
 
 extern void* g_exceptions[];
 extern char g_keymap[], g_keymap_shift[];
+extern void syscall_isr_asm();
 extern void timer_isr_asm();
 extern void kb_isr_asm();
+
+#define RING0 0
+#define RING3 3
+
+/* Refer http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure_AMD64 */
+#define IDT_ENTRY_PRESENT 0x80
+#define IDT_ENTRY_RING0 0x00
+#define IDT_ENTRY_RING3 0x60
+#define IDT_ENTRY_INTERRUPT 0x0E
+#define IDT_ENTRY_TRAP 0x0F
 
 void
 outb(uint16_t port, uint8_t value)
@@ -31,8 +43,13 @@ are_interrupts_enabled()
     __asm__ __volatile("pushf\n\t"
                        "pop %0"
                        : "=g"(flags));
-    return flags & (1 << 9);
+    if (flags & (1 << 9)) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }
+// TODO we need to be able to enable and disable specific interrupts
 
 void
 enable_interrupts(bool status)
@@ -77,7 +94,7 @@ return_isr()
 }
 
 struct_idt_entry
-pic_get_idt_entry(void* address)
+pic_get_idt_entry(void* address, uint8_t ring)
 {
     long addr = (long)address;
     struct_idt_entry member;
@@ -87,14 +104,19 @@ pic_get_idt_entry(void* address)
     member.selector = 8;
     member.ist = 0;
     member.zero = 0;
-    member.type_attr = 0x8E;
+    if (ring == RING3) {
+        member.type_attr = IDT_ENTRY_PRESENT | IDT_ENTRY_RING3 | IDT_ENTRY_TRAP;
+    } else {
+        member.type_attr =
+          IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_INTERRUPT;
+    }
     return member;
 }
 
 void
-register_isr(int intn, void* handler)
+register_isr(int intn, void* handler, uint8_t ring)
 {
-    idt[intn] = pic_get_idt_entry(handler);
+    idt[intn] = pic_get_idt_entry(handler, ring);
 }
 
 // TODO Make more readable
@@ -193,14 +215,19 @@ register_idt()
 {
 
     for (int i = 0; i < 32; i++) {
-        idt[i] = pic_get_idt_entry(g_exceptions[i]);
+        idt[i] = pic_get_idt_entry(g_exceptions[i], RING0);
     }
 
     for (int i = 32; i < 256; i++) {
-        idt[i] = pic_get_idt_entry((void*)fake_isr);
+        idt[i] = pic_get_idt_entry((void*)fake_isr, RING0);
     }
+
     timer_setup(); // setup PIT
-    register_isr(0x20, (void*)timer_isr_asm);
-    register_isr(0x21, (void*)kb_isr_asm);
+
+    register_isr(0x20, (void*)timer_isr_asm, RING0);
+    register_isr(0x21, (void*)kb_isr_asm, RING0);
+    // Using int 0x46 for syscalls. This is to denote deviation from linux
+    register_isr(0x46, (void*)syscall_isr_asm, RING3);
+
     lidt(idt, sizeof(struct_idt_entry) * 256 - 1);
 }
