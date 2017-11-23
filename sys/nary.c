@@ -3,6 +3,8 @@
 #include <sys/nary.h>
 #include <sys/string.h>
 
+struct nary_tree_node* nary_root = NULL;
+
 struct nary_tree_node*
 createNode(struct fs_node_entry data)
 {
@@ -81,9 +83,9 @@ insertInPath(struct nary_tree_node* root, struct fs_node_entry data)
 }
 
 void
-findNaryNode(struct fs_node_entry* fs_node, struct nary_tree_node* root,
-             char* path)
+findNaryNode(struct fs_node_entry* fs_node, char* path)
 {
+    struct nary_tree_node* root = nary_root;
     if (root == NULL) {
         return;
     }
@@ -122,8 +124,9 @@ findNaryNode(struct fs_node_entry* fs_node, struct nary_tree_node* root,
 }
 
 int
-checkIfExists(struct nary_tree_node* root, char* path)
+checkIfExists(char* path)
 {
+    struct nary_tree_node* root = nary_root;
     if (root == NULL) {
         return 1;
     }
@@ -175,17 +178,23 @@ traverse(struct nary_tree_node* root, int tab)
 }
 
 void
-insert(struct nary_tree_node** root, struct fs_node_entry data)
+traverse_nary_tree()
 {
-    if (*root == NULL) {
+    traverse(nary_root, 0);
+}
+
+void
+insert_into_nary_tree(struct fs_node_entry data)
+{
+    if (nary_root == NULL) {
         struct fs_node_entry mother;
         strcpy(mother.node_id, "/");
-        *root = createNode(mother);
+        nary_root = createNode(mother);
 
-        (*root)->firstChild = createNode(data);
+        nary_root->firstChild = createNode(data);
         /*kprintf("%s -> firstChild = %s\n", ((*root)->data).node_id,
                 data.node_id);*/
         return;
     }
-    insertInPath((*root)->firstChild, data);
+    insertInPath(nary_root->firstChild, data);
 }

@@ -53,20 +53,6 @@ char_array_to_int(char* array)
 void
 walk_through_tarfs(char* tarfs_start_address)
 {
-
-    struct nary_tree_node* root = NULL;
-    /*
-    insert(&root, "bin");
-    insert(&root, "bin/cat");
-    insert(&root, "bin/cat/cat.o");
-    insert(&root, "crt");
-    insert(&root, "bin/ls");
-    insert(&root, "bin/ls/ls.o");
-    insert(&root, "bin/ls/blah");
-    insert(&root, "bin/ls/blah/lol");
-    insert(&root, "boot");
-    traverse(root, 0);
-    */
     struct posix_header_ustar* tarfs_structure =
       (struct posix_header_ustar*)tarfs_start_address;
     int offset = 0;
@@ -103,7 +89,7 @@ walk_through_tarfs(char* tarfs_start_address)
         strcpy(tarfs_node.prefix, tarfs_structure->prefix);
         strcpy(tarfs_node.pad, tarfs_structure->pad);
         tarfs_node.fs_type = 0;
-        insert(&root, tarfs_node);
+        insert_into_nary_tree(tarfs_node);
         size = octal_to_decimal(char_array_to_int(tarfs_structure->size));
         /*kprintf("Name: %s    Size:%s Address:%p\n", tarfs_structure->name,
                 tarfs_structure->size, tarfs_structure);*/
@@ -119,15 +105,8 @@ walk_through_tarfs(char* tarfs_start_address)
             }
         }
     }
-
-    traverse(root, 0);
     /*
+    traverse_nary_tree();
     kprintf("Found: bin/ls/myls/ls.o => %d\n",
-             checkIfExists(root, "bin/ls/myls/ls.o"));
-    kprintf("Found: bin/ls => %d\n", checkIfExists(root, "bin/ls"));
-    kprintf("Found: bin/cat => %d\n", checkIfExists(root, "bin/cat"));
-    kprintf("Found: crt => %d\n", checkIfExists(root, "crt"));
-    kprintf("Found: lib/crt1.o => %d\n", checkIfExists(root, "crt"));
-    kprintf("Found: etc => %d\n", checkIfExists(root, "crt"));
     */
 }

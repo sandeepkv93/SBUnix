@@ -31,9 +31,8 @@ struct nary_tree_node
     struct nary_tree_node* firstChild;
 };
 
-void insert(struct nary_tree_node** root, struct fs_node_entry data);
-void traverse(struct nary_tree_node* root, int tab);
-int checkIfExists(struct nary_tree_node* root, char* path);
-void findNaryNode(struct fs_node_entry* fs_node, struct nary_tree_node* root,
-                  char* path);
+void insert_into_nary_tree(struct fs_node_entry data);
+void traverse_nary_tree();
+int checkIfExists(char* path);
+void findNaryNode(struct fs_node_entry* fs_node, char* path);
 #endif
