@@ -1,6 +1,6 @@
 #include <sys/kprintf.h>
-#include <sys/vma.h>
-uint64_t cur_kern_heap = VMA_VIDEO + 0x10000;
+#include <sys/paging.h>
+uint64_t cur_kern_heap = PAGING_VIDEO + 0x10000;
 
 union header
 {
@@ -20,8 +20,8 @@ Header* freep = NULL;
 void
 update_pagetable(uint64_t v_addr)
 {
-    uint64_t p_addr = (uint64_t)vma_pagelist_get_frame();
-    vma_add_pagetable_mapping(v_addr, p_addr);
+    uint64_t p_addr = (uint64_t)paging_pagelist_get_frame();
+    paging_add_pagetable_mapping(v_addr, p_addr);
 }
 
 void*
@@ -30,7 +30,7 @@ alloc_get_page()
     uint64_t* v_addr = (uint64_t*)cur_kern_heap;
     // kprintf("new page %p\n", v_addr);
     update_pagetable(cur_kern_heap);
-    cur_kern_heap += VMA_PAGE_SIZE;
+    cur_kern_heap += PAGING_PAGE_SIZE;
     return (void*)v_addr;
 }
 
@@ -53,14 +53,14 @@ pls_giv_mem(int num_bytes)
     }
 
     va_addr = cur_page_va + cur_page_offset;
-    if (num_bytes > (VMA_PAGE_SIZE - cur_page_offset)) {
-        num_bytes = num_bytes - (VMA_PAGE_SIZE - cur_page_offset);
-        num_of_pages = ((num_bytes - 1) / VMA_PAGE_SIZE) + 1;
+    if (num_bytes > (PAGING_PAGE_SIZE - cur_page_offset)) {
+        num_bytes = num_bytes - (PAGING_PAGE_SIZE - cur_page_offset);
+        num_of_pages = ((num_bytes - 1) / PAGING_PAGE_SIZE) + 1;
 
         while (num_of_pages--) {
             cur_page_va = alloc_get_page();
         }
-        cur_page_offset += num_bytes % VMA_PAGE_SIZE;
+        cur_page_offset += num_bytes % PAGING_PAGE_SIZE;
     } else {
         cur_page_offset += num_bytes;
     }

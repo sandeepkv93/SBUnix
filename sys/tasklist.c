@@ -2,8 +2,8 @@
 #include <sys/defs.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/task.h>
-#include <sys/vma.h>
 
 typedef struct __tasklist_node
 {

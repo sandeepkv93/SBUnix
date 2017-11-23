@@ -1,11 +1,11 @@
 #include <string.h>
 #include <sys/alloc.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
 #include <sys/term.h>
 #include <sys/timer.h>
-#include <sys/vma.h>
 #include <test.h>
 
 uint64_t test_address;
@@ -105,17 +105,37 @@ test_tasklist()
     }
 }
 
+long
+test_sample_syscall(long syscall, int fd, char* buff, int size)
+{
+    long sys_no = syscall, arg1 = fd, arg2 = (long)buff, arg3 = size;
+    long x = 0;
+    __asm__("movq	%1,%%rdi;"
+            "movq	%2,%%rsi;"
+            "movq	%3,%%rdx;"
+            "movq	%4,%%rcx;"
+            "int $0x46;"
+            "movq    %%rax,%0;"
+            : "=r"(x)
+            : "r"(sys_no), "r"(arg1), "r"(arg2), "r"(arg3)
+            : "%rdi", "%rsi", "%rdx", "%rcx", "%rax");
+    return x;
+}
+
 void
 test_sample_userspace_function()
 {
-    uint8_t i = 30;
-    while (1) {
-        i += 1;
-        term_set_glyph(1, (char)i);
+    char m;
+    char buff[20];
+    m = test_sample_syscall(1, 1, "Hello there\n", 12);
+    m = test_sample_syscall(1, 2, "Hello there\n", 12);
+    m = test_sample_syscall(1, 1, "Hello there\n", 12);
+    m = test_sample_syscall(1, 1, "Hello there\n", 12);
+    m = test_sample_syscall(0, 0, buff, 5);
+    m = test_sample_syscall(1, 1, buff, 5);
+    term_set_glyph(1, m);
+    while (1)
         task_yield();
-        sleep(90);
-        i %= 45;
-    }
 }
 
 void
