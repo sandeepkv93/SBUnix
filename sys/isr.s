@@ -1,5 +1,5 @@
-.globl timer_isr_asm, kb_isr_asm
-.extern timer_isr, kb_isr 
+.globl timer_isr_asm, kb_isr_asm, page_fault_isr_asm
+.extern timer_isr, kb_isr, page_fault_handler 
 
 push_regs:
 
@@ -68,4 +68,9 @@ kb_isr_asm:
     callq pop_regs
     iretq
 
+page_fault_isr_asm:
+    callq push_regs
+    movq %cr2,%rdi
+    callq page_fault_handler
+    callq pop_regs
 .end

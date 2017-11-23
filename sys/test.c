@@ -1,13 +1,15 @@
 #include <string.h>
 #include <sys/alloc.h>
+#include <sys/elf64.h>
 #include <sys/kprintf.h>
 #include <sys/paging.h>
+#include <sys/tarfs.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
 #include <sys/term.h>
 #include <sys/timer.h>
+#include <sys/vma.h>
 #include <test.h>
-
 uint64_t test_address;
 
 struct test_struct
@@ -129,19 +131,22 @@ test_sample_thread_handler()
 }
 
 void
-test_sample_thread_handler2()
+test_vma_list_and_page_fault()
 {
-    task_enter_ring3(test_sample_userspace_function);
+    void* addr = (void*)((uint64_t)&_binary_tarfs_start +
+                         3 * sizeof(struct posix_header_ustar));
+    elf_read(addr, "/bin/ls");
+    task_enter_ring3((void*)(task_get_this_task_struct()->entry_point));
 }
 
 void
 test_sched()
 {
     task_create(test_sample_thread_handler);
-    task_create(test_sample_thread_handler2);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
+    task_create(test_vma_list_and_page_fault);
     task_yield();
 }
 

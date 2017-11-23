@@ -116,7 +116,7 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
     if ((pagetable[pt_offset] & 0x1)) {
         return FALSE;
     } else {
-        pagetable[pt_offset] = (uint64_t)paging_pagelist_get_frame();
+        pagetable[pt_offset] = p_addr;
         /*
         // TODO Decide if it is needed to set page to 0
         char* temp_byte = (char*)pagetable[pt_offset];
