@@ -23,6 +23,7 @@ volatile struct
     char buffer[TERM_KEY_BUFFER_SIZE];
     uint16_t end;
     bool block;
+    bool lock;
 } kb_buff = {.block = TRUE };
 
 void
@@ -138,26 +139,56 @@ term_clear_screen()
 }
 
 void
+term_mutex_lock()
+{
+    // TODO Turn this poor man's mutex into generic implementation
+
+    // TODO disable_context_switching
+    while (kb_buff.lock)
+        ;
+    kb_buff.lock = TRUE;
+
+    // TODO enable_context_switching
+    return;
+}
+
+void
+term_mutex_unlock()
+{
+    kb_buff.lock = FALSE;
+}
+
+void
 term_add_to_buffer(char* str, int len)
 {
+    term_mutex_lock();
     if (kb_buff.end + len - 1 >= TERM_KEY_BUFFER_SIZE) {
         // drop
+        term_mutex_unlock();
         return;
     }
-    // local echo
+    // Local echo
     term_write(str, len);
     for (int i = 0; i < len; i++) {
         kb_buff.buffer[kb_buff.end++] = str[i];
     }
+    term_mutex_unlock();
 }
 
 void
 term_buffer_reset(int pos)
 {
     int k = 0;
-    for (k = 0; k < TERM_KEY_BUFFER_SIZE; k++) {
+
+    for (int i = pos; i < TERM_KEY_BUFFER_SIZE; i++) {
+        k = i - pos;
+        kb_buff.buffer[k] = kb_buff.buffer[i];
+    }
+
+    k++;
+
+    for (; k < TERM_KEY_BUFFER_SIZE; k++) {
         kb_buff.buffer[k] = 0;
-        kb_buff.end = 0;
     }
 }
 
@@ -175,11 +206,14 @@ term_read_from_buffer(char* buff, int count)
             ;
         if (kb_buff.buffer[i] == '\n') {
             term_buffer_reset(i + 1);
+            term_mutex_unlock();
             return i;
         }
         buff[i] = kb_buff.buffer[i];
     }
+    term_mutex_lock();
     term_buffer_reset(i + 1);
+    term_mutex_unlock();
     return i;
 }
 
@@ -192,22 +226,6 @@ term_set_keypress(uint8_t code, uint8_t is_ctrl_pressed,
     char prefix = is_ctrl_pressed ? '^' : key;
     str[0] = prefix;
     str[1] = key;
-    if (is_ctrl_pressed) {
-        switch (key) {
-            // When user hits ^u kill the buffer
-            case 'u':
-                for (int i = 0; i < TERM_KEY_BUFFER_SIZE; i++) {
-                    kb_buff.buffer[i] = (char)0;
-                }
-                kb_buff.block = TRUE;
-                kb_buff.end = 0;
-                term_write("\n", 1);
-                return;
-            case 'c':
-                return;
-        }
-    }
-
     term_add_to_buffer(str, is_ctrl_pressed + 1);
     if (prefix == '\n') {
         kb_buff.block = FALSE;
