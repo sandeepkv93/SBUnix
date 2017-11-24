@@ -1,5 +1,5 @@
-.globl timer_isr_asm, kb_isr_asm, page_fault_isr_asm
-.extern timer_isr, kb_isr, page_fault_handler 
+.globl timer_isr_asm, kb_isr_asm, syscall_isr_asm, page_fault_isr_asm
+.extern timer_isr, kb_isr, syscall_wrapper
 
 push_regs:
 
@@ -73,4 +73,10 @@ page_fault_isr_asm:
     movq %cr2,%rdi
     callq page_fault_handler
     callq pop_regs
+    iretq
+
+syscall_isr_asm:
+    // We need this asm function so that we can iretq, that's all :)
+    callq syscall_wrapper
+    iretq
 .end

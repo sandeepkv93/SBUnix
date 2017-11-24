@@ -349,4 +349,5 @@
 #define _SYS__rt_tgsigqueueinfo 297
 #define _SYS__perf_event_open 298
 
+long syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3);
 #endif

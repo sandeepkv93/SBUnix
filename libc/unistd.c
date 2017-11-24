@@ -1,15 +1,34 @@
 #include <sys/defs.h>
 #include <sys/syscall.h>
 long
-syscall(long sys_no, long a, long b, long c)
+syscall(long sys_no, long arg1, long arg2, long arg3)
 {
     /*
-     * sys_no -> rax
-     * arg1   -> rdi
-     * arg2   -> rsi
-     * arg4   -> rdx
+     * Note we deviate from linux behavior for convenience.
+     * By aligning syscall convention to the x86_64 calling conventions let's
+     * avoid assembly code required to save registers and move values. Win(?)
+     *
+     * sys_no : Our OS -> rdi : Linux -> rax
+     * arg1   : Our OS -> rsi : Linux -> rdi
+     * arg2   : Our OS -> rdx : Linux -> rsi
+     * arg3   : Our OS -> rcx : Linux -> rdx
+     *
+     * return : Our OS -> rax : Linux -> rax
      */
+
     long x = 0;
+
+    __asm__("movq	%1,%%rdi;"
+            "movq	%2,%%rsi;"
+            "movq	%3,%%rdx;"
+            "movq	%4,%%rcx;"
+            "int $0x46;"
+            "movq    %%rax,%0;"
+            : "=r"(x)
+            : "r"(sys_no), "r"(arg1), "r"(arg2), "r"(arg3)
+            : "%rdi", "%rsi", "%rdx", "%rcx", "%rax");
+
+    /* We'll keep the below code commented to test code on linux
     __asm__("movq	%1,%%rax;"
             "movq	%2,%%rdi;"
             "movq	%3,%%rsi;"
@@ -17,8 +36,9 @@ syscall(long sys_no, long a, long b, long c)
             "syscall;"
             "movq    %%rax,%0;"
             : "=r"(x)
-            : "r"(sys_no), "r"(a), "r"(b), "r"(c)
+            : "r"(sys_no), "r"(arg1), "r"(arg2), "r"(arg3)
             : "%rax", "%rsi", "%rdi", "%rdx");
+    */
     return x;
 }
 
