@@ -8,7 +8,6 @@
 #include <sys/string.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
-#include <sys/vma.h>
 
 uint64_t
 power(uint64_t x, int e)
