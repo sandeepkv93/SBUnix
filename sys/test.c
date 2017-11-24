@@ -131,11 +131,15 @@ test_sample_userspace_function()
     m = test_sample_syscall(1, 2, "Hello there\n", 12);
     m = test_sample_syscall(1, 1, "Hello there\n", 12);
     m = test_sample_syscall(1, 1, "Hello there\n", 12);
-    m = test_sample_syscall(0, 0, buff, 5);
-    m = test_sample_syscall(1, 1, buff, 5);
-    term_set_glyph(1, m);
-    while (1)
+    while (1) {
+        m = test_sample_syscall(0, 0, buff, 5);
+        m = test_sample_syscall(1, 1, buff, strlen(buff));
+        m = test_sample_syscall(1, 1, "\n", 1);
+        for (int i = 0; i < 20; i++)
+            buff[i] = 0;
+        m += 1;
         task_yield();
+    }
 }
 
 void
