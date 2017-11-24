@@ -28,7 +28,7 @@ void*
 alloc_get_page()
 {
     uint64_t* v_addr = (uint64_t*)cur_kern_heap;
-    kprintf("new page %p\n", v_addr);
+    // kprintf("new page %p\n", v_addr);
     update_pagetable(cur_kern_heap);
     cur_kern_heap += PAGING_PAGE_SIZE;
     return (void*)v_addr;
