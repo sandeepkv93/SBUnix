@@ -50,7 +50,6 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     /*test_kmalloc_kfree();*/
     /*test_tasklist();*/
     test_sched();
-    elf_read();
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
     while (1)

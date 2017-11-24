@@ -2,14 +2,12 @@
 #include <sys/kprintf.h>
 #include <sys/syscall.h>
 #include <sys/term.h>
-#pragma GCC push_options
-#pragma GCC optimize("O0")
 extern void syscall_isr_return(long);
 
 long
 syscall_read(uint64_t fd, char* buf, uint64_t count)
 {
-    long ret;
+    long ret = -1;
     if (fd == STDIN) {
         ret = term_read_from_buffer(buf, count);
     } else {
@@ -67,4 +65,3 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
     }
     return ret_val;
 }
-#pragma GCC pop_options
