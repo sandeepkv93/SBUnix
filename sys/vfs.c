@@ -27,7 +27,7 @@ vfs_open(char* pathname, int flags)
     if (fs_node != NULL) {
         vfs_file_object* file_obj = kmalloc(sizeof(vfs_file_object));
         strcpy(file_obj->file_name, fs_node->node_id);
-        file_obj->size = char_array_to_int(fs_node->size);
+        file_obj->size = fs_node->size;
         file_obj->cursor = 0;
         file_obj->fs_node = *fs_node;
         file_obj->reference_count = 1;
@@ -62,6 +62,19 @@ vfs_dup(int fd)
     return 0;
 }
 
+int
+vfs_seek(int fd, uint64_t offset)
+{
+    vfs_file_object* file_obj = task_get_this_task_struct()->filetable[fd];
+    if (file_obj == NULL) {
+        return -1;
+    } else if (offset > file_obj->size) {
+        return -2;
+    }
+    file_obj->cursor = offset;
+    return 0;
+}
+
 unsigned int
 vfs_read(int fd, void* buffer, unsigned int count)
 {
@@ -78,16 +91,11 @@ vfs_read(int fd, void* buffer, unsigned int count)
             case TARFS_FILE_TYPE:
                 /*
                 kprintf("Read: %s\n", file_obj->fs_node.name);
-                kprintf("Size: %d\n",
-                octal_to_decimal(char_array_to_int(file_obj->fs_node.size)));
+                kprintf("Size: %d\n", file_obj->size);
                 */
                 kprintf("Starting to read.. Cursor at: %d\n", file_obj->cursor);
-                if (count > (octal_to_decimal(
-                               char_array_to_int(file_obj->fs_node.size)) -
-                             file_obj->cursor)) {
-                    count = (octal_to_decimal(
-                               char_array_to_int(file_obj->fs_node.size)) -
-                             file_obj->cursor);
+                if (count > file_obj->fs_node.size - file_obj->cursor) {
+                    count = file_obj->fs_node.size - file_obj->cursor;
                 }
                 char* file_starting_address =
                   (char*)(file_obj->fs_node.struct_address +

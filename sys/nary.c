@@ -14,7 +14,6 @@ createNode(struct fs_node_entry data)
     strcpy((nary_node->data).mode, data.mode);
     strcpy((nary_node->data).uid, data.uid);
     strcpy((nary_node->data).gid, data.gid);
-    strcpy((nary_node->data).size, data.size);
     strcpy((nary_node->data).mtime, data.mtime);
     strcpy((nary_node->data).checksum, data.checksum);
     strcpy((nary_node->data).typeflag, data.typeflag);
@@ -29,6 +28,7 @@ createNode(struct fs_node_entry data)
     strcpy((nary_node->data).pad, data.pad);
     (nary_node->data).struct_address = data.struct_address;
     (nary_node->data).fs_type = data.fs_type;
+    (nary_node->data).size = data.size;
     nary_node->sibling = NULL;
     nary_node->firstChild = NULL;
     return nary_node;

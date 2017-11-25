@@ -23,7 +23,6 @@ tasklist_add_task(task_struct* task)
      * This would allow us to prefer tasks that were running already rather than
      * the newly created process.
      */
-    kprintf("task++\n");
     tasklist_node* t_node = (tasklist_node*)kmalloc(sizeof(tasklist_node));
 
     t_node->task = task;

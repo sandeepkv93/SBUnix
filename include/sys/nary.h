@@ -9,7 +9,6 @@ struct fs_node_entry
     char mode[8];
     char uid[8];
     char gid[8];
-    char size[12];
     char mtime[12];
     char checksum[8];
     char typeflag[1];
@@ -22,6 +21,7 @@ struct fs_node_entry
     char devminor[8];
     char prefix[155];
     char pad[12];
+    uint64_t size;
     uint64_t struct_address;
     int fs_type;
 };

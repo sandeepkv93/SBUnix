@@ -183,8 +183,7 @@ test_vfs_sample_functions()
     kprintf("%s\n", buff2);
     kprintf("Bytes Read: %d\n", vfs_read(4, buff2, 40));
     kprintf("%s\n", buff2);
-    while (1)
-        ;
+    task_yield();
 }
 
 void
@@ -195,7 +194,7 @@ test_sched()
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_vfs_sample_functions);
-    // task_create(test_exec);
+    task_create(test_exec);
     task_yield();
 }
 

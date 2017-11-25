@@ -36,7 +36,6 @@ walk_through_tarfs()
         strcpy(tarfs_node.mode, tarfs_structure->mode);
         strcpy(tarfs_node.uid, tarfs_structure->uid);
         strcpy(tarfs_node.gid, tarfs_structure->gid);
-        strcpy(tarfs_node.size, tarfs_structure->size);
         strcpy(tarfs_node.mtime, tarfs_structure->mtime);
         strcpy(tarfs_node.checksum, tarfs_structure->checksum);
         strcpy(tarfs_node.typeflag, tarfs_structure->typeflag);
@@ -51,8 +50,9 @@ walk_through_tarfs()
         strcpy(tarfs_node.pad, tarfs_structure->pad);
         tarfs_node.struct_address = (uint64_t)(&_binary_tarfs_start + offset);
         tarfs_node.fs_type = 0;
-        insert_into_nary_tree(tarfs_node);
         size = octal_to_decimal(char_array_to_int(tarfs_structure->size));
+        tarfs_node.size = size;
+        insert_into_nary_tree(tarfs_node);
         kprintf("Name: %s    Size:%s Address:%p\n", tarfs_structure->name,
                 tarfs_structure->size, tarfs_structure);
         if (size == 0)
