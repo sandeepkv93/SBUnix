@@ -67,7 +67,7 @@ task_create(void* callback)
     this_task->filetable[0] = (vfs_file_object*)1000;
     this_task->filetable[1] = (vfs_file_object*)1000;
     this_task->filetable[2] = (vfs_file_object*)1000;
-
+    strcpy(this_task->cwd, "/");
     tasklist_add_task(this_task);
     return this_task;
 }

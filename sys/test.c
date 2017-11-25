@@ -172,7 +172,7 @@ test_vfs_sample_functions()
     char buff1[100];
     char buff2[100];
     vfs_open("bin/ls", 0);
-    vfs_open("bin/cat", 0);
+    vfs_open("/bin/cat", 0);
     vfs_open("bin/blah", 0);
     kprintf("Bytes Read: %d\n", vfs_read(3, buff1, 10));
     kprintf("%s\n", buff1);

@@ -23,7 +23,16 @@ find_free_fd()
 int
 vfs_open(char* pathname, int flags)
 {
-    struct fs_node_entry* fs_node = findNaryNode(pathname);
+    char path[4096];
+    if (pathname[0] == '/') {
+        /*Relative Path */
+        strcpy(path, pathname);
+    } else {
+        /*Relative Path */
+        strcpy(path, task_get_this_task_struct()->cwd);
+        strcat(path, pathname);
+    }
+    struct fs_node_entry* fs_node = findNaryNode(path);
     if (fs_node != NULL) {
         vfs_file_object* file_obj = kmalloc(sizeof(vfs_file_object));
         strcpy(file_obj->file_name, fs_node->node_id);
