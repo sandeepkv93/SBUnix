@@ -4,8 +4,12 @@
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/paging.h>
+#include <sys/string.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
+#include <sys/vma.h>
+
+#define ARGV_ENV_MAX 200
 
 extern void sched_switch_kthread(task_struct*, task_struct*);
 extern void sched_enter_ring3(uint64_t* stack_top, void* __start);
@@ -82,15 +86,61 @@ task_yield()
 }
 
 void
-task_enter_ring3(void* __start)
+task_exec_ring3(char* bin_name, char** argv, char** envp)
 {
-    // Get one page_frame for stack, we'll make user stack as the page just
-    // below the kernel boundary
+    // TODO We have some hardcoding here and lot of ugly code, needs to be
+    // cleaned
+
+    // Populate VMAs in the task_struct
+    elf_read(bin_name);
+
+    // Get one page_frame mapped in stack region, we'll use it to store argv and
+    // env
+    // Refer crt1.c for a diagram
+
     uint64_t stackpage_v_addr = PAGING_KERNMEM - PAGING_PAGE_SIZE;
     uint64_t stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();
     paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
 
+    uint64_t* argv_envp_data = (uint64_t*)stackpage_v_addr;
+    char* curr_string_data = (char*)(argv_envp_data + ARGV_ENV_MAX);
+
+    uint64_t argc = 0;
+    uint64_t envc = 0;
+
+    for (int i = 0; argv[i] != NULL; i++) {
+        strcpy(curr_string_data, argv[i]);
+        argv_envp_data[i + 1] = (uint64_t)curr_string_data;
+        curr_string_data += strlen(curr_string_data) + 1; // 1 for '\0'
+        argc++;
+    }
+
+    // First value on stack is argc
+    argv_envp_data[0] = argc;
+
+    // We need a NULL after all the argv
+    argv_envp_data[1 + argc + 1] = (uint64_t)NULL;
+
+    for (int i = 0; envp[i] != NULL; i++) {
+        strcpy(curr_string_data, envp[i]);
+        argv_envp_data[i + argc + 2] = (uint64_t)curr_string_data;
+        curr_string_data += strlen(curr_string_data) + 1;
+        envc++;
+    }
+
+    // We need a NULL after all the envs
+    argv_envp_data[1 + (argc + 1) + envc + 1] = (uint64_t)NULL;
+
+    // TODO: Remove below
+    // Get another page_frame for which the user programs can use to write,
+    // not needed after auto-growing stack
+
+    stackpage_v_addr -= PAGING_PAGE_SIZE;
+    stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();
+    paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
+
     // Stack grows downwards so we need to give the address of next page
     set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
-    sched_enter_ring3((uint64_t*)stackpage_v_addr + PAGING_PAGE_SIZE, __start);
+    sched_enter_ring3((uint64_t*)(stackpage_v_addr + PAGING_PAGE_SIZE),
+                      (void*)task_get_this_task_struct()->entry_point);
 }

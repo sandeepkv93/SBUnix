@@ -4,12 +4,12 @@
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/nary.h>
+#include <sys/paging.h>
 #include <sys/pci.h>
 #include <sys/string.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
 #include <sys/utility.h>
-#include <sys/vma.h>
 
 void
 walk_through_tarfs()
@@ -53,8 +53,8 @@ walk_through_tarfs()
         tarfs_node.fs_type = 0;
         insert_into_nary_tree(tarfs_node);
         size = octal_to_decimal(char_array_to_int(tarfs_structure->size));
-        /*kprintf("Name: %s    Size:%s Address:%p\n", tarfs_structure->name,
-                tarfs_structure->size, tarfs_structure);*/
+        kprintf("Name: %s    Size:%s Address:%p\n", tarfs_structure->name,
+                tarfs_structure->size, tarfs_structure);
         if (size == 0)
             offset = offset + sizeof(struct posix_header_ustar);
         else {

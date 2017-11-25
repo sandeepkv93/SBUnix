@@ -1,15 +1,18 @@
 #include <string.h>
 #include <sys/alloc.h>
+#include <sys/elf64.h>
 #include <sys/kprintf.h>
-#include <sys/paging.h>
 #include <sys/nary.h>
+#include <sys/paging.h>
+#include <sys/syscall.h>
+#include <sys/tarfs.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
 #include <sys/term.h>
 #include <sys/timer.h>
 #include <sys/vfs.h>
+#include <sys/vma.h>
 #include <test.h>
-
 uint64_t test_address;
 
 struct test_struct
@@ -155,9 +158,12 @@ test_sample_thread_handler()
 }
 
 void
-test_sample_thread_handler2()
+test_exec()
 {
-    task_enter_ring3(test_sample_userspace_function);
+    // test_vma_list_and_page_fault
+    char* argv[] = { "test", "ok", "cool", "interesting", NULL };
+    char* envp[] = { "PATH=blah", "PS2=$$", "PWD=/", NULL };
+    syscall_wrapper(_SYS__execve, (long)"/bin/init", (long)argv, (long)envp);
 }
 
 void
@@ -185,11 +191,11 @@ void
 test_sched()
 {
     task_create(test_sample_thread_handler);
-    // task_create(test_sample_thread_handler2);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_vfs_sample_functions);
+    // task_create(test_exec);
     task_yield();
 }
 

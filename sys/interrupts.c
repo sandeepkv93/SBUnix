@@ -1,16 +1,20 @@
 #include <sys/interrupts.h>
 #include <sys/keyboard.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/string.h>
 #include <sys/syscall.h>
+#include <sys/tarfs.h>
+#include <sys/task.h>
 #include <sys/term.h>
 #include <sys/timer.h>
-
+#include <sys/vma.h>
 extern void* g_exceptions[];
 extern char g_keymap[], g_keymap_shift[];
 extern void syscall_isr_asm();
 extern void timer_isr_asm();
 extern void kb_isr_asm();
+extern void page_fault_isr_asm();
 
 #define RING0 0
 #define RING3 3
@@ -188,6 +192,45 @@ kb_isr()
 }
 
 void
+page_fault_handler(uint64_t v_addr)
+{
+    struct vma_struct* list = task_get_this_task_struct()->vma_list;
+    uint64_t p_addr;
+    // remove these variables
+    char* p;
+    void* addr = (void*)0xffffffff812507c0 + sizeof(struct posix_header_ustar);
+
+    volatile uint64_t offset;
+    while (list != NULL) {
+        if (v_addr >= list->vma_start && v_addr < list->vma_end) { // alloc page
+            p_addr = (uint64_t)paging_pagelist_get_frame();
+            // TODO: Take care if offset is big
+            paging_add_pagetable_mapping(v_addr & 0xfffffffffffff000, p_addr);
+            // TODO: open,read,close
+            // TODO: if anon mapping, skip above step.
+            addr += list->vma_file_offset;
+            p = (char*)list->vma_start;
+            offset = list->vma_file_size;
+            while (offset--) {
+                *p = *(char*)addr;
+                p++;
+                addr++;
+            }
+            break;
+        }
+
+        list = list->vma_next;
+    }
+    if (list == NULL) {
+        // TODO : kill process, Seg fault
+        /*kprintf("Segmentation fault. Be prepared to die.");*/
+        term_set_glyph(10, 'S');
+        while (1)
+            ;
+    }
+}
+
+void
 fake_isr()
 {
     kprintf("unregistered interrupt :( ");
@@ -217,13 +260,12 @@ register_idt()
     for (int i = 0; i < 32; i++) {
         idt[i] = pic_get_idt_entry(g_exceptions[i], RING0);
     }
-
     for (int i = 32; i < 256; i++) {
         idt[i] = pic_get_idt_entry((void*)fake_isr, RING0);
     }
 
     timer_setup(); // setup PIT
-
+    register_isr(0x0E, (void*)page_fault_isr_asm, RING0);
     register_isr(0x20, (void*)timer_isr_asm, RING0);
     register_isr(0x21, (void*)kb_isr_asm, RING0);
     // Using int 0x46 for syscalls. This is to denote deviation from linux

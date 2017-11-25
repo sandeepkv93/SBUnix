@@ -1,4 +1,4 @@
-.globl timer_isr_asm, kb_isr_asm, syscall_isr_asm
+.globl timer_isr_asm, kb_isr_asm, syscall_isr_asm, page_fault_isr_asm
 .extern timer_isr, kb_isr, syscall_wrapper
 
 push_regs:
@@ -66,6 +66,15 @@ kb_isr_asm:
     callq push_regs
     callq kb_isr
     callq pop_regs
+    iretq
+
+page_fault_isr_asm:
+    callq push_regs
+    movq %cr2,%rdi
+    callq page_fault_handler
+    callq pop_regs
+    // Below needed because page fault pushes error code
+    add $0x8, %rsp
     iretq
 
 syscall_isr_asm:

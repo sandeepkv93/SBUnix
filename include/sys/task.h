@@ -24,11 +24,13 @@ typedef struct _taskstruct
     pid_t ppid;
     void* stack_page;
     vfs_file_object* filetable[TASK_FILETABLE_SIZE];
+    struct vma_struct* vma_list;
+    uint64_t entry_point;
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 
 task_struct* task_create();
 void task_destroy(task_struct* t);
 void task_yield();
+void task_exec_ring3(char* bin_name, char** argv, char** envp);
 task_struct* task_get_this_task_struct();
-void task_enter_ring3(void* start);
 #endif

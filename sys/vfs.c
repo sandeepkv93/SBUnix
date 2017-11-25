@@ -83,8 +83,11 @@ vfs_read(int fd, void* buffer, unsigned int count)
                 */
                 kprintf("Starting to read.. Cursor at: %d\n", file_obj->cursor);
                 if (count > (octal_to_decimal(
-                              char_array_to_int(file_obj->fs_node.size)) - file_obj->cursor)) {
-                    count = (octal_to_decimal(char_array_to_int(file_obj->fs_node.size)) - file_obj->cursor);
+                               char_array_to_int(file_obj->fs_node.size)) -
+                             file_obj->cursor)) {
+                    count = (octal_to_decimal(
+                               char_array_to_int(file_obj->fs_node.size)) -
+                             file_obj->cursor);
                 }
                 char* file_starting_address =
                   (char*)(file_obj->fs_node.struct_address +

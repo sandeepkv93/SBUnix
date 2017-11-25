@@ -1,8 +1,16 @@
 #include <sys/defs.h>
 #include <sys/kprintf.h>
 #include <sys/syscall.h>
+#include <sys/task.h>
 #include <sys/term.h>
 extern void syscall_isr_return(long);
+
+long
+syscall_exec(char* bin_name, char** argv, char** envp)
+{
+    task_exec_ring3(bin_name, argv, envp);
+    return 0;
+}
 
 long
 syscall_read(uint64_t fd, char* buf, uint64_t count)
@@ -49,9 +57,11 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__read:
             ret_val = syscall_read((uint64_t)arg1, (char*)arg2, (uint64_t)arg3);
             break;
+        case _SYS__execve:
+            ret_val = syscall_exec((char*)arg1, (char**)arg2, (char**)arg3);
+            break;
         case _SYS__close:
         case _SYS__fork:
-        case _SYS__execve:
         case _SYS__wait4:
         case _SYS__exit:
         case _SYS__chdir:

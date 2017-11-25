@@ -29,5 +29,4 @@ void register_idt();
 void enable_interrupts(bool);
 void outb(uint16_t port, uint8_t value);
 bool are_interrupts_enabled();
-
 #endif
