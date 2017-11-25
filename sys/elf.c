@@ -2,6 +2,7 @@
 #include <sys/elf64.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
+#include <sys/string.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
 #include <sys/vfs.h>
@@ -11,23 +12,33 @@
 #define R 4
 
 void
-elf_read(char* filepath)
+elf_read(char* binary_file)
 {
     Elf64_Ehdr ehdr;
-    int i = 0;
-    void* bin_addr =
-      (void*)0xffffffff812527c0 + sizeof(struct posix_header_ustar);
-    ehdr = *(Elf64_Ehdr*)bin_addr;
-    bin_addr += ehdr.e_phoff;
+    Elf64_Phdr* phdr;
 
-    Elf64_Phdr* phdr = (Elf64_Phdr*)kmalloc(sizeof(Elf64_Phdr) * ehdr.e_phnum);
-    for (i = 0; i < ehdr.e_phnum; i++) {
-        phdr[i] = *(Elf64_Phdr*)bin_addr;
-        bin_addr += ehdr.e_phentsize;
-    }
-    task_get_this_task_struct()->vma_list =
-      vma_list_with_phdr(NULL, phdr, ehdr.e_phnum, filepath);
+    int fd = vfs_open(binary_file, 0);
+
+    vfs_read(fd, &ehdr, sizeof(Elf64_Ehdr));
+
+    // Set entry point and binary name in current task_struct
     task_get_this_task_struct()->entry_point = ehdr.e_entry;
+    strcpy(task_get_this_task_struct()->binary_name, binary_file);
+
+    phdr = (Elf64_Phdr*)kmalloc(sizeof(Elf64_Phdr) * ehdr.e_phnum);
+
+    vfs_seek(fd, ehdr.e_phoff);
+
+    for (int i = 0; i < ehdr.e_phnum; i++) {
+        vfs_read(fd, &phdr[i], sizeof(Elf64_Phdr));
+        vfs_seek(fd, ehdr.e_phoff + (i + 1) * ehdr.e_phentsize);
+    }
+
+    // Create the vmas for current process
+    task_get_this_task_struct()->vma_list =
+      vma_list_with_phdr(NULL, phdr, ehdr.e_phnum, binary_file);
+
+    vfs_close(fd);
 }
 
 struct vma_struct*
