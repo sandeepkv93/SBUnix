@@ -198,18 +198,18 @@ page_fault_handler(uint64_t v_addr)
     uint64_t p_addr;
     // remove these variables
     char* p;
-    void* addr = (void*)((uint64_t)&_binary_tarfs_start +
-                         3 * sizeof(struct posix_header_ustar));
+    void* addr = (void*)0xffffffff812507c0 + sizeof(struct posix_header_ustar);
 
-    int offset;
+    volatile uint64_t offset;
     while (list != NULL) {
         if (v_addr >= list->vma_start && v_addr < list->vma_end) { // alloc page
             p_addr = (uint64_t)paging_pagelist_get_frame();
+            // TODO: Take care if offset is big
             paging_add_pagetable_mapping(v_addr & 0xfffffffffffff000, p_addr);
             // TODO: open,read,close
             // TODO: if anon mapping, skip above step.
             addr += list->vma_file_offset;
-            p = (char*)v_addr;
+            p = (char*)list->vma_start;
             offset = list->vma_file_size;
             while (offset--) {
                 *p = *(char*)addr;
@@ -222,8 +222,11 @@ page_fault_handler(uint64_t v_addr)
         list = list->vma_next;
     }
     if (list == NULL) {
-        // segfault
-        kprintf("Segmentation fault. Be prepared to die.");
+        // TODO : kill process, Seg fault
+        /*kprintf("Segmentation fault. Be prepared to die.");*/
+        term_set_glyph(10, 'S');
+        while (1)
+            ;
     }
 }
 

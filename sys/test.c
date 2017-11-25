@@ -3,6 +3,7 @@
 #include <sys/elf64.h>
 #include <sys/kprintf.h>
 #include <sys/paging.h>
+#include <sys/syscall.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
@@ -155,12 +156,12 @@ test_sample_thread_handler()
 }
 
 void
-test_vma_list_and_page_fault()
+test_exec()
 {
-    void* addr = (void*)((uint64_t)&_binary_tarfs_start +
-                         3 * sizeof(struct posix_header_ustar));
-    elf_read(addr, "/bin/ls");
-    task_enter_ring3((void*)(task_get_this_task_struct()->entry_point));
+    // test_vma_list_and_page_fault
+    char* argv[] = { "test", "ok", "cool", "interesting", NULL };
+    char* envp[] = { "PATH=blah", "PS2=$$", "PWD=/", NULL };
+    syscall_wrapper(_SYS__execve, (long)"/bin/init", (long)argv, (long)envp);
 }
 
 void
@@ -170,7 +171,7 @@ test_sched()
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
-    task_create(test_vma_list_and_page_fault);
+    task_create(test_exec);
     task_yield();
 }
 

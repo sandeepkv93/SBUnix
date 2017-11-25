@@ -73,6 +73,8 @@ page_fault_isr_asm:
     movq %cr2,%rdi
     callq page_fault_handler
     callq pop_regs
+    // Below needed because page fault pushes error code
+    add $0x8, %rsp
     iretq
 
 syscall_isr_asm:

@@ -104,8 +104,8 @@ walk_through_tarfs(char* tarfs_start_address)
         tarfs_node.fs_type = 0;
         insert(&root, tarfs_node);
         size = octal_to_decimal(char_array_to_int(tarfs_structure->size));
-        /*kprintf("Name: %s    Size:%s Address:%p\n", tarfs_structure->name,
-                tarfs_structure->size, tarfs_structure);*/
+        kprintf("Name: %s    Size:%s Address:%p\n", tarfs_structure->name,
+                tarfs_structure->size, tarfs_structure);
         if (size == 0)
             offset = offset + sizeof(struct posix_header_ustar);
         else {
