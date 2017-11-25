@@ -44,7 +44,8 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     register_idt();
     pic_init();
     enable_interrupts(TRUE);
-    walk_through_tarfs(&_binary_tarfs_start);
+
+    walk_through_tarfs();
     /*task_trial_userland();*/
     // test_kprintf();
     /*test_kmalloc_kfree();*/

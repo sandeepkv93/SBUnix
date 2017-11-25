@@ -4,75 +4,23 @@
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/nary.h>
+#include <sys/paging.h>
 #include <sys/pci.h>
 #include <sys/string.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
-
-uint64_t
-power(uint64_t x, int e)
-{
-    if (e == 0)
-        return 1;
-
-    return x * power(x, e - 1);
-}
-
-uint64_t
-octal_to_decimal(uint64_t octal)
-{
-    uint64_t decimal = 0, i = 0;
-    while (octal != 0) {
-        decimal = decimal + (octal % 10) * power(8, i++);
-        octal = octal / 10;
-    }
-    return decimal;
-}
-
-uint64_t
-char_array_to_int(char* array)
-{
-    uint64_t number = 0;
-    int mult = 1;
-    int n = strlen(array);
-    while (n--) {
-        if ((array[n] < '0' || array[n] > '9') && array[n] != '-') {
-            if (number)
-                break;
-            else
-                continue;
-        } else {
-            number += (array[n] - '0') * mult;
-            mult *= 10;
-        }
-    }
-    return number;
-}
+#include <sys/utility.h>
 
 void
-walk_through_tarfs(char* tarfs_start_address)
+walk_through_tarfs()
 {
-
-    struct nary_tree_node* root = NULL;
-    /*
-    insert(&root, "bin");
-    insert(&root, "bin/cat");
-    insert(&root, "bin/cat/cat.o");
-    insert(&root, "crt");
-    insert(&root, "bin/ls");
-    insert(&root, "bin/ls/ls.o");
-    insert(&root, "bin/ls/blah");
-    insert(&root, "bin/ls/blah/lol");
-    insert(&root, "boot");
-    traverse(root, 0);
-    */
     struct posix_header_ustar* tarfs_structure =
-      (struct posix_header_ustar*)tarfs_start_address;
+      (struct posix_header_ustar*)&_binary_tarfs_start;
     int offset = 0;
     uint64_t size;
     while (1) {
         tarfs_structure =
-          (struct posix_header_ustar*)(tarfs_start_address + offset);
+          (struct posix_header_ustar*)(&_binary_tarfs_start + offset);
         if (strlen(tarfs_structure->name) == 0)
             break;
         char node_id[100];
@@ -88,7 +36,6 @@ walk_through_tarfs(char* tarfs_start_address)
         strcpy(tarfs_node.mode, tarfs_structure->mode);
         strcpy(tarfs_node.uid, tarfs_structure->uid);
         strcpy(tarfs_node.gid, tarfs_structure->gid);
-        strcpy(tarfs_node.size, tarfs_structure->size);
         strcpy(tarfs_node.mtime, tarfs_structure->mtime);
         strcpy(tarfs_node.checksum, tarfs_structure->checksum);
         strcpy(tarfs_node.typeflag, tarfs_structure->typeflag);
@@ -101,9 +48,11 @@ walk_through_tarfs(char* tarfs_start_address)
         strcpy(tarfs_node.devminor, tarfs_structure->devminor);
         strcpy(tarfs_node.prefix, tarfs_structure->prefix);
         strcpy(tarfs_node.pad, tarfs_structure->pad);
+        tarfs_node.struct_address = (uint64_t)(&_binary_tarfs_start + offset);
         tarfs_node.fs_type = 0;
-        insert(&root, tarfs_node);
         size = octal_to_decimal(char_array_to_int(tarfs_structure->size));
+        tarfs_node.size = size;
+        insert_into_nary_tree(tarfs_node);
         kprintf("Name: %s    Size:%s Address:%p\n", tarfs_structure->name,
                 tarfs_structure->size, tarfs_structure);
         if (size == 0)
@@ -118,14 +67,4 @@ walk_through_tarfs(char* tarfs_start_address)
             }
         }
     }
-    /*
-    traverse(root, 0);
-    kprintf("Found: bin/ls/myls/ls.o => %d\n",
-            checkIfExists(root, "bin/ls/myls/ls.o"));
-    kprintf("Found: bin/ls => %d\n", checkIfExists(root, "bin/ls"));
-    kprintf("Found: bin/cat => %d\n", checkIfExists(root, "bin/cat"));
-    kprintf("Found: crt => %d\n", checkIfExists(root, "crt"));
-    kprintf("Found: lib/crt1.o => %d\n", checkIfExists(root, "crt"));
-    kprintf("Found: etc => %d\n", checkIfExists(root, "crt"));
-    */
 }

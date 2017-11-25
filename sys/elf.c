@@ -4,6 +4,7 @@
 #include <sys/kprintf.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
+#include <sys/vfs.h>
 #include <sys/vma.h>
 #define X 1
 #define W 2
@@ -15,7 +16,7 @@ elf_read(char* filepath)
     Elf64_Ehdr ehdr;
     int i = 0;
     void* bin_addr =
-      (void*)0xffffffff812507c0 + sizeof(struct posix_header_ustar);
+      (void*)0xffffffff812527c0 + sizeof(struct posix_header_ustar);
     ehdr = *(Elf64_Ehdr*)bin_addr;
     bin_addr += ehdr.e_phoff;
 

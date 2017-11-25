@@ -7,6 +7,9 @@
 #include <sys/string.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
+#include <sys/vma.h>
+
+#define ARGV_ENV_MAX 200
 
 #define ARGV_ENV_MAX 200
 
@@ -57,6 +60,13 @@ task_create(void* callback)
 
     // Enable interrupts in new thread. enable_interrupts(TRUE)
     this_task->regs.flags = 0x200;
+
+    for (int i = 0; i < TASK_FILETABLE_SIZE; i++) {
+        this_task->filetable[i] = NULL;
+    }
+    this_task->filetable[0] = (vfs_file_object*)1000;
+    this_task->filetable[1] = (vfs_file_object*)1000;
+    this_task->filetable[2] = (vfs_file_object*)1000;
 
     tasklist_add_task(this_task);
     return this_task;

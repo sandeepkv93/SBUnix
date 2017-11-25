@@ -2,6 +2,7 @@
 #include <sys/alloc.h>
 #include <sys/elf64.h>
 #include <sys/kprintf.h>
+#include <sys/nary.h>
 #include <sys/paging.h>
 #include <sys/syscall.h>
 #include <sys/tarfs.h>
@@ -9,6 +10,7 @@
 #include <sys/tasklist.h>
 #include <sys/term.h>
 #include <sys/timer.h>
+#include <sys/vfs.h>
 #include <sys/vma.h>
 #include <test.h>
 uint64_t test_address;
@@ -165,12 +167,33 @@ test_exec()
 }
 
 void
+test_vfs_sample_functions()
+{
+    char buff1[100];
+    char buff2[100];
+    vfs_open("bin/ls", 0);
+    vfs_open("bin/cat", 0);
+    vfs_open("bin/blah", 0);
+    kprintf("Bytes Read: %d\n", vfs_read(3, buff1, 10));
+    kprintf("%s\n", buff1);
+    kprintf("Bytes Read: %d\n", vfs_read(3, buff1, 25));
+    kprintf("%s\n", buff1);
+
+    kprintf("Bytes Read: %d\n", vfs_read(4, buff2, 10));
+    kprintf("%s\n", buff2);
+    kprintf("Bytes Read: %d\n", vfs_read(4, buff2, 40));
+    kprintf("%s\n", buff2);
+    task_yield();
+}
+
+void
 test_sched()
 {
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
+    task_create(test_vfs_sample_functions);
     task_create(test_exec);
     task_yield();
 }

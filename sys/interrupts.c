@@ -198,7 +198,7 @@ page_fault_handler(uint64_t v_addr)
     uint64_t p_addr;
     // remove these variables
     char* p;
-    void* addr = (void*)0xffffffff812507c0 + sizeof(struct posix_header_ustar);
+    void* addr = (void*)0xffffffff812527c0 + sizeof(struct posix_header_ustar);
 
     volatile uint64_t offset;
     while (list != NULL) {
