@@ -49,6 +49,7 @@ walk_through_tarfs()
         strcpy(tarfs_node.devminor, tarfs_structure->devminor);
         strcpy(tarfs_node.prefix, tarfs_structure->prefix);
         strcpy(tarfs_node.pad, tarfs_structure->pad);
+        tarfs_node.struct_address = (uint64_t)(&_binary_tarfs_start + offset);
         tarfs_node.fs_type = 0;
         insert_into_nary_tree(tarfs_node);
         size = octal_to_decimal(char_array_to_int(tarfs_structure->size));

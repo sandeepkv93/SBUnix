@@ -1,3 +1,4 @@
+#include <sys/defs.h>
 #ifndef NARY_H
 #define NARY_H
 
@@ -21,6 +22,7 @@ struct fs_node_entry
     char devminor[8];
     char prefix[155];
     char pad[12];
+    uint64_t struct_address;
     int fs_type;
 };
 
