@@ -163,7 +163,7 @@ test_exec()
     // test_vma_list_and_page_fault
     char* argv[] = { "test", "ok", "cool", "interesting", NULL };
     char* envp[] = { "PATH=blah", "PS2=$$", "PWD=/", NULL };
-    syscall_wrapper(_SYS__execve, (long)"/bin/init", (long)argv, (long)envp);
+    syscall_wrapper(_SYS__execve, (long)"bin/init", (long)argv, (long)envp);
 }
 
 void
