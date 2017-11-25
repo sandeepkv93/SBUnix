@@ -26,7 +26,9 @@ typedef struct _taskstruct
     void* stack_page;
     vfs_file_object* filetable[TASK_FILETABLE_SIZE];
     struct vma_struct* vma_list;
+    char binary_name[512];
     uint64_t entry_point;
+    char cwd[512];
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 
 task_struct* task_create();

@@ -90,6 +90,10 @@ findNaryNode(char* path)
     if (root == NULL) {
         return NULL;
     }
+    if ((root->data).node_id[0] != path[0]) {
+        return NULL;
+    }
+    ++path;
     char* subPath = NULL;
     char* remPath = NULL;
     while (root->firstChild != NULL) {

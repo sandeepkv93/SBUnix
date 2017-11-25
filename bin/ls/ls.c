@@ -44,7 +44,7 @@ main(int argc, char* argv[])
         write(1, error_message, strlen(error_message));
         exit(-1);
     } else {
-        fd = open(directory_name, O_RDONLY | O_DIRECTORY, 0);
+        fd = open(directory_name, O_RDONLY | O_DIRECTORY);
         if (fd < 0) {
             puts(directory_name);
             return 0;

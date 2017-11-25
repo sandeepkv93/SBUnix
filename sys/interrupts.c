@@ -196,16 +196,11 @@ kb_isr()
 void
 page_fault_handler(uint64_t v_addr)
 {
-    struct vma_struct* list = task_get_this_task_struct()->vma_list;
+    int fd;
     uint64_t p_addr;
     uint64_t* pagetable = paging_get_pt_vaddr(v_addr);
     uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
-    // remove these variables
-    char* p;
-    void* addr = (void*)((uint64_t)&_binary_tarfs_start +
-                         3 * sizeof(struct posix_header_ustar));
-    int offset;
-    // until here
+    struct vma_struct* list = task_get_this_task_struct()->vma_list;
 
     if (pagetable[pt_offset] & PAGING_PAGE_PRESENT) {
 
@@ -221,19 +216,20 @@ page_fault_handler(uint64_t v_addr)
         while (list != NULL) {
             if (v_addr >= list->vma_start &&
                 v_addr < list->vma_end) { // alloc page
+                // alloc page
                 p_addr = (uint64_t)paging_pagelist_get_frame();
                 paging_add_pagetable_mapping(v_addr & 0xfffffffffffff000,
                                              p_addr);
-                // TODO: open,read,close
+
+                // TODO: Take care if offset is big
                 // TODO: if anon mapping, skip above step.
-                addr += list->vma_file_offset;
-                p = (char*)v_addr;
-                offset = list->vma_file_size;
-                while (offset--) {
-                    *p = *(char*)addr;
-                    p++;
-                    addr++;
-                }
+
+                // Read binary content onto the addresses
+                fd = vfs_open(task_get_this_task_struct()->binary_name, 0);
+                vfs_seek(fd, list->vma_file_offset);
+                vfs_read(fd, (void*)(list->vma_start), list->vma_file_size);
+                vfs_close(fd);
+
                 break;
             }
 

@@ -30,13 +30,13 @@ main(int argc, char** argv)
     int read_size;
     int i;
     for (i = 1; i < argc; i++) {
-        if ((fd_read = open(argv[i], O_DIRECTORY, 0)) > -1) {
+        if ((fd_read = open(argv[i], O_DIRECTORY)) > -1) {
             putstr(argv[i]);
             puts(" is a directory.");
             close(fd_read);
             continue;
         }
-        if ((fd_read = open(argv[i], O_RDONLY, 0)) < 0) {
+        if ((fd_read = open(argv[i], O_RDONLY)) < 0) {
             putstr(argv[i]);
             puts(":Error opening the file");
             continue;

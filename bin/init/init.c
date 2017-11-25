@@ -30,6 +30,13 @@ main(int argc, char** argv, char** envp)
     }
     write(1, "\n", 1);
 
+    //==============
+    char bluff[100] = { 0 };
+    int fd = open("bin/test.txt", 0);
+    read(fd, bluff, 100);
+    write(1, bluff, strlen(bluff));
+    //=============
+
     while (1) {
         for (int i = 0; i < 20; i++)
             buff[i] = 0;
