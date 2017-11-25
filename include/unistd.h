@@ -8,7 +8,7 @@
 
 long syscall(long, long, long, long);
 void exit(int);
-int open(const char*, int, mode_t);
+int open(const char*, int);
 pid_t fork(void);
 pid_t waitpid(pid_t, int*, int);
 int pipe(int[]);

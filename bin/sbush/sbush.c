@@ -110,7 +110,7 @@ set_env(char* key, char* value)
 int
 is_dir(char* filename)
 {
-    int fd = open(filename, O_DIRECTORY, 0);
+    int fd = open(filename, O_DIRECTORY);
     if (fd > 0) {
         close(fd);
         return 1;
@@ -378,7 +378,7 @@ main(int argc, char* argv[], char* envp[])
 
     if (argc > 1) {
         mode = MODE_SCRIPT;
-        if ((input_fd = open(argv[1], O_RDONLY, 0)) == -1) {
+        if ((input_fd = open(argv[1], O_RDONLY)) == -1) {
             error_print("Unable to read the script! : ");
             error_print(argv[0]);
             error_print("\n");

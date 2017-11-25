@@ -6,10 +6,16 @@
 extern void syscall_isr_return(long);
 
 long
+syscall_open(char* fname, int flags)
+{
+    return vfs_open(fname, flags);
+}
+
+long
 syscall_exec(char* bin_name, char** argv, char** envp)
 {
     task_exec_ring3(bin_name, argv, envp);
-    return 0;
+    return -1;
 }
 
 long
@@ -19,7 +25,7 @@ syscall_read(uint64_t fd, char* buf, uint64_t count)
     if (fd == STDIN) {
         ret = term_read_from_buffer(buf, count);
     } else {
-        // TODO add vfs read here
+        ret = vfs_read(fd, buf, count);
     }
 
     return ret;
@@ -48,7 +54,6 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
 {
     long ret_val = -1;
     switch (syscall_num) {
-        case _SYS__open:
         /* For each case implement syscall, update ret_val */
         case _SYS__write:
             ret_val =
@@ -60,11 +65,14 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__execve:
             ret_val = syscall_exec((char*)arg1, (char**)arg2, (char**)arg3);
             break;
+        case _SYS__open:
+            ret_val = syscall_open((char*)arg1, (int)arg2);
+            break;
         case _SYS__close:
+        case _SYS__chdir:
         case _SYS__fork:
         case _SYS__wait4:
         case _SYS__exit:
-        case _SYS__chdir:
         case _SYS__acces:
         case _SYS__pipe:
         case _SYS__dup:

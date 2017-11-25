@@ -115,7 +115,6 @@ vfs_read(int fd, void* buffer, unsigned int count)
                     reader[i] = *file_starting_address;
                     ++file_starting_address;
                 }
-                reader[i] = '\0';
                 file_obj->cursor += i;
                 kprintf("Finished reading.. Cursor at: %d\n", file_obj->cursor);
                 return i;
