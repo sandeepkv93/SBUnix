@@ -45,6 +45,4 @@ typedef struct
     Elf64_Xword p_align;  // The required alignment for this section
 } Elf64_Phdr;
 
-void elf_read();
-
 #endif

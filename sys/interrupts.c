@@ -1,3 +1,4 @@
+#include <sys/alloc.h>
 #include <sys/interrupts.h>
 #include <sys/keyboard.h>
 #include <sys/kprintf.h>
@@ -9,6 +10,7 @@
 #include <sys/term.h>
 #include <sys/timer.h>
 #include <sys/vma.h>
+
 extern void* g_exceptions[];
 extern char g_keymap[], g_keymap_shift[];
 extern void syscall_isr_asm();
@@ -196,37 +198,51 @@ page_fault_handler(uint64_t v_addr)
 {
     struct vma_struct* list = task_get_this_task_struct()->vma_list;
     uint64_t p_addr;
+    uint64_t* pagetable = paging_get_pt_vaddr(v_addr);
+    uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
     // remove these variables
     char* p;
-    void* addr = (void*)0xffffffff812527c0 + sizeof(struct posix_header_ustar);
+    void* addr = (void*)((uint64_t)&_binary_tarfs_start +
+                         3 * sizeof(struct posix_header_ustar));
+    int offset;
+    // until here
 
-    volatile uint64_t offset;
-    while (list != NULL) {
-        if (v_addr >= list->vma_start && v_addr < list->vma_end) { // alloc page
+    if (pagetable[pt_offset] & PAGING_PAGE_PRESENT) {
+
+        if ((pagetable[pt_offset] & PAGING_PAGE_COW) &&
+            ((pagetable[pt_offset] & PAGING_PAGE_W_ONLY) == 0)) {
             p_addr = (uint64_t)paging_pagelist_get_frame();
-            // TODO: Take care if offset is big
-            paging_add_pagetable_mapping(v_addr & 0xfffffffffffff000, p_addr);
-            // TODO: open,read,close
-            // TODO: if anon mapping, skip above step.
-            addr += list->vma_file_offset;
-            p = (char*)list->vma_start;
-            offset = list->vma_file_size;
-            while (offset--) {
-                *p = *(char*)addr;
-                p++;
-                addr++;
-            }
-            break;
+            paging_page_copy((uint64_t*)v_addr, (uint64_t*)PAGING_COW_TEMP_VA,
+                             p_addr, FALSE);
+            pagetable[pt_offset] = p_addr;
+            pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS;
         }
+    } else {
+        while (list != NULL) {
+            if (v_addr >= list->vma_start &&
+                v_addr < list->vma_end) { // alloc page
+                p_addr = (uint64_t)paging_pagelist_get_frame();
+                paging_add_pagetable_mapping(v_addr & 0xfffffffffffff000,
+                                             p_addr);
+                // TODO: open,read,close
+                // TODO: if anon mapping, skip above step.
+                addr += list->vma_file_offset;
+                p = (char*)v_addr;
+                offset = list->vma_file_size;
+                while (offset--) {
+                    *p = *(char*)addr;
+                    p++;
+                    addr++;
+                }
+                break;
+            }
 
-        list = list->vma_next;
-    }
-    if (list == NULL) {
-        // TODO : kill process, Seg fault
-        /*kprintf("Segmentation fault. Be prepared to die.");*/
-        term_set_glyph(10, 'S');
-        while (1)
-            ;
+            list = list->vma_next;
+        }
+        if (list == NULL) {
+            // segfault
+            kprintf("Segmentation fault. Be prepared to die.");
+        }
     }
 }
 

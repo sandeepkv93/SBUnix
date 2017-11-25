@@ -18,4 +18,6 @@ struct vma_struct* vma_add_node(struct vma_struct* vma_first, uint64_t start,
 struct vma_struct* vma_list_with_phdr(struct vma_struct* vma_first,
                                       Elf64_Phdr* phdr, uint16_t ph_num,
                                       char* filepath);
+void elf_read(char* filepath);
+
 #endif

@@ -1,13 +1,12 @@
 #include <sys/alloc.h>
+#include <sys/defs.h>
 #include <sys/kprintf.h>
 #include <sys/paging.h>
 #include <test.h>
 
-#define PAGING_PAGETABLE_PERMISSIONS 0x7
 #define PAGING_PAGELIST_ENTRIES (1024 * 1024)
 #define PAGING_TABLE_ENTRIES 512
 #define TEST_PAGING (PAGING_KERNMEM + 0x801000)
-
 // TODO Allocate pages array dynamically
 struct pagelist_t pages[PAGING_PAGELIST_ENTRIES];
 struct pagelist_t* freepage_head;
@@ -88,15 +87,13 @@ paging_get_table_entry(uint64_t* table, uint32_t offset)
     return (uint64_t*)(table[offset] & 0xfffffffffffff000);
 }
 
-bool
-paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
+uint64_t*
+paging_get_pt_vaddr(uint64_t v_addr)
 {
-    // The pagetables' addresses can be calculated because of self referencing
-    // trick
+    // calling this creates entries in intermediate page tables(or new
+    // intermdediate page allocatins if table is not present) since we call
+    // paging_get_table_entry.
     uint64_t pml4_vaddr, pdp_vaddr, pd_vaddr, pt_vaddr;
-    uint64_t* pagetable;
-    uint32_t pt_offset;
-
     pml4_vaddr = (~0 << 12);
     paging_get_table_entry((uint64_t*)pml4_vaddr, PAGING_PML4_OFFSET(v_addr));
 
@@ -109,11 +106,21 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
                            PAGING_PAGE_DIRECTORY_OFFSET(v_addr));
 
     pt_vaddr = ((pd_vaddr << 9) | (PAGING_PAGE_DIRECTORY_OFFSET(v_addr) << 12));
+    return (uint64_t*)pt_vaddr;
+}
+
+bool
+paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
+{
+    // The pagetables' addresses can be calculated because of self referencing
+    // trick
+    uint64_t* pagetable;
+    uint32_t pt_offset;
+
     pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
+    pagetable = paging_get_pt_vaddr(v_addr);
 
-    pagetable = (uint64_t*)pt_vaddr;
-
-    if ((pagetable[pt_offset] & 0x1)) {
+    if ((pagetable[pt_offset] & PAGING_PAGE_PRESENT)) {
         return FALSE;
     } else {
         pagetable[pt_offset] = p_addr;
@@ -183,4 +190,22 @@ paging_create_pagetables()
     paging_enable(pml4_table);
 
     // test_get_free_pages();
+}
+
+void
+paging_page_copy(uint64_t* source_page_va, uint64_t* dest_page_va,
+                 uint64_t dest_page_pa, bool self_referencing)
+{
+    uint64_t* pagetable;
+    uint64_t pt_offset;
+    paging_add_pagetable_mapping((uint64_t)dest_page_va, dest_page_pa);
+    for (int i = 0; i < PAGING_PAGE_SIZE; i++) {
+        dest_page_va[i] = source_page_va[i];
+    }
+    pagetable = paging_get_pt_vaddr((uint64_t)dest_page_va);
+    if (self_referencing) {
+        // pagetable[]
+    }
+    pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)dest_page_va);
+    pagetable[pt_offset] |= PAGING_PAGE_NOT_PRESENT;
 }
