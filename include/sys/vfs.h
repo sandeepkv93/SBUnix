@@ -18,4 +18,6 @@ int vfs_open(char* pathname, int flags);
 int vfs_close(int fd);
 int vfs_dup(int fd);
 unsigned int vfs_read(int fd, void* buffer, unsigned int count);
+int vfs_chdir(const char* path);
+char* vfs_getcwd(char* buf, int size);
 #endif
