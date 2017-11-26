@@ -131,7 +131,7 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
             temp_byte[i] = 0;
         }
         */
-        pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS;
+        pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS | PAGING_PT_LEVEL4;
         return TRUE;
     }
 }
@@ -155,7 +155,7 @@ paging_add_initial_pagetable_mapping(uint64_t* pml4_phys_addr, uint64_t v_addr,
     pt_table =
       paging_get_table_entry(pd_table, PAGING_PAGE_DIRECTORY_OFFSET(v_addr));
 
-    pt_table[PAGING_PAGE_TABLE_OFFSET(v_addr)] = phys_entry;
+    pt_table[PAGING_PAGE_TABLE_OFFSET(v_addr)] = phys_entry | PAGING_PT_LEVEL4;
 }
 
 void
@@ -193,19 +193,40 @@ paging_create_pagetables()
 }
 
 void
-paging_page_copy(uint64_t* source_page_va, uint64_t* dest_page_va,
-                 uint64_t dest_page_pa, bool self_referencing)
+paging_page_copy(char* source_page_va, char* dest_page_va,
+                 uint64_t dest_page_pa)
 {
     uint64_t* pagetable;
     uint64_t pt_offset;
+    paging_flush_tlb();
     paging_add_pagetable_mapping((uint64_t)dest_page_va, dest_page_pa);
     for (int i = 0; i < PAGING_PAGE_SIZE; i++) {
         dest_page_va[i] = source_page_va[i];
     }
     pagetable = paging_get_pt_vaddr((uint64_t)dest_page_va);
-    if (self_referencing) {
-        // pagetable[]
-    }
     pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)dest_page_va);
     pagetable[pt_offset] |= PAGING_PAGE_NOT_PRESENT;
+    paging_flush_tlb();
+}
+
+int
+paging_num_free_pages()
+{
+    int count = 0;
+    struct pagelist_t* temp = freepage_head;
+    while (temp != NULL) {
+        temp = temp->next;
+        count++;
+    }
+    return count;
+}
+
+void
+paging_flush_tlb()
+{
+    __asm__("movq %%cr3, %%rax;"
+            "movq %%rax, %%cr3;"
+            :
+            :
+            : "%rax");
 }

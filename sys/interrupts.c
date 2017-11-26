@@ -207,8 +207,8 @@ page_fault_handler(uint64_t v_addr)
         if ((pagetable[pt_offset] & PAGING_PAGE_COW) &&
             ((pagetable[pt_offset] & PAGING_PAGE_W_ONLY) == 0)) {
             p_addr = (uint64_t)paging_pagelist_get_frame();
-            paging_page_copy((uint64_t*)v_addr, (uint64_t*)PAGING_COW_TEMP_VA,
-                             p_addr, FALSE);
+            paging_page_copy((char*)(v_addr & 0xfffffffffffff000),
+                             (char*)PAGING_COW_TEMP_VA, p_addr);
             pagetable[pt_offset] = p_addr;
             pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS;
         }

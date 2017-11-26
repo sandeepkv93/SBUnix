@@ -20,7 +20,8 @@
 
 #define PAGING_PAGE_PRESENT 1
 #define PAGING_PAGE_W_ONLY 2
-#define PAGING_PAGE_COW 512 // 10th bit as the COW bit
+#define PAGING_PAGE_COW 512   // 9th bit as the COW bit
+#define PAGING_PT_LEVEL4 1024 // 10th bit to mark page table(level 4)
 struct pagelist_t
 {
     bool present;
@@ -34,6 +35,7 @@ uint64_t* paging_get_table_entry(uint64_t* table, uint32_t offset);
 bool paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr);
 void paging_pagelist_free_frame();
 uint64_t* paging_get_pt_vaddr(uint64_t v_addr);
-void paging_page_copy(uint64_t* source_page_va, uint64_t* dest_page_va,
-                      uint64_t dest_page_pa, bool self_referencing);
+void paging_page_copy(char* source_page_va, char* dest_page_va,
+                      uint64_t dest_page_pa);
+void paging_flush_tlb();
 #endif
