@@ -8,7 +8,7 @@ extern uint64_t sched_fork_wrapper(task_struct*, task_struct*);
 void paging_mark_pages(int flags);
 extern void paging_enable(void*);
 uint64_t* t_stack_top;
-void*
+uint64_t
 fork_cow(uint64_t* page_va_addr, int level)
 {
     uint64_t *temp_va, *pagetable;
@@ -30,8 +30,7 @@ fork_cow(uint64_t* page_va_addr, int level)
             if (level == 1 && i == PAGING_TABLE_ENTRIES - 1) {
                 table_entry_addr = frame_addr;
             } else {
-                table_entry_addr =
-                  (uint64_t)fork_cow((uint64_t*)next_addr, level + 1);
+                table_entry_addr = fork_cow((uint64_t*)next_addr, level + 1);
             }
             paging_flush_tlb();
             paging_add_pagetable_mapping((uint64_t)temp_va, frame_addr);
@@ -58,7 +57,7 @@ fork_cow(uint64_t* page_va_addr, int level)
 
         paging_page_copy((char*)page_va_addr, (char*)temp_va, frame_addr);
     }
-    return (void*)frame_addr;
+    return frame_addr;
 }
 
 pid_t
@@ -92,20 +91,23 @@ fork_copy_stack(task_struct* parent_task, task_struct* child_task,
 pid_t
 fork(void)
 {
-    // Call Gaani's function
-
     task_struct* child_task = task_create(NULL);
     task_struct* parent_task = task_get_this_task_struct();
+    uint64_t current_pml4_va = (~0 << 12);
 
     // TODO add task_yield here if we need most recent regs, careful because
     // child might get scheduled
 
     child_task->regs = parent_task->regs;
+    child_task->regs.cr3 = fork_cow((void*)current_pml4_va, 1);
+
+    /*
     uint64_t* temp_va = (uint64_t*)PAGING_PAGE_COPY_TEMP_VA;
-    child_task->pml4_frame_addr = fork_cow((uint64_t*)(~0 << 12), 1);
-    //paging_add_pagetable_mapping((uint64_t)temp_va,
-                                 (uint64_t)child_task->pml4_frame_addr);
-    //paging_enable(child_task->pml4_frame_addr);
+    paging_add_pagetable_mapping((uint64_t)temp_va,
+    (uint64_t)child_task->pml4_frame_addr);
+    paging_enable(child_task->pml4_frame_addr);
+    */
+
     for (int i = 0; i < TASK_FILETABLE_SIZE; i++) {
         child_task->filetable[i] = parent_task->filetable[i];
     }

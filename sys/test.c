@@ -14,6 +14,9 @@
 #include <sys/vfs.h>
 #include <sys/vma.h>
 #include <test.h>
+
+extern uint64_t paging_get_current_cr3();
+
 uint64_t test_address;
 
 struct test_struct
@@ -193,7 +196,8 @@ test_fork()
     uint64_t x = 44;
     x = fork();
     x = fork();
-    kprintf("I am fork %d.\n", x);
+    x += 1;
+    kprintf("My cr3 is %d", task_get_this_task_struct()->regs.cr3);
     while (1) {
         term_set_glyph(0, '0' + task_get_this_task_struct()->pid);
         task_yield();
@@ -210,7 +214,8 @@ test_sched()
     task_create(test_vfs_sample_functions);
     task_create(test_exec);
 #endif
-    task_create(test_fork);
+    task_struct* init_task = task_create(test_fork);
+    init_task->regs.cr3 = paging_get_current_cr3();
     task_yield();
 }
 

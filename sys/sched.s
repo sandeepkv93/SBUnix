@@ -48,20 +48,28 @@
     pushf 
     pop 48(%rdi)
 
+    movq %cr3, %rax
+    movq %rax, 56(%rdi)
+
     // Save 'me' (address of task_struct) on stack
     push %rdi
 
     // Now save latest RSP as well in the task_stuct.
     movq %rsp, 40(%rdi)
 
+
     // Do the steps above in reverse with next task_struct
     // Magic!
+
 
     // change RSP
     movq 40(%rsi), %rsp
 
     // Get task_struct address
     pop %rdi
+
+    movq 56(%rdi), %rax
+    movq %rax, %cr3
 
     // Restore registers
     push 48(%rdi)
