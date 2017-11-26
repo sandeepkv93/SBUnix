@@ -25,10 +25,12 @@ task_get_this_task_struct()
 {
     return me;
 }
-void
+
+uint64_t
 task_initial_setup()
 {
     me = next;
+    return 0;
 }
 
 task_struct*

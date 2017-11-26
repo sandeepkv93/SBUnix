@@ -192,6 +192,7 @@ test_fork()
 {
     uint64_t x = 44;
     x = fork();
+    x = fork();
     kprintf("I am fork %d.\n", x);
     while (1) {
         term_set_glyph(0, '0' + task_get_this_task_struct()->pid);
