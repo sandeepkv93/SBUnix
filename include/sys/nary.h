@@ -37,4 +37,5 @@ void insert_into_nary_tree(struct fs_node_entry data);
 void traverse_nary_tree();
 int checkIfExists(char* path);
 struct fs_node_entry* findNaryNode(char* path);
+int delete_nary_node(char* path);
 #endif
