@@ -77,6 +77,10 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__pipe:
         case _SYS__dup:
         case _SYS__brk:
+        // TODO
+        // Create a vma in process during read_elf for heap. Grow that vma when
+        // brk is called, use a member in vma_struct to identify the VMA
+        // corresponding to heap
         default:
             kprintf("Call num %d, args %d, %d, %d, ret_val %d", syscall_num,
                     arg1, arg2, arg3, ret_val);

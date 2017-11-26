@@ -97,8 +97,7 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     elf_read(bin_name);
 
     // Get one page_frame mapped in stack region, we'll use it to store argv and
-    // env
-    // Refer crt1.c for a diagram
+    // env. Refer crt1.c for a diagram
 
     uint64_t stackpage_v_addr = PAGING_KERNMEM - PAGING_PAGE_SIZE;
     uint64_t stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();

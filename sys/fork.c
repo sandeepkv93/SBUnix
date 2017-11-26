@@ -1,36 +1,40 @@
 #include <sys/paging.h>
-#include <unistd.h>
+#include <sys/string.h>
+#include <sys/task.h>
 
+extern uint64_t sched_read_rsp();
 void paging_mark_pages(int flags);
+
+pid_t
+fork_magic_function(volatile task_struct* parent_task,
+                    volatile task_struct* child_task)
+{
+    // Only one enters, but two processes exit. How cool!
+    memcpy(child_task->stack_page, task_get_this_task_struct()->stack_page,
+           PAGING_PAGE_SIZE);
+    child_task->regs.rsp =
+      (uint64_t)((sched_read_rsp() - (uint64_t)parent_task->stack_page) +
+                 child_task->stack_page);
+    child_task->regs.rax = 0;
+    // Add child_task_struct & task_initial_setup on child task
+    return child_task->pid;
+}
 
 pid_t
 fork(void)
 {
-#if 0
-    // create a task_struct, copy parent's members
-    // mark page tables of user space(less than kernbase) with special
-    // permissions - user, read, cow.
-    uint64_t pml4_vaddr;
-    uint64_t cr3;
-    uint64_t p_addr;
-    uint64_t v_addr;
-    uint64_t table_pa;
-    pml4_vaddr = (~0 << 12);
-    cr3 = pa = (uint64_t)paging_pagelist_get_frame();
-    paging_page_copy(pml4_vaddr, PAGING_PAGE_COPY_TEMP_VA, p_addr, TRUE);
-    for (int i = 0; i < PAGING_TABLE_ENTRIES - 1; i++) {
-        v_addr = 0xffff;
-        if (pml4_vaddr[i] & PAGING_PAGE_PRESENT) {
-            table_pa = paging_pagelist_get_frame();
-            pml4_vaddr[i] = talbe_pa | PAGING_PAGETABLE_PERMISSIONS;
-            paging_page_copy(pml4_vaddr, PAGING_PAGE_COPY_TEMP_VA, p_addr,
-                             FALSE);
-            pdpe_vaddr = (pml4_vaddr << 9) | (i << 12);
-            for (int j = 0; j < PAGING_TABLE_ENTRIES; j++) {
-                if (pdpe[j])
-            }
-        }
+    // Call Gaani's function
+
+    volatile task_struct* child_task = task_create(NULL);
+    volatile task_struct* parent_task = task_get_this_task_struct();
+
+    // TODO add task_yield here if we need most recent regs, careful because
+    // child might get scheduled
+    child_task->regs = parent_task->regs;
+
+    for (int i = 0; i < TASK_FILETABLE_SIZE; i++) {
+        child_task->filetable[i] = parent_task->filetable[i];
     }
-#endif
-    return 0;
+
+    return fork_magic_function(parent_task, child_task);
 }
