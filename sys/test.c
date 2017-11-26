@@ -1,6 +1,7 @@
 #include <string.h>
 #include <sys/alloc.h>
 #include <sys/elf64.h>
+#include <sys/fork.h>
 #include <sys/kprintf.h>
 #include <sys/nary.h>
 #include <sys/paging.h>
@@ -187,14 +188,28 @@ test_vfs_sample_functions()
 }
 
 void
+test_fork()
+{
+    uint64_t x = 44;
+    x = fork();
+    kprintf("I am fork %d.\n", x);
+    while (1) {
+        term_set_glyph(0, '0' + task_get_this_task_struct()->pid);
+        task_yield();
+    }
+}
+void
 test_sched()
 {
+#if 0
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_vfs_sample_functions);
     task_create(test_exec);
+#endif
+    task_create(test_fork);
     task_yield();
 }
 

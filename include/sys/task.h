@@ -36,4 +36,5 @@ void task_destroy(task_struct* t);
 void task_yield();
 void task_exec_ring3(char* bin_name, char** argv, char** envp);
 task_struct* task_get_this_task_struct();
+void task_initial_setup();
 #endif

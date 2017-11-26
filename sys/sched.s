@@ -1,4 +1,4 @@
-.globl sched_switch_kthread, sched_enter_ring3, sched_read_rsp
+.globl sched_switch_kthread, sched_enter_ring3, sched_fork_wrapper
 
  sched_enter_ring3:
  // rdi : rsp3 (Ring 3 stack)
@@ -74,8 +74,8 @@
 
     retq
 
-sched_read_rsp:
-    movq %rsp, %rax
-    add $0x8, %rax
+sched_fork_wrapper:
+    movq %rsp, %rdx
+    callq fork_copy_stack
     retq
 .end
