@@ -6,18 +6,17 @@
 
 extern uint64_t sched_fork_wrapper(task_struct*, task_struct*);
 void paging_mark_pages(int flags);
-
+extern void paging_enable(void*);
 uint64_t* t_stack_top;
 void*
 fork_cow(uint64_t* page_va_addr, int level)
 {
     uint64_t *temp_va, *pagetable;
     uint64_t frame_addr, table_entry_addr, pt_offset, next_addr;
-   
-    pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)temp_va);
     bool is_pt = FALSE;
     frame_addr = (uint64_t)paging_pagelist_get_frame();
     temp_va = (uint64_t*)PAGING_PAGE_COPY_TEMP_VA;
+    pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)temp_va);
 
     for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
         next_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
@@ -25,7 +24,8 @@ fork_cow(uint64_t* page_va_addr, int level)
             if (page_va_addr[i] & PAGING_PT_LEVEL4) {
                 is_pt = TRUE;
                 break;
-            //traversal is not required. copy the table into frame. so break
+                // traversal is not required. copy the table into frame. so
+                // break
             }
             if (level == 1 && i == PAGING_TABLE_ENTRIES - 1) {
                 table_entry_addr = frame_addr;
@@ -38,7 +38,7 @@ fork_cow(uint64_t* page_va_addr, int level)
             temp_va[i] = table_entry_addr;
             temp_va[i] |= PAGING_PAGETABLE_PERMISSIONS;
             pagetable = paging_get_pt_vaddr((uint64_t)temp_va);
-            pagetable[pt_offset] |= PAGING_PAGE_NOT_PRESENT;
+            pagetable[pt_offset] = PAGING_PAGE_NOT_PRESENT;
             paging_flush_tlb();
         }
     }
@@ -46,7 +46,8 @@ fork_cow(uint64_t* page_va_addr, int level)
     if (is_pt) {
         for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
             next_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
-            if (next_addr < PAGING_KERNMEM) { // next_addr will be the virtual
+            if ((page_va_addr[i] & PAGING_PAGE_PRESENT) &&
+                next_addr < PAGING_KERNMEM) { // next_addr will be the virtual
                                               // address of the frame
                 // TODO: handle U and S bit
                 page_va_addr[i] =
@@ -98,9 +99,13 @@ fork(void)
 
     // TODO add task_yield here if we need most recent regs, careful because
     // child might get scheduled
-    child_task->pml4_frame_addr = fork_cow((uint64_t*)(~0 << 12), 1);
-    child_task->regs = parent_task->regs;
 
+    child_task->regs = parent_task->regs;
+    uint64_t* temp_va = (uint64_t*)PAGING_PAGE_COPY_TEMP_VA;
+    child_task->pml4_frame_addr = fork_cow((uint64_t*)(~0 << 12), 1);
+    //paging_add_pagetable_mapping((uint64_t)temp_va,
+                                 (uint64_t)child_task->pml4_frame_addr);
+    //paging_enable(child_task->pml4_frame_addr);
     for (int i = 0; i < TASK_FILETABLE_SIZE; i++) {
         child_task->filetable[i] = parent_task->filetable[i];
     }

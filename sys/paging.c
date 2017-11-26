@@ -205,7 +205,7 @@ paging_page_copy(char* source_page_va, char* dest_page_va,
     }
     pagetable = paging_get_pt_vaddr((uint64_t)dest_page_va);
     pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)dest_page_va);
-    pagetable[pt_offset] |= PAGING_PAGE_NOT_PRESENT;
+    pagetable[pt_offset] = PAGING_PAGE_NOT_PRESENT;
     paging_flush_tlb();
 }
 
