@@ -12,10 +12,33 @@
 #include <sys/task.h>
 #include <sys/term.h>
 #include <test.h>
+#include <sys/syscall.h>
+
 #define INITIAL_STACK_SIZE 4096
+extern uint64_t paging_get_current_cr3();
+
 uint8_t initial_stack[INITIAL_STACK_SIZE] __attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
+
+void
+init_callback()
+{
+    char* argv[] = { "/bin/init", NULL } ;
+    char * envp[] = { "PATH=/bin/", "PWD=/", NULL };
+    syscall_wrapper(_SYS__execve, (long)"bin/init", (long)argv, (long)envp);
+    kprintf("/bin/init returned!!");
+    while (1)
+        ;
+}
+
+void
+create_init()
+{
+    task_struct* init_task = task_create(init_callback);
+    init_task->regs.cr3 = paging_get_current_cr3();
+    task_yield();
+}
 
 void
 start(uint32_t* modulep, void* physbase, void* physfree)
@@ -45,12 +68,13 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     pic_init();
     enable_interrupts(TRUE);
 
-    walk_through_tarfs();
+    create_init();
+    /*walk_through_tarfs();*/
     /*task_trial_userland();*/
     // test_kprintf();
     /*test_kmalloc_kfree();*/
     /*test_tasklist();*/
-    test_sched();
+    /*test_sched();*/
     /*ahci_discovery();*/
     /*ahci_readwrite_test();*/
     while (1)

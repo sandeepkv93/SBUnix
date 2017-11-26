@@ -1,10 +1,16 @@
 #include <sys/defs.h>
+#include <sys/fork.h>
 #include <sys/kprintf.h>
 #include <sys/syscall.h>
 #include <sys/task.h>
 #include <sys/term.h>
 extern void syscall_isr_return(long);
 
+long
+syscall_fork()
+{
+    return fork();
+}
 long
 syscall_open(char* fname, int flags)
 {
@@ -71,6 +77,8 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__close:
         case _SYS__chdir:
         case _SYS__fork:
+            ret_val = syscall_fork();
+            break;
         case _SYS__wait4:
         case _SYS__exit:
         case _SYS__acces:

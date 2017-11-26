@@ -203,20 +203,16 @@ test_fork()
         task_yield();
     }
 }
+
 void
 test_sched()
 {
-#if 0
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_sample_thread_handler);
     task_create(test_vfs_sample_functions);
     task_create(test_exec);
-#endif
-    task_struct* init_task = task_create(test_fork);
-    init_task->regs.cr3 = paging_get_current_cr3();
-    task_yield();
 }
 
 void

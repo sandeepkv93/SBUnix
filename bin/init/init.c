@@ -5,6 +5,29 @@
 int
 main(int argc, char** argv, char** envp)
 {
+    char* argv_new[] = { "/bin/init", "told", NULL };
+    char* envp_new[] = { "lksajf", NULL };
+
+    int ret;
+    if (argc == 1) {
+        puts("Recieved one argumnet\n");
+        ret = fork();
+        if (ret) {
+            puts("Inside parent \n");
+        } else {
+            puts("Inside child \n");
+            execvpe("/bin/init", argv_new, envp_new);
+        }
+    } else {
+        puts("Recieved more than one argument\n");
+    }
+    while (1)
+        ;
+}
+
+int
+fake_main(int argc, char** argv, char** envp)
+{
     char buff[100];
 
     char buff2[8] = { '0', ' ', 'a', 'r', 'g', 'c', '\n', '\0' };

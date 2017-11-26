@@ -95,6 +95,8 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // TODO We have some hardcoding here and lot of ugly code, needs to be
     // cleaned
 
+    // TODO: check current VMA list and free list if not NULL
+
     // Populate VMAs in the task_struct
     elf_read(bin_name);
 
