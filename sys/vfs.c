@@ -17,6 +17,7 @@ find_free_fd()
             return i;
         }
     }
+
     return TASK_FILETABLE_SIZE + 1;
 }
 
@@ -57,7 +58,16 @@ vfs_close(int fd)
             free it
     Put Null at the index = fd;
     */
-    return 0;
+    vfs_file_object* file_obj = task_get_this_task_struct()->filetable[fd];
+    if (file_obj != NULL) {
+        file_obj->reference_count -= 1;
+        if (file_obj->reference_count == 0) {
+            kfree(file_obj);
+        }
+        task_get_this_task_struct()->filetable[fd] = NULL;
+        return 0;
+    }
+    return -1;
 }
 
 int
@@ -68,7 +78,12 @@ vfs_dup(int fd)
     Put value in fd_table[fd] into that fd
     and return it.
     */
-    return 0;
+    vfs_file_object* file_obj = task_get_this_task_struct()->filetable[fd];
+    if (file_obj != NULL) {
+        int new_fd = find_free_fd();
+        task_get_this_task_struct()->filetable[new_fd] = file_obj;
+    }
+    return -1;
 }
 
 int
@@ -124,6 +139,27 @@ vfs_read(int fd, void* buffer, unsigned int count)
                 break;
         }
     }
-
     return -1;
+}
+
+int
+vfs_chdir(const char* path)
+{
+    if (checkIfExists((char*)path) == 0) {
+        strcpy(task_get_this_task_struct()->cwd, path);
+        task_get_this_task_struct()->cwd[strlen(path)] = '\0';
+        return 0;
+    }
+    return -1;
+}
+
+char*
+vfs_getcwd(char* buf, int size)
+{
+    char* cur_work_dir = task_get_this_task_struct()->cwd;
+    if (strlen(cur_work_dir) < size) {
+        strcpy(buf, task_get_this_task_struct()->cwd);
+        return cur_work_dir;
+    }
+    return NULL;
 }

@@ -131,8 +131,12 @@ checkIfExists(char* path)
 {
     struct nary_tree_node* root = nary_root;
     if (root == NULL) {
-        return 1;
+        return -1;
     }
+    if ((root->data).node_id[0] != path[0]) {
+        return -1;
+    }
+    ++path;
     char* subPath = NULL;
     char* remPath = NULL;
     while (root->firstChild != NULL) {
@@ -157,6 +161,59 @@ checkIfExists(char* path)
                     break;
                 }
                 root = root->sibling;
+            }
+            if (flag == 1)
+                return -1;
+        }
+    }
+    return -1;
+}
+
+int
+delete_nary_node(char* path)
+{
+    struct nary_tree_node* head = nary_root;
+    if (head == NULL)
+        return 1;
+    if ((head->data).node_id[0] != path[0]) {
+        return 1;
+    }
+    ++path;
+    char* subPath = NULL;
+    char* remPath = NULL;
+    while (head->firstChild != NULL) {
+        calcPaths(path, &subPath, &remPath);
+        if (strcmp(((head->firstChild)->data).node_id, subPath) == 0) {
+            if (remPath == NULL) {
+                struct nary_tree_node* temp = head->firstChild;
+                head->firstChild = head->firstChild->sibling;
+                if (head->firstChild == NULL &&
+                    strcmp((head->data).node_id, "/") == 0) {
+                    kfree(head);
+                    nary_root = NULL;
+                }
+                kfree(temp);
+                return 0;
+            }
+            head = head->firstChild;
+            path = remPath;
+        } else {
+            head = head->firstChild;
+            int flag = 1;
+            while (head->sibling != NULL) {
+                if (strcmp(((head->sibling)->data).node_id, subPath) == 0) {
+                    if (remPath == NULL) {
+                        struct nary_tree_node* temp = head->sibling;
+                        head->sibling = (head->sibling)->sibling;
+                        kfree(temp);
+                        return 0;
+                    }
+                    head = head->sibling;
+                    path = remPath;
+                    flag = 0;
+                    break;
+                }
+                head = head->sibling;
             }
             if (flag == 1)
                 return 1;
