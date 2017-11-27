@@ -39,5 +39,6 @@ int mkdir(const char* pathname, mode_t mode);
 int pipe(int pipefd[2]);
 
 int access(const char* pathname, int mode);
+void yield();
 
 #endif

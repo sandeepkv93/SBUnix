@@ -95,7 +95,11 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // TODO We have some hardcoding here and lot of ugly code, needs to be
     // cleaned
 
-    // TODO: check current VMA list and free list if not NULL
+    // TODO: Walk current VMA list, for every virtual address (page boundary)
+    // check pagetable (PT) and empty the entry. If all entries in PT are 0, we
+    // need to free PT frame and mark PD with empty entry and so on. This is
+    // complex, there will be a simple alternative. Find it :P
+    // For now we can mark the PML4 entries in VMA to present 0
 
     // Populate VMAs in the task_struct
     elf_read(bin_name);

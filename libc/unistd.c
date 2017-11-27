@@ -120,6 +120,12 @@ chdir(const char* path)
     return syscall(_SYS__chdir, (long)path, 0, 0);
 }
 
+void
+yield()
+{
+    syscall(_SYS__sched_yield, 0, 0, 0);
+}
+
 #ifdef __TEST__
 void
 _start()

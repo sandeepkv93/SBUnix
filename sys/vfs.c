@@ -116,8 +116,8 @@ vfs_read(int fd, void* buffer, unsigned int count)
                 /*
                 kprintf("Read: %s\n", file_obj->fs_node.name);
                 kprintf("Size: %d\n", file_obj->size);
-                */
                 kprintf("Starting to read.. Cursor at: %d\n", file_obj->cursor);
+                */
                 if (count > file_obj->fs_node.size - file_obj->cursor) {
                     count = file_obj->fs_node.size - file_obj->cursor;
                 }
@@ -131,7 +131,8 @@ vfs_read(int fd, void* buffer, unsigned int count)
                     ++file_starting_address;
                 }
                 file_obj->cursor += i;
-                kprintf("Finished reading.. Cursor at: %d\n", file_obj->cursor);
+                /*kprintf("Finished reading.. Cursor at: %d\n",
+                 * file_obj->cursor);*/
                 return i;
             case NORMAL_FILE_TYPE:
                 break;

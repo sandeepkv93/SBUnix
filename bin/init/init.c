@@ -14,13 +14,17 @@ main(int argc, char** argv, char** envp)
         ret = fork();
         if (ret) {
             puts("Inside parent \n");
+            yield();
         } else {
             puts("Inside child \n");
             execvpe("/bin/init", argv_new, envp_new);
         }
     } else {
         puts("Recieved more than one argument\n");
+        while (1)
+            ;
     }
+    yield();
     while (1)
         ;
 }

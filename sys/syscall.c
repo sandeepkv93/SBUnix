@@ -7,6 +7,12 @@
 extern void syscall_isr_return(long);
 
 long
+syscall_yield()
+{
+    task_yield();
+    return 0;
+}
+long
 syscall_fork()
 {
     return fork();
@@ -85,6 +91,9 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__pipe:
         case _SYS__dup:
         case _SYS__brk:
+        case _SYS__sched_yield:
+            syscall_yield();
+            break;
         // TODO
         // Create a vma in process during read_elf for heap. Grow that vma when
         // brk is called, use a member in vma_struct to identify the VMA
