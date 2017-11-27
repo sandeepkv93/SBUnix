@@ -8,11 +8,11 @@
 #include <sys/kprintf.h>
 #include <sys/paging.h>
 #include <sys/pci.h>
+#include <sys/syscall.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
 #include <sys/term.h>
 #include <test.h>
-#include <sys/syscall.h>
 
 #define INITIAL_STACK_SIZE 4096
 extern uint64_t paging_get_current_cr3();
@@ -24,8 +24,8 @@ extern char kernmem, physbase;
 void
 init_callback()
 {
-    char* argv[] = { "/bin/init", NULL } ;
-    char * envp[] = { "PATH=/bin/", "PWD=/", NULL };
+    char* argv[] = { "/bin/init", NULL };
+    char* envp[] = { "PATH=/bin/", "PWD=/", NULL };
     syscall_wrapper(_SYS__execve, (long)"bin/init", (long)argv, (long)envp);
     kprintf("/bin/init returned!!");
     while (1)
@@ -68,8 +68,8 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     pic_init();
     enable_interrupts(TRUE);
 
+    walk_through_tarfs();
     create_init();
-    /*walk_through_tarfs();*/
     /*task_trial_userland();*/
     // test_kprintf();
     /*test_kmalloc_kfree();*/

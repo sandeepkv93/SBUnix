@@ -95,6 +95,7 @@ lib_str_split(const char* string_, char delimiter, struct stringllnode** start)
     for (i = 0; string_[i] != '\0'; ++i) {
         if (string_[i] == delimiter) {
             lib_str_clean(token);
+            // TODO: Does the string need termination? Please check
             strncpy(token, string_ + beg_index, (end_index - beg_index));
             beg_index = end_index + 1;
             lib_str_remove_extra_spaces(token);
@@ -103,6 +104,7 @@ lib_str_split(const char* string_, char delimiter, struct stringllnode** start)
         ++end_index;
     }
     lib_str_clean(token);
+    // TODO: Does the string need termination? Please check
     strncpy(token, string_ + beg_index, (end_index - beg_index));
     lib_str_remove_extra_spaces(token);
     append(start, token);

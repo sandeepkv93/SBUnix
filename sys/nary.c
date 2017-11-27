@@ -42,6 +42,7 @@ calcPaths(char* path, char** subPath, char** remPath)
         int subPathLength = (int)(strlen(path) - strlen(slashPointOnwards));
         *subPath = kmalloc(subPathLength + 1);
         strncpy(*subPath, path, subPathLength);
+        (*subPath)[subPathLength] = 0; // Need to terminate
         *remPath = kmalloc(strlen(slashPointOnwards));
         *remPath = slashPointOnwards + 1;
     } else {
