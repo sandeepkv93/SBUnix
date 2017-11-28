@@ -26,6 +26,7 @@ init_callback()
 {
     char* argv[] = { "/bin/init", NULL };
     char* envp[] = { "PATH=/bin/", "PWD=/", NULL };
+    task_yield();
     syscall_wrapper(_SYS__execve, (long)"bin/init", (long)argv, (long)envp);
     kprintf("/bin/init returned!!");
     while (1)
@@ -37,6 +38,7 @@ create_init()
 {
     task_struct* init_task = task_create(init_callback);
     init_task->regs.cr3 = paging_get_current_cr3();
+    // Call yield to update me properly
     task_yield();
 }
 

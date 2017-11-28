@@ -30,6 +30,7 @@ uint64_t
 task_initial_setup()
 {
     me = next;
+    set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
     return 0;
 }
 
@@ -87,6 +88,7 @@ task_yield()
     next = tasklist_schedule_task();
     sched_switch_kthread(me, next);
     me = next;
+    set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
 }
 
 void
@@ -148,8 +150,10 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();
     paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
 
-    // Stack grows downwards so we need to give the address of next page
+    // TODO: Is this needed?
     set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
+
+    // Stack grows downwards so we need to give the address of next page
     sched_enter_ring3((uint64_t*)(stackpage_v_addr + PAGING_PAGE_SIZE),
                       (void*)task_get_this_task_struct()->entry_point);
 }
