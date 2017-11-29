@@ -101,6 +101,10 @@ fork(void)
     child_task->regs = parent_task->regs;
     child_task->regs.cr3 = fork_cow((void*)current_pml4_va, 1);
     child_task->ppid = parent_task->pid;
+    strcpy(child_task->binary_name, parent_task->binary_name);
+
+    // TODO deep copy this
+    child_task->vma_list = parent_task->vma_list;
 
     /*
     uint64_t* temp_va = (uint64_t*)PAGING_PAGE_COPY_TEMP_VA;

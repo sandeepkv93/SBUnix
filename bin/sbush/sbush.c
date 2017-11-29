@@ -369,6 +369,7 @@ read_envlist(char** envp)
 int
 main(int argc, char* argv[], char* envp[])
 {
+    puts("[ SBUSH starting ]");
     int mode = MODE_INTERACTIVE;
     char input_line[1000];
     enum cmd_t command_type;

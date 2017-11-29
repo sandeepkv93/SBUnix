@@ -5,26 +5,20 @@
 int
 main(int argc, char** argv, char** envp)
 {
-    char* argv_new[] = { "/bin/init", "told", NULL };
-    char* envp_new[] = { "lksajf", NULL };
+    char* argv_new[] = { "/bin/sbush", NULL };
+    char* envp_new[] = { "PATH=/", NULL };
 
     int ret;
-    if (argc == 1) {
-        puts("Recieved one argumnet\n");
-        ret = fork();
-        if (ret) {
-            puts("Inside parent \n");
-        } else {
-            puts("Inside child \n");
-            execvpe("/bin/init", argv_new, envp_new);
-        }
-    } else {
-        puts("Recieved more than one argument\n");
+    puts("[ INIT started ]");
+    ret = fork();
+    if (!ret) {
+        execvpe("/bin/sbush", argv_new, envp_new);
     }
     while (1)
         yield();
 }
 
+#if 0
 int
 main2(int argc, char** argv, char** envp)
 {
@@ -70,3 +64,4 @@ main2(int argc, char** argv, char** envp)
     }
     return 0;
 }
+#endif

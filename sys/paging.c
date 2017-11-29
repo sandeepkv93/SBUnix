@@ -11,6 +11,7 @@
 struct pagelist_t pages[PAGING_PAGELIST_ENTRIES];
 struct pagelist_t* freepage_head;
 extern void paging_enable(void*);
+extern int paging_flush_tlb_asm();
 
 void
 paging_pagelist_add_addresses(uint64_t start, uint64_t end)
@@ -94,7 +95,7 @@ paging_get_pt_vaddr(uint64_t v_addr)
     // intermdediate page allocatins if table is not present) since we call
     // paging_get_table_entry.
     uint64_t pml4_vaddr, pdp_vaddr, pd_vaddr, pt_vaddr;
-    pml4_vaddr = (~0 << 12);
+    pml4_vaddr = PAGING_PML4_SELF_REFERENCING;
     paging_get_table_entry((uint64_t*)pml4_vaddr, PAGING_PML4_OFFSET(v_addr));
 
     pdp_vaddr = ((pml4_vaddr << 9) | (PAGING_PML4_OFFSET(v_addr) << 12));
@@ -117,10 +118,13 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
     uint64_t* pagetable;
     uint32_t pt_offset;
 
+    // Flush not needed
     pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
     pagetable = paging_get_pt_vaddr(v_addr);
 
     if ((pagetable[pt_offset] & PAGING_PAGE_PRESENT)) {
+        pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS | PAGING_PT_LEVEL4;
+        paging_flush_tlb();
         return FALSE;
     } else {
         pagetable[pt_offset] = p_addr;
@@ -198,7 +202,6 @@ paging_page_copy(char* source_page_va, char* dest_page_va,
 {
     uint64_t* pagetable;
     uint64_t pt_offset;
-    paging_flush_tlb();
     paging_add_pagetable_mapping((uint64_t)dest_page_va, dest_page_pa);
     for (int i = 0; i < PAGING_PAGE_SIZE; i++) {
         dest_page_va[i] = source_page_va[i];
@@ -224,9 +227,5 @@ paging_num_free_pages()
 void
 paging_flush_tlb()
 {
-    __asm__("movq %%cr3, %%rax;"
-            "movq %%rax, %%cr3;"
-            :
-            :
-            : "%rax");
+    paging_flush_tlb_asm();
 }

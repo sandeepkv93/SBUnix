@@ -1,4 +1,4 @@
-.globl paging_enable, paging_set, paging_get_current_cr3
+.globl paging_enable, paging_flush_tlb_asm, paging_get_current_cr3
 
 paging_get_current_cr3:
     movq %cr3, %rax
@@ -18,5 +18,10 @@ paging_enable:
     pop %rax
     pop %rbx
 
+    retq
+
+paging_flush_tlb_asm:
+    movq %cr3, %rax
+    movq %rax, %cr3
     retq
 .end

@@ -22,6 +22,7 @@
 #define PAGING_PAGE_W_ONLY 2
 #define PAGING_PAGE_COW 512   // 9th bit as the COW bit
 #define PAGING_PT_LEVEL4 1024 // 10th bit to mark page table(level 4)
+#define PAGING_PML4_SELF_REFERENCING 0xfffffffffffff000
 struct pagelist_t
 {
     bool present;
