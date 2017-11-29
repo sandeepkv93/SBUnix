@@ -100,7 +100,20 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // need to free PT frame and mark PD with empty entry and so on. This is
     // complex, there will be a simple alternative. Find it :P
     // For now we can mark the PML4 entries in VMA to present 0
+    uint64_t* pml4_va = (uint64_t*)PAGING_PML4_SELF_REFERENCING;
+    struct vma_struct* list_iter;
+    uint64_t va_iter;
+    list_iter = task_get_this_task_struct()->vma_list;
 
+    while (list_iter != NULL) {
+        va_iter = list_iter->vma_start;
+        while (va_iter < list_iter->vma_end) {
+
+            pml4_va[(PAGING_PML4_OFFSET(va_iter)] = 0;
+            va_iter += PAGING_PAGE_SIZE;
+        }
+        list_iter = list_iter->vma_next;
+    }
     // Populate VMAs in the task_struct
     elf_read(bin_name);
 
