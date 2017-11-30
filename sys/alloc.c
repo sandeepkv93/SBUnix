@@ -125,25 +125,11 @@ kfree(void* new)
         temp = temp->meta.next;
     temp->meta.next = new_block;
     new_block->meta.next = freep;
+
+    // new_block->meta.next = freep;
+    // freep = new_block;
 }
 
-void
-print_kfree_list()
-{
-    Header* temp = freep->meta.next;
-    while (temp != freep) {
-        temp = temp->meta.next;
-    }
-}
-
-void
-print_kmalloc_list()
-{
-    Header* temp = start.meta.next;
-    while (temp != &start) {
-        temp = temp->meta.next;
-    }
-}
 Header*
 get_mem(unsigned num_units)
 {

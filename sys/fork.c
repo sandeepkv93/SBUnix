@@ -12,54 +12,50 @@ uint64_t
 fork_cow(uint64_t* page_va_addr, int level)
 {
     uint64_t *temp_va, *pagetable;
-    uint64_t frame_addr, table_entry_addr, pt_offset, next_addr;
-    bool is_pt = FALSE;
+    uint64_t frame_addr, table_entry_addr, pt_offset, next_table_addr;
     frame_addr = (uint64_t)paging_pagelist_get_frame();
-    temp_va = (uint64_t*)PAGING_PAGE_COPY_TEMP_VA;
+    temp_va =
+      (uint64_t*)PAGING_PAGE_COPY_TEMP_VA + (level - 1) * PAGING_PAGE_SIZE;
     pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)temp_va);
 
+    paging_flush_tlb();
+    paging_add_pagetable_mapping((uint64_t)temp_va, frame_addr);
+
     for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
-        next_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
-        if (page_va_addr[i] & PAGING_PAGE_PRESENT) {
-            if (page_va_addr[i] & PAGING_PT_LEVEL4) {
-                is_pt = TRUE;
-                break;
-                // traversal is not required. copy the table into frame. so
-                // break
-            }
-            if (level == 1 && i == PAGING_TABLE_ENTRIES - 1) {
-                table_entry_addr = frame_addr;
-            } else {
-                table_entry_addr = fork_cow((uint64_t*)next_addr, level + 1);
-            }
-            paging_flush_tlb();
-            paging_add_pagetable_mapping((uint64_t)temp_va, frame_addr);
-            temp_va[i] = table_entry_addr;
-            temp_va[i] |= PAGING_PAGETABLE_PERMISSIONS;
-            pagetable = paging_get_pt_vaddr((uint64_t)temp_va);
-            pagetable[pt_offset] = PAGING_PAGE_NOT_PRESENT;
-            paging_flush_tlb();
-        }
-    }
 
-    if (is_pt) {
-        for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
-            next_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
-            if (page_va_addr[i] & PAGING_PAGE_PRESENT) {
-                if (next_addr <
-                    PAGING_KERNMEM) { // next_addr will be the virtual
-                                      // address of the frame
-                    // TODO: handle U and S bit
-                    page_va_addr[i] = (page_va_addr[i] | PAGING_PAGE_COW |
-                                       PAGING_PAGE_PRESENT) &
-                                      ~PAGING_PAGE_W_ONLY;
-                }
-                paging_inc_ref_count(next_addr);
-            }
+        if (!(page_va_addr[i] & PAGING_PAGE_PRESENT)) {
+            continue;
         }
 
-        paging_page_copy((char*)page_va_addr, (char*)temp_va, frame_addr);
+        next_table_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
+
+        if (page_va_addr[i] & PAGING_PT_LEVEL4) {
+
+            if (next_table_addr < PAGING_KERNMEM) {
+                page_va_addr[i] =
+                  (page_va_addr[i] | PAGING_PAGE_COW) & ~PAGING_PAGE_W_ONLY;
+            }
+
+            table_entry_addr = page_va_addr[i];
+            paging_inc_ref_count(next_table_addr);
+
+        } else if (level == 1 && i == PAGING_TABLE_ENTRIES - 1) {
+
+            table_entry_addr = frame_addr;
+
+        } else {
+
+            table_entry_addr = fork_cow((uint64_t*)next_table_addr, level + 1);
+        }
+
+        temp_va[i] = table_entry_addr;
+        temp_va[i] |= PAGING_PAGETABLE_PERMISSIONS;
     }
+
+    pagetable = paging_get_pt_vaddr((uint64_t)temp_va);
+    pagetable[pt_offset] = PAGING_PAGE_NOT_PRESENT;
+    paging_flush_tlb();
+
     return frame_addr;
 }
 

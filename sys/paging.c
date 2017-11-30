@@ -169,6 +169,7 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
     pagetable = paging_get_pt_vaddr(v_addr);
 
     if ((pagetable[pt_offset] & PAGING_PAGE_PRESENT)) {
+        pagetable[pt_offset] = p_addr;
         pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS | PAGING_PT_LEVEL4;
         paging_flush_tlb();
         return FALSE;

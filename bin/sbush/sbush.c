@@ -369,6 +369,18 @@ read_envlist(char** envp)
 int
 main(int argc, char* argv[], char* envp[])
 {
+    char input_line[400];
+    print_ps1();
+    while (fgets(0, input_line)) {
+        if (fork() == 0) {
+            execvpe(input_line, argv, envp);
+        }
+        print_ps1();
+    }
+}
+int
+main2(int argc, char* argv[], char* envp[])
+{
     puts("[ SBUSH starting ]");
     int mode = MODE_INTERACTIVE;
     char input_line[1000];

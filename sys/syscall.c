@@ -80,20 +80,20 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__open:
             ret_val = syscall_open((char*)arg1, (int)arg2);
             break;
-        case _SYS__close:
-        case _SYS__chdir:
         case _SYS__fork:
             ret_val = syscall_fork();
             break;
+        case _SYS__sched_yield:
+            syscall_yield();
+            break;
+        case _SYS__close:
+        case _SYS__chdir:
         case _SYS__wait4:
         case _SYS__exit:
         case _SYS__acces:
         case _SYS__pipe:
         case _SYS__dup:
         case _SYS__brk:
-        case _SYS__sched_yield:
-            syscall_yield();
-            break;
         // TODO
         // Create a vma in process during read_elf for heap. Grow that vma when
         // brk is called, use a member in vma_struct to identify the VMA

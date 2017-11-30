@@ -1,10 +1,8 @@
 #ifndef _PAGING_H
 #include <sys/defs.h>
 #define _PAGING_H
-#define PAGING_PML4_SELF_REFERENCING (~0 << 12)
 #define PAGING_VA_MASK 0xfffffffffffff000
-#define PAGING_PAGE_COPY_TEMP_VA 0xffffffffffff1000
-#define PAGING_COW_TEMP_VA 0xffffffffffff3000
+#define PAGING_PAGE_COPY_TEMP_VA 0xffffffffaffff000
 #define PAGING_KERNMEM 0xffffffff80000000
 #define PAGING_VIDEO (PAGING_KERNMEM + 0x800000) // 2nd part is 2048 * PAGESIZE
 #define PAGING_PAGE_SIZE 4096
