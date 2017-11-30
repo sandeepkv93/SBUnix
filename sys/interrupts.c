@@ -206,11 +206,18 @@ page_fault_handler(uint64_t v_addr)
 
         if ((pagetable[pt_offset] & PAGING_PAGE_COW) &&
             ((pagetable[pt_offset] & PAGING_PAGE_W_ONLY) == 0)) {
+            paging_pagelist_free_frame(v_addr); // decrement the frame
+                                                // reference count since a
+                                                // new page will be mapped
+                                                // to this virtual address
             p_addr = (uint64_t)paging_pagelist_get_frame();
             paging_page_copy((char*)(v_addr & 0xfffffffffffff000),
                              (char*)PAGING_COW_TEMP_VA, p_addr);
             pagetable[pt_offset] = p_addr;
-            pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS;
+            pagetable[pt_offset] |=
+              PAGING_PAGETABLE_PERMISSIONS |
+              PAGING_PT_LEVEL4; // level 4 to indicate that it is pt table. This
+                                // is used in later forks of this process
         }
     } else {
         while (list != NULL) {
@@ -221,8 +228,8 @@ page_fault_handler(uint64_t v_addr)
                 paging_add_pagetable_mapping(v_addr & 0xfffffffffffff000,
                                              p_addr);
 
-                // TODO: Take care if offset is big
-                // TODO: if anon mapping, skip above step.
+                // TODO: Take care if offset is more than a page size
+                // TODO: if anon mapping, skip reading file.
 
                 // Read binary content onto the addresses
                 fd = vfs_open(task_get_this_task_struct()->binary_name, 0);

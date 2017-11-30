@@ -76,7 +76,51 @@ kfree(void* new)
         return;
     }
     new_block = (Header*)new - 1;
+    /*coalase free VAs. Walk over the free list, free when the size of a header
+     * is greater than 4096. If it is greater, create a header in the next page,
+     * and update size. Coalase this too. This is to avoid fragmentation. Loop
+     * over the list until no more pages can be freed.
+    */
 
+    // add free'd nodes in the increasing order of addresses.
+
+    /* coalase while adding a node to the free list. If the size is greater than
+     * or equal to the page size, call a walk_free_list function that walks over
+     * it, and frees the page, splits the node if rewuires.
+    */
+    /*
+    Spend time on testing. This won't break now, this will break during
+    evaluation.
+    */
+    /*
+        Header * new_temp = freep;
+        bool inserted = FALSE;
+        int inserted_size;
+        while(new_temp < new_block)
+              new_temp = new_temp->meta.next;
+        if(new_temp + new_temp->meta.size + 1 == new_block)
+           {
+               new_temp->meta.size = new_temp->meta.size + new_block->meta.size
+       + 1;           inserted = TRUE;
+               inserted_size = new_temp->meta.size; //+1 for header?
+           }
+        if(new_block + new_block->meta.size + 1 == new_temp->meta.next )
+          {
+               new_block->meta.size = new_block->meta.size + new_temp->meta.size
+       +1;           new_block->meta.next = new_temp->meta.next->meta.next;
+               new_temp->meta.next = new_block;
+               inserted = TRUE;
+               inserted_size = new_block->meta.size;
+          }
+        if(!inserted)
+          {
+               new_block->meta.next = new_temp->meta.next;
+               new_temp->meta.next = new_block;
+               inserted_size = new_block->meta.size;
+          }
+          if(inserted_size>=PAGING_PAGE_SIZE)
+               find_and_free_page(node,inerted_size);
+    */
     while (temp->meta.next != freep)
         temp = temp->meta.next;
     temp->meta.next = new_block;
@@ -134,3 +178,30 @@ kmalloc(size_t num_bytes)
         cur = cur->meta.next;
     }
 }
+
+/*
+void brk(void * brk_inc)
+{
+    struct vma_struct * vma_temp;
+    uint64_t p_addr;
+    vma_temp = task_get_this_task_struct()->vma_list;
+    while(vma_temp->type != VMA_HEAP)
+       vma_temp=vma_temp->next;
+if(brk_inc == NULL or (uint64_t)brk_inc <= 0)
+ {
+   return vma_temp->end;
+ }
+
+//we won't reduce the program data section
+
+ if(((vma_temp->end % PAGING_PAGE_SIZE) + brk_inc) > PAGING_PAGE_SIZE)
+     {
+         //alloc page
+         vma_temp->end+=brk_inc;
+         p_addr = (uint64_t)paging_pagelist_get_frame();
+         paging_add_pagetable_mapping(vma_temp->end & PAGING_VA_MASK ,
+                                             p_addr);
+     }
+
+}
+*/

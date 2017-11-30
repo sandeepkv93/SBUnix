@@ -6,4 +6,5 @@ void test_kmalloc_kfree();
 void test_tasklist();
 void test_sched();
 void test_kprintf();
+void test_page_free();
 #endif

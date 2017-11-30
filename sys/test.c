@@ -50,6 +50,21 @@ test_alloc_get_page()
 }
 
 void
+test_page_free()
+{
+    uint64_t frame = (uint64_t)paging_pagelist_get_frame();
+    uint64_t v_addr = (uint64_t)0x2300000;
+    paging_add_pagetable_mapping((uint64_t)v_addr, frame);
+    paging_inc_ref_count(v_addr);
+    paging_inc_ref_count(v_addr);
+    paging_pagelist_free_frame(v_addr);
+    paging_pagelist_free_frame(v_addr);
+    paging_inc_ref_count(v_addr);
+    paging_pagelist_free_frame(v_addr);
+    paging_pagelist_free_frame(v_addr);
+}
+
+void
 test_kmalloc_kfree()
 {
     // basic tests for different data types

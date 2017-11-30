@@ -26,7 +26,7 @@ elf_read(char* binary_file)
     strcpy(task_get_this_task_struct()->binary_name, binary_file);
 
     phdr = (Elf64_Phdr*)kmalloc(sizeof(Elf64_Phdr) * ehdr.e_phnum);
-
+    // TODO: load only LOAD and STACK and whichever is needed :/
     vfs_seek(fd, ehdr.e_phoff);
 
     for (int i = 0; i < ehdr.e_phnum; i++) {

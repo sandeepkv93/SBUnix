@@ -45,13 +45,16 @@ fork_cow(uint64_t* page_va_addr, int level)
     if (is_pt) {
         for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
             next_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
-            if ((page_va_addr[i] & PAGING_PAGE_PRESENT) &&
-                next_addr < PAGING_KERNMEM) { // next_addr will be the virtual
-                                              // address of the frame
-                // TODO: handle U and S bit
-                page_va_addr[i] =
-                  (page_va_addr[i] | PAGING_PAGE_COW | PAGING_PAGE_PRESENT) &
-                  ~PAGING_PAGE_W_ONLY;
+            if (page_va_addr[i] & PAGING_PAGE_PRESENT) {
+                if (next_addr <
+                    PAGING_KERNMEM) { // next_addr will be the virtual
+                                      // address of the frame
+                    // TODO: handle U and S bit
+                    page_va_addr[i] = (page_va_addr[i] | PAGING_PAGE_COW |
+                                       PAGING_PAGE_PRESENT) &
+                                      ~PAGING_PAGE_W_ONLY;
+                }
+                paging_inc_ref_count(next_addr);
             }
         }
 
@@ -93,7 +96,7 @@ fork(void)
 {
     task_struct* child_task = task_create(NULL);
     task_struct* parent_task = task_get_this_task_struct();
-    uint64_t current_pml4_va = (~0 << 12);
+    uint64_t current_pml4_va = PAGING_PML4_SELF_REFERENCING;
 
     // TODO add task_yield here if we need most recent regs, careful because
     // child might get scheduled

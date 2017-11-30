@@ -14,13 +14,44 @@ extern void paging_enable(void*);
 extern int paging_flush_tlb_asm();
 
 void
+update_pt_entry(uint64_t v_addr, uint64_t addr_flags)
+{
+    uint64_t* pt_table = paging_get_pt_vaddr(v_addr);
+    uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
+    pt_table[pt_offset] = addr_flags;
+}
+
+void
 paging_pagelist_add_addresses(uint64_t start, uint64_t end)
 {
     // Call with start and end physical addresses that you want to
     // be bookkept in the FREELIST
     for (int i = start / PAGING_PAGE_SIZE; i < end / PAGING_PAGE_SIZE; i++) {
         pages[i].present = TRUE;
+        pages[i].ref_count = 0;
     }
+}
+
+uint64_t
+get_ref_count(uint64_t v_addr)
+{
+    uint64_t frame_addr, index;
+    uint64_t* pt_table = paging_get_pt_vaddr(v_addr);
+    uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
+    frame_addr = pt_table[pt_offset]; // flags get removed after division
+    index = frame_addr / PAGING_PAGE_SIZE;
+    return pages[index].ref_count;
+}
+
+void
+paging_inc_ref_count(uint64_t v_addr)
+{
+    uint64_t frame_addr, index;
+    uint64_t* pt_table = paging_get_pt_vaddr(v_addr);
+    uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
+    frame_addr = pt_table[pt_offset]; // flags get removed after division
+    index = frame_addr / PAGING_PAGE_SIZE;
+    pages[index].ref_count++;
 }
 
 void
@@ -58,16 +89,31 @@ paging_pagelist_get_frame()
         while (1)
             ;
     }
+    freepage_head->ref_count = 1;
     freepage_head = freepage_head->next;
     return (void*)pageAddress;
 }
 
 void
-paging_pagelist_free_frame()
+add_free_frame(uint64_t index)
 {
-    // TODO Free frame
+    pages[index].next = freepage_head->next;
+    freepage_head = &pages[index];
 }
 
+void
+paging_pagelist_free_frame(uint64_t v_addr)
+{
+    uint64_t frame_addr, index;
+    uint64_t* pt_table = paging_get_pt_vaddr(v_addr);
+    uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
+    frame_addr = pt_table[pt_offset]; // flags get removed after division
+    index = frame_addr / PAGING_PAGE_SIZE;
+    pages[index].ref_count--;
+    if (pages[index].ref_count == 0) {
+        add_free_frame(index);
+    }
+}
 uint64_t*
 paging_get_table_entry(uint64_t* table, uint32_t offset)
 {

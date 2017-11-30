@@ -1,7 +1,8 @@
 #ifndef _PAGING_H
 #include <sys/defs.h>
 #define _PAGING_H
-
+#define PAGING_PML4_SELF_REFERENCING (~0 << 12)
+#define PAGING_VA_MASK 0xfffffffffffff000
 #define PAGING_PAGE_COPY_TEMP_VA 0xffffffffffff1000
 #define PAGING_COW_TEMP_VA 0xffffffffffff3000
 #define PAGING_KERNMEM 0xffffffff80000000
@@ -26,6 +27,7 @@
 struct pagelist_t
 {
     bool present;
+    int ref_count;
     struct pagelist_t* next;
 };
 void paging_pagelist_add_addresses(uint64_t start, uint64_t end);
@@ -39,4 +41,7 @@ uint64_t* paging_get_pt_vaddr(uint64_t v_addr);
 void paging_page_copy(char* source_page_va, char* dest_page_va,
                       uint64_t dest_page_pa);
 void paging_flush_tlb();
+uint64_t get_ref_count(uint64_t v_addr);
+void paging_inc_ref_count(uint64_t v_addr);
+void paging_pagelist_free_frame(uint64_t v_addr);
 #endif

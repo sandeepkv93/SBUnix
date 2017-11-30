@@ -1,6 +1,11 @@
 #ifndef _VMA_H
 #define _VMA_H
 #include <sys/elf64.h>
+
+#define VMA_LOAD 1
+#define VMA_STACK 2
+#define VMA_HEAP 4
+
 struct vma_struct
 {
     uint64_t vma_start; // first addr within range
@@ -8,8 +13,9 @@ struct vma_struct
     struct vma_struct* vma_next;
     char* vma_filepath;
     uint64_t vma_file_offset;
-    uint32_t vma_flags;
+    uint32_t vma_flags; // rwx permissions
     uint64_t vma_file_size;
+    uint32_t vma_type; // stack, heap, other types
 };
 struct vma_struct* vma_add_node(struct vma_struct* vma_first, uint64_t start,
                                 uint64_t end, char* filepath, uint64_t size,
