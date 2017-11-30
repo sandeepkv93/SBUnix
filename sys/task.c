@@ -7,6 +7,7 @@
 #include <sys/string.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
+#include <sys/term.h>
 #include <sys/vma.h>
 
 #define ARGV_ENV_MAX 200
@@ -86,6 +87,7 @@ void
 task_yield()
 {
     next = tasklist_schedule_task();
+    term_set_glyph(0, '0' + next->pid);
     sched_switch_kthread(me, next);
     me = next;
     set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
@@ -100,9 +102,11 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // We use the temporary page to copy data because we are going to a new
     // address space
     uint64_t stackpage_v_addr = PAGING_KERNMEM - PAGING_PAGE_SIZE;
+    uint64_t copy_page_va = PAGING_PAGE_COPY_TEMP_VA;
     uint64_t stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();
-    uint64_t* argv_envp_data = (uint64_t*)stackpage_v_addr;
+    uint64_t* argv_envp_data = (uint64_t*)copy_page_va;
     char* curr_string_data = (char*)(argv_envp_data + ARGV_ENV_MAX);
+    uint64_t* pml4_va = (uint64_t*)PAGING_PML4_SELF_REFERENCING;
 
     // TODO We have some hardcoding here and lot of ugly code, needs to be
     // cleaned
@@ -112,7 +116,6 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // need to free PT frame and mark PD with empty entry and so on. This is
     // complex, there will be a simple alternative. Find it :P
     // For now we can mark the PML4 entries in VMA to present 0
-    uint64_t* pml4_va = (uint64_t*)PAGING_PML4_SELF_REFERENCING;
 
     // Populate VMAs in the task_struct
     elf_read(bin_name);
@@ -120,11 +123,13 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // Get one page_frame mapped in stack region, we'll use it to store argv and
     // env. Refer crt1.c for a diagram
 
-    paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
+    paging_add_pagetable_mapping(copy_page_va, stackpage_p_addr);
+    paging_flush_tlb();
 
     for (int i = 0; argv[i] != NULL; i++) {
         strcpy(curr_string_data, argv[i]);
-        argv_envp_data[i + 1] = (uint64_t)curr_string_data;
+        argv_envp_data[i + 1] =
+          ((uint64_t)curr_string_data) - (copy_page_va - stackpage_v_addr);
         curr_string_data += strlen(curr_string_data) + 1; // 1 for '\0'
         argc++;
     }
@@ -137,7 +142,8 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
 
     for (int i = 0; envp[i] != NULL; i++) {
         strcpy(curr_string_data, envp[i]);
-        argv_envp_data[i + argc + 2] = (uint64_t)curr_string_data;
+        argv_envp_data[i + argc + 2] =
+          ((uint64_t)curr_string_data) - (copy_page_va - stackpage_v_addr);
         curr_string_data += strlen(curr_string_data) + 1;
         envc++;
     }

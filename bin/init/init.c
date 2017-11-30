@@ -5,7 +5,7 @@
 int
 main(int argc, char** argv, char** envp)
 {
-    char* argv_new[] = { "/bin/sbush", NULL };
+    char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
     char* envp_new[] = { "PATH=/", NULL };
 
     int ret;

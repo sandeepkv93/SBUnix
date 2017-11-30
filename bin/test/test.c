@@ -9,6 +9,9 @@ main(int argc, char** argv, char** envp)
 {
     int i;
     char buff[100];
+    puts("Hey!\n");
+    while (1)
+        yield();
 
     for (i = 0; i < argc; i++) {
         puts(argv[i]);

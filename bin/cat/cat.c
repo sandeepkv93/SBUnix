@@ -29,6 +29,15 @@ main(int argc, char** argv)
     char buf[255];
     int read_size;
     int i;
+    if ((fd_read = open(argv[1], O_RDONLY)) < 0) {
+        puts("Error opening the file");
+    }
+    while ((read_size = read(fd_read, buf, BUF_SIZE)) > 0) {
+        write(1, buf, read_size);
+    }
+    close(fd_read);
+    while (1)
+        yield();
     for (i = 1; i < argc; i++) {
         if ((fd_read = open(argv[i], O_DIRECTORY)) > -1) {
             putstr(argv[i]);
