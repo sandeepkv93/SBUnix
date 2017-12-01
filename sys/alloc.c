@@ -1,5 +1,7 @@
 #include <sys/kprintf.h>
 #include <sys/paging.h>
+#include <sys/task.h>
+#include <sys/vma.h>
 uint64_t cur_kern_heap = PAGING_VIDEO + 0x10000;
 
 union header
@@ -130,6 +132,25 @@ kfree(void* new)
     // freep = new_block;
 }
 
+void
+print_kfree_list()
+{
+    Header* temp = freep->meta.next;
+    while (temp != freep) {
+        kprintf("node %x next %x", temp, temp->meta.next);
+        temp = temp->meta.next;
+    }
+}
+
+void
+print_kmalloc_list()
+{
+    Header* temp = start.meta.next;
+    while (temp != &start) {
+        kprintf("node %x next %x", temp, temp->meta.next);
+        temp = temp->meta.next;
+    }
+}
 Header*
 get_mem(unsigned num_units)
 {
@@ -165,29 +186,17 @@ kmalloc(size_t num_bytes)
     }
 }
 
-/*
-void brk(void * brk_inc)
+void*
+alloc_brk(void* new_brk)
 {
-    struct vma_struct * vma_temp;
-    uint64_t p_addr;
+    struct vma_struct* vma_temp;
+
     vma_temp = task_get_this_task_struct()->vma_list;
-    while(vma_temp->type != VMA_HEAP)
-       vma_temp=vma_temp->next;
-if(brk_inc == NULL or (uint64_t)brk_inc <= 0)
- {
-   return vma_temp->end;
- }
+    while (vma_temp->vma_type != VMA_HEAP)
+        vma_temp = vma_temp->vma_next;
 
-//we won't reduce the program data section
-
- if(((vma_temp->end % PAGING_PAGE_SIZE) + brk_inc) > PAGING_PAGE_SIZE)
-     {
-         //alloc page
-         vma_temp->end+=brk_inc;
-         p_addr = (uint64_t)paging_pagelist_get_frame();
-         paging_add_pagetable_mapping(vma_temp->end & PAGING_VA_MASK ,
-                                             p_addr);
-     }
-
+    if (new_brk != NULL) {
+        vma_temp->vma_end = (uint64_t)new_brk;
+    }
+    return (void*)vma_temp->vma_end;
 }
-*/

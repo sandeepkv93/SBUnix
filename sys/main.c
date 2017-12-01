@@ -71,6 +71,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
     enable_interrupts(TRUE);
 
     walk_through_tarfs();
+    // test_kmalloc_kfree();
     create_init();
     /*task_trial_userland();*/
     // test_kprintf();

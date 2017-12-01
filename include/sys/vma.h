@@ -11,7 +11,7 @@ struct vma_struct
     uint64_t vma_start; // first addr within range
     uint64_t vma_end;   // first addr outside range
     struct vma_struct* vma_next;
-    char* vma_filepath;
+    //    char vma_filepath[30];
     uint64_t vma_file_offset;
     uint32_t vma_flags; // rwx permissions
     uint64_t vma_file_size;

@@ -70,21 +70,22 @@ test_kmalloc_kfree()
     // basic tests for different data types
     int* p[257];
     int i;
-    int loop_size = 0;
+    int loop_size = 6;
     for (i = 0; i < loop_size; i++) {
-        p[i] = kmalloc(sizeof(int));
+        p[i] = kmalloc(0x9000);
         kprintf("address %p\n", p[i]);
         *(p[i]) = i;
         kprintf("value %d\n", *(p[i]));
     }
+    print_kmalloc_list();
     // simulate a call to alloc_get_page from a different function
-    void* dummy = alloc_get_page();
-    kprintf("Dummy page %p", dummy);
     for (i = 0; i < loop_size; i++) {
         kfree(p[i]);
     }
+    kprintf("free\n");
+    print_kfree_list();
     for (i = 0; i < loop_size; i++) {
-        p[i] = kmalloc(sizeof(int));
+        p[i] = kmalloc(0x9000);
         kprintf("address %p\n", p[i]);
         *(p[i]) = i;
         kprintf("value %d\n", *(p[i]));
