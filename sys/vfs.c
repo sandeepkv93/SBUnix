@@ -33,7 +33,7 @@ vfs_open(char* pathname, int flags)
         strcpy(path, task_get_this_task_struct()->cwd);
         strcat(path, pathname);
     }
-    struct fs_node_entry* fs_node = findNaryNode(path);
+    struct fs_node_entry* fs_node = findNaryNodeData(path);
     if (fs_node != NULL) {
         vfs_file_object* file_obj = kmalloc(sizeof(vfs_file_object));
         strcpy(file_obj->file_name, fs_node->node_id);
@@ -117,22 +117,41 @@ vfs_read(int fd, void* buffer, unsigned int count)
                 kprintf("Read: %s\n", file_obj->fs_node.name);
                 kprintf("Size: %d\n", file_obj->size);
                 */
-                kprintf("Starting to read.. Cursor at: %d\n", file_obj->cursor);
-                if (count > file_obj->fs_node.size - file_obj->cursor) {
-                    count = file_obj->fs_node.size - file_obj->cursor;
+                if (file_obj->fs_node.typeflag[0] == FILE_TYPE + '0') {
+                    kprintf("Starting to read.. Cursor at: %d\n",
+                            file_obj->cursor);
+                    if (count > file_obj->fs_node.size - file_obj->cursor) {
+                        count = file_obj->fs_node.size - file_obj->cursor;
+                    }
+                    char* file_starting_address =
+                      (char*)(file_obj->fs_node.struct_address +
+                              sizeof(struct posix_header_ustar) +
+                              file_obj->cursor);
+                    int i = 0;
+                    char* reader = (char*)buffer;
+                    for (; i < count; ++i) {
+                        reader[i] = *file_starting_address;
+                        ++file_starting_address;
+                    }
+                    file_obj->cursor += i;
+                    kprintf("Finished reading.. Cursor at: %d\n",
+                            file_obj->cursor);
+                    return i;
+                } else if (file_obj->fs_node.typeflag[0] == DIRECTORY + '0') {
+                    file_obj->cursor += 1;
+                    char directory_path[4096];
+                    if (file_obj->fs_node.name[0] != '/') {
+                        strcpy(directory_path, "/");
+                        strcat(directory_path, file_obj->fs_node.name);
+                    }
+                    struct nary_tree_node* nary_node =
+                      findNaryNode(directory_path);
+                    struct nary_tree_node* nth_nary_node =
+                      findNthChild(nary_node, file_obj->cursor);
+                    strcpy(buffer, (nth_nary_node->data).name);
+                    return strlen((nth_nary_node->data).name);
                 }
-                char* file_starting_address =
-                  (char*)(file_obj->fs_node.struct_address +
-                          sizeof(struct posix_header_ustar) + file_obj->cursor);
-                int i = 0;
-                char* reader = (char*)buffer;
-                for (; i < count; ++i) {
-                    reader[i] = *file_starting_address;
-                    ++file_starting_address;
-                }
-                file_obj->cursor += i;
-                kprintf("Finished reading.. Cursor at: %d\n", file_obj->cursor);
-                return i;
+
             case NORMAL_FILE_TYPE:
                 break;
             default:

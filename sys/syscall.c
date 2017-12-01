@@ -49,6 +49,17 @@ syscall_write(uint64_t fd, char* buff, uint64_t count)
     }
     return ret;
 }
+
+long
+syscall_close(uint64_t fd)
+{
+    long ret = -1;
+    if (fd != STDIN || fd != STDOUT || fd != STDERR) {
+        ret = vfs_close(fd);
+    }
+    return ret;
+}
+
 long
 syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
 {
@@ -69,6 +80,8 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             ret_val = syscall_open((char*)arg1, (int)arg2);
             break;
         case _SYS__close:
+            ret_val = syscall_close((int)arg1);
+            break;
         case _SYS__chdir:
         case _SYS__fork:
         case _SYS__wait4:

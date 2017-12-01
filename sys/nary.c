@@ -83,9 +83,56 @@ insertInPath(struct nary_tree_node* root, struct fs_node_entry data)
     }
 }
 
-struct fs_node_entry*
+struct nary_tree_node*
 findNaryNode(char* path)
 {
+    struct nary_tree_node* root = nary_root;
+    if (root == NULL) {
+        return NULL;
+    }
+    if ((root->data).node_id[0] != path[0]) {
+        return NULL;
+    }
+    ++path;
+    if (path[strlen(path) - 1] == '/') {
+        path[strlen(path) - 1] = '\0';
+    }
+    char* subPath = NULL;
+    char* remPath = NULL;
+    while (root->firstChild != NULL) {
+        calcPaths(path, &subPath, &remPath);
+        if (strcmp(((root->firstChild)->data).node_id, subPath) == 0) {
+            if (remPath == NULL) {
+                return root->firstChild;
+            }
+            root = root->firstChild;
+            path = remPath;
+        } else {
+            root = root->firstChild;
+            int flag = 1;
+            while (root->sibling != NULL) {
+                if (strcmp(((root->sibling)->data).node_id, subPath) == 0) {
+                    if (remPath == NULL) {
+                        return root->sibling;
+                    }
+                    root = root->sibling;
+                    path = remPath;
+                    flag = 0;
+                    break;
+                }
+                root = root->sibling;
+            }
+            if (flag == 1)
+                return NULL;
+        }
+    }
+    return NULL;
+}
+
+struct fs_node_entry*
+findNaryNodeData(char* path)
+{
+    /*
     struct nary_tree_node* root = nary_root;
     if (root == NULL) {
         return NULL;
@@ -122,6 +169,31 @@ findNaryNode(char* path)
             if (flag == 1)
                 return NULL;
         }
+    }
+    return NULL;
+    */
+    struct nary_tree_node* nary_node = findNaryNode(path);
+    return &(nary_node->data);
+}
+
+struct nary_tree_node*
+findNthChild(struct nary_tree_node* parent, int N)
+{
+    struct nary_tree_node* cur = parent;
+    if (cur == NULL) {
+        return NULL;
+    }
+    if (N == 1) {
+        return cur->firstChild;
+    }
+    if (N > 1) {
+        cur = cur->firstChild;
+        --N;
+        while (N > 0 && cur != NULL) {
+            cur = cur->sibling;
+            N--;
+        }
+        return cur;
     }
     return NULL;
 }
