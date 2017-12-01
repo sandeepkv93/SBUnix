@@ -42,28 +42,49 @@ tasklist_add_task(task_struct* task)
     tasklist_head->prev = t_node;
 }
 
-bool
-tasklist_remove_task(pid_t pid)
+tasklist_node*
+tasklist_find_node(pid_t pid)
 {
-    kprintf("task--\n");
     tasklist_node* curr = tasklist_head;
     while (curr) {
         if (curr->task->pid == pid) {
             // Found
-            break;
+            return curr;
         }
         curr = curr->next;
 
         if (curr == tasklist_head) {
             // One loop complete. Not found
-            return FALSE;
+            return NULL;
         }
     }
+    return curr;
+}
 
-    if (!curr) {
-        return FALSE;
-    }
+task_struct*
+tasklist_get_task(pid_t pid)
+{
+    return tasklist_find_node(pid)->task;
+}
 
+task_struct*
+tasklist_find_first_child(pid_t ppid, task_state state)
+{
+    //TODO iterate over list and check for matching ppid and state.
+    return NULL;
+}
+
+void
+tasklist_set_task_state(pid_t pid, task_state state)
+{
+    // TODO call get_task and update state
+
+}
+
+bool
+tasklist_remove_task(pid_t pid)
+{
+    tasklist_node* curr = tasklist_find_node(pid);
     if (curr->next == curr) {
         // Only one element
         tasklist_head = NULL;
@@ -75,7 +96,6 @@ tasklist_remove_task(pid_t pid)
         // task_head to be deleted
         tasklist_head = tasklist_head->next;
     }
-
     curr->next->prev = curr->prev;
     curr->prev->next = curr->next;
     kfree((void*)curr);
@@ -87,6 +107,7 @@ task_struct*
 tasklist_schedule_task()
 {
     // We track the task to be scheduled next using task_head
+    // TODO: return only runnable tasks
     tasklist_node* t;
     if (tasklist_head) {
         t = tasklist_head;

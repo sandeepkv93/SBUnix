@@ -8,6 +8,13 @@
  * Don't change the order of members of the following structures
  * Context switch might fail
  */
+typedef enum task_state_ {
+    task_runnable,
+    task_sleep_read,
+    task_zombie,
+    task_any_state,
+} task_state;
+
 typedef struct _regstruct
 {
     uint64_t rbp;
@@ -31,6 +38,7 @@ typedef struct _taskstruct
     char binary_name[PATH_LENGTH];
     uint64_t entry_point;
     char cwd[PATH_LENGTH];
+    task_state state;
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 
 task_struct* task_create();
