@@ -1,7 +1,5 @@
 #ifndef _TERM_H
 #define _TERM_H
-// TODO remove the following and use #def from paging.h
-#define TERM_VIDEO_MEMORY 0xffffffff80800000
 #define TERM_BG_FG_COLOR(x, y) ((x << 4) | y)
 enum term_colors
 {

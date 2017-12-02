@@ -45,17 +45,27 @@
     movq %rbx, 16(%rdi)
     movq %rcx, 24(%rdi)
     movq %rdx, 32(%rdi)
+    movq %r8,  40(%rdi)
+    movq %r9,  48(%rdi)
+    movq %r10, 56(%rdi)
+    movq %r11, 64(%rdi)
+    movq %r12, 72(%rdi)
+    movq %r13, 80(%rdi)
+    movq %r14, 88(%rdi)
+    movq %r15, 96(%rdi)
+
     pushf 
-    pop 48(%rdi)
+    pop 104(%rdi)
 
     movq %cr3, %rax
-    movq %rax, 56(%rdi)
+    movq %rax, 112(%rdi)
+
 
     // Save 'me' (address of task_struct) on stack
     push %rdi
 
     // Now save latest RSP as well in the task_stuct.
-    movq %rsp, 40(%rdi)
+    movq %rsp, 120(%rdi)
 
 
     // Do the steps above in reverse with next task_struct
@@ -63,22 +73,31 @@
 
 
     // change RSP
-    movq 40(%rsi), %rsp
+    movq 120(%rsi), %rsp
 
     // Get task_struct address
     pop %rdi
 
-    movq 56(%rdi), %rax
+    movq 112(%rdi), %rax
     movq %rax, %cr3
 
     // Restore registers
-    push 48(%rdi)
+    push 104(%rdi)
     popf
+
     movq  0(%rdi), %rbp
     movq  8(%rdi), %rax
     movq 16(%rdi), %rbx
     movq 24(%rdi), %rcx
     movq 32(%rdi), %rdx
+    movq 40(%rdi), %r8
+    movq 48(%rdi), %r9
+    movq 56(%rdi), %r10
+    movq 64(%rdi), %r11
+    movq 72(%rdi), %r12
+    movq 80(%rdi), %r13
+    movq 88(%rdi), %r14
+    movq 96(%rdi), %r15
 
     retq
 

@@ -94,8 +94,7 @@ fork(void)
     task_struct* parent_task = task_get_this_task_struct();
     uint64_t current_pml4_va = PAGING_PML4_SELF_REFERENCING;
 
-    // TODO add task_yield here if we need most recent regs, careful because
-    // child might get scheduled
+    task_save_state();
 
     child_task->regs = parent_task->regs;
     child_task->regs.cr3 = fork_cow((void*)current_pml4_va, 1);

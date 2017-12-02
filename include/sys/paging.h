@@ -4,7 +4,8 @@
 #define PAGING_VA_MASK 0xfffffffffffff000
 #define PAGING_PAGE_COPY_TEMP_VA 0xffffffffaffff000
 #define PAGING_KERNMEM 0xffffffff80000000
-#define PAGING_VIDEO (PAGING_KERNMEM + 0x800000) // 2nd part is 2048 * PAGESIZE
+#define PAGING_VIDEO                                                           \
+    (PAGING_KERNMEM + 0x1388000) // 2nd part is 5000 * PAGESIZE TODO
 #define PAGING_PAGE_SIZE 4096
 #define PAGING_TABLE_ENTRIES 512
 
@@ -34,7 +35,6 @@ void* paging_pagelist_get_frame();
 void paging_create_pagetables();
 uint64_t* paging_get_table_entry(uint64_t* table, uint32_t offset);
 bool paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr);
-void paging_pagelist_free_frame();
 uint64_t* paging_get_pt_vaddr(uint64_t v_addr);
 void paging_page_copy(char* source_page_va, char* dest_page_va,
                       uint64_t dest_page_pa);

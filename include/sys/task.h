@@ -15,9 +15,17 @@ typedef struct _regstruct
     uint64_t rbx;
     uint64_t rcx;
     uint64_t rdx;
-    uint64_t rsp;
+    uint64_t r8;
+    uint64_t r9;
+    uint64_t r10;
+    uint64_t r11;
+    uint64_t r12;
+    uint64_t r13;
+    uint64_t r14;
+    uint64_t r15;
     uint64_t flags;
     uint64_t cr3;
+    uint64_t rsp;
 } __attribute__((packed)) __attribute__((aligned(64))) reg_struct;
 
 typedef struct _taskstruct
@@ -40,4 +48,5 @@ void task_exec_ring3(char* bin_name, char** argv, char** envp);
 task_struct* task_get_this_task_struct();
 uint64_t task_initial_setup();
 void task_yield();
+void task_save_state();
 #endif

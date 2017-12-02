@@ -1,5 +1,6 @@
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/term.h>
 #define VC_ROW_LIMIT 25
 #define VC_COL_LIMIT 80
@@ -28,7 +29,7 @@ volatile struct
 void
 term_scroll_on_overflow()
 {
-    char* v_mem = (char*)TERM_VIDEO_MEMORY;
+    char* v_mem = (char*)PAGING_VIDEO;
     if (v_cursor.row >= VC_ROW_LIMIT) {
         /* If we just need to overwrite use following. Else we'll scroll
         v_cursor.row = 0;
@@ -56,7 +57,7 @@ int
 term_write(const char* buf, int buflen)
 {
     uint32_t index = 0;
-    char* v_mem = (char*)TERM_VIDEO_MEMORY;
+    char* v_mem = (char*)PAGING_VIDEO;
     bool interrupts_enabled = are_interrupts_enabled();
 
     /*
@@ -129,8 +130,8 @@ term_set_cursor(uint8_t row, uint8_t column, uint8_t color)
 void
 term_clear_screen()
 {
-    char* vc = (char*)TERM_VIDEO_MEMORY;
-    for (int i = 0; i < VC_ROW_LIMIT * VC_COL_LIMIT * VC_CHAR_PER_COL; i++) {
+    char* vc = (char*)PAGING_VIDEO;
+    for (int i = 0; i < VC_ROW_LIMIT * VC_COL_LIMIT; i++) {
         *vc = ' ';
         vc += 2;
     }
@@ -221,7 +222,7 @@ term_set_time(uint64_t seconds)
     char str[20];
     uint8_t strlen;
 
-    uint8_t* vc = (uint8_t*)TERM_VIDEO_MEMORY;
+    uint8_t* vc = (uint8_t*)PAGING_VIDEO;
     uint8_t start_position = 116;
 
     int mins = seconds / 60;
@@ -241,6 +242,6 @@ term_set_glyph(uint8_t pos, char c)
 {
     // This prints a character in column 0 of top line
     char* t;
-    t = (char*)TERM_VIDEO_MEMORY + pos * 2;
+    t = (char*)PAGING_VIDEO + pos * 2;
     *t = c;
 }

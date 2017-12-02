@@ -165,7 +165,6 @@ pic_init()
 void
 kb_isr()
 {
-    // TODO use string functions and remove hard coding
     static bool is_shift_pressed = FALSE, is_ctrl_pressed = FALSE;
     uint8_t code;
     code = inb(0x60);
@@ -245,6 +244,8 @@ page_fault_handler(uint64_t v_addr)
         if (list == NULL) {
             // segfault
             kprintf("Segmentation fault. Be prepared to die.");
+            while (1)
+                ;
         }
     }
 }
