@@ -176,14 +176,18 @@ test_vfs_sample_functions()
     vfs_open("bin/blah", 0);
     kprintf("Bytes Read: %d\n", vfs_read(3, buff1, 10));
     kprintf("%s\n", buff1);
+    vfs_read(3, buff1, 25);
+    vfs_read(4, buff2, 10);
+    /*
     kprintf("Bytes Read: %d\n", vfs_read(3, buff1, 25));
     kprintf("%s\n", buff1);
 
     kprintf("Bytes Read: %d\n", vfs_read(4, buff2, 10));
     kprintf("%s\n", buff2);
+    */
     kprintf("Bytes Read: %d\n", vfs_read(4, buff2, 40));
     kprintf("%s\n", buff2);
-    char buf[100];
+    char buf[100] = { 0 };
     kprintf("Current Directory: %s\n", vfs_getcwd(buf, 10));
     kprintf("Changed the CWD: %d\n", vfs_chdir("/bin"));
     kprintf("Current Directory: %s\n", vfs_getcwd(buf, 10));
@@ -193,11 +197,14 @@ test_vfs_sample_functions()
     kprintf("Close bin/ls: %d\n", vfs_close(ls));
     kprintf("Open bin/cat: %d\n", vfs_open("/bin/cat", 0));
     */
-    struct nary_tree_node* narynode = findNthChild(findNaryNode("/bin"), 1);
-    if (narynode != NULL) {
+    struct nary_tree_node* narynode;
+    int i = 0;
+    while (1) {
+        narynode = findNthChild(findNaryNode("/bin"), i++);
+        if (narynode == NULL) {
+            break;
+        }
         kprintf("Nth Child: %s\n", (narynode->data).name);
-    } else {
-        kprintf("findNthChild Failed\n");
     }
     task_yield();
 }
