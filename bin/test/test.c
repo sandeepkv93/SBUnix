@@ -9,6 +9,15 @@ main(int argc, char** argv, char** envp)
 {
     int i;
     char buff[100];
+    char* p = (char*)malloc(sizeof(char) * 5);
+    // uint64_t addr = 18446744071537491968U;
+    puts("hi");
+    p[0] = 'H';
+    p[1] = 'I';
+    p[2] = '\0';
+    puts(p);
+
+    // brk((void*)NULL);
     puts("Hey!\n");
     while (1)
         yield();

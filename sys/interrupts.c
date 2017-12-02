@@ -210,7 +210,7 @@ page_fault_handler(uint64_t v_addr)
                                                 // new page will be mapped
                                                 // to this virtual address
             p_addr = (uint64_t)paging_pagelist_get_frame();
-            paging_page_copy((char*)(v_addr & 0xfffffffffffff000),
+            paging_page_copy((char*)(v_addr & PAGING_VA_MASK),
                              (char*)PAGING_PAGE_COPY_TEMP_VA, p_addr);
             pagetable[pt_offset] = p_addr;
             pagetable[pt_offset] |=
@@ -224,18 +224,17 @@ page_fault_handler(uint64_t v_addr)
                 v_addr < list->vma_end) { // alloc page
                 // alloc page
                 p_addr = (uint64_t)paging_pagelist_get_frame();
-                paging_add_pagetable_mapping(v_addr & 0xfffffffffffff000,
-                                             p_addr);
+                paging_add_pagetable_mapping(v_addr & PAGING_VA_MASK, p_addr);
+                if (list->vma_type == VMA_LOAD) {
 
-                // TODO: Take care if offset is more than a page size
-                // TODO: if anon mapping, skip reading file.
+                    // TODO: Take care if offset is more than a page size
 
-                // Read binary content onto the addresses
-                fd = vfs_open(task_get_this_task_struct()->binary_name, 0);
-                vfs_seek(fd, list->vma_file_offset);
-                vfs_read(fd, (void*)(list->vma_start), list->vma_file_size);
-                vfs_close(fd);
-
+                    // Read binary content onto the addresses
+                    fd = vfs_open(task_get_this_task_struct()->binary_name, 0);
+                    vfs_seek(fd, list->vma_file_offset);
+                    vfs_read(fd, (void*)(list->vma_start), list->vma_file_size);
+                    vfs_close(fd);
+                }
                 break;
             }
 

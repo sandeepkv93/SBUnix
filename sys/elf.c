@@ -2,6 +2,8 @@
 #include <sys/elf64.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
+#include <sys/string.h>
 #include <sys/string.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
@@ -10,6 +12,9 @@
 #define X 1
 #define W 2
 #define R 4
+#define VMA_STACK_END (PAGING_KERNMEM)
+#define VMA_STACK_START (VMA_STACK_END - (500 * PAGING_PAGE_SIZE))
+#define VMA_HEAP_START (VMA_STACK_END - (6000 * PAGING_PAGE_SIZE))
 
 void
 elf_read(char* binary_file)
@@ -51,11 +56,12 @@ vma_add_node(struct vma_struct* vma_first, uint64_t start, uint64_t end,
     new = (struct vma_struct*)kmalloc(sizeof(struct vma_struct));
     new->vma_start = start;
     new->vma_end = end;
-    new->vma_filepath = filepath;
+    // strcpy(new->vma_filepath, filepath);
     new->vma_file_offset = offset;
     new->vma_flags = flags;
     new->vma_file_size = size;
     new->vma_next = NULL;
+    new->vma_type = VMA_LOAD;
     if (vma_first == NULL) {
         // TODO: rewrite prototypes once the PCB struct is known
         return new;
@@ -73,12 +79,41 @@ vma_list_with_phdr(struct vma_struct* vma_first, Elf64_Phdr* phdr,
                    uint16_t ph_num, char* filepath)
 {
     int i = 0;
-
+    struct vma_struct *stack, *heap;
+    struct vma_struct* vma_temp;
     for (i = 0; i < ph_num; i++) {
         // TODO: make this PCB->vma_first
         vma_first = vma_add_node(
           vma_first, phdr[i].p_vaddr, phdr[i].p_vaddr + phdr[i].p_memsz,
           filepath, phdr[i].p_filesz, phdr[i].p_offset, phdr[i].p_flags);
     }
+    vma_temp = vma_first;
+    while (vma_temp->vma_next != NULL)
+        vma_temp = vma_temp->vma_next;
+
+    stack = (struct vma_struct*)kmalloc(sizeof(struct vma_struct));
+    stack->vma_start = VMA_STACK_START;
+    stack->vma_end = VMA_STACK_END;
+    // stack->vma_filepath = '\0';
+    stack->vma_file_offset = 0;
+    stack->vma_flags = R | W;
+    stack->vma_file_size = 0;
+    stack->vma_next = NULL;
+    stack->vma_type = VMA_STACK;
+
+    vma_temp->vma_next = stack;
+    vma_temp = stack;
+
+    heap = (struct vma_struct*)kmalloc(sizeof(struct vma_struct));
+    heap->vma_start = heap->vma_end = VMA_HEAP_START;
+    // heap->vma_filepath = '\0';
+    heap->vma_file_offset = 0;
+    heap->vma_flags = R | W;
+    heap->vma_file_size = 0;
+    heap->vma_next = NULL;
+    heap->vma_type = VMA_HEAP;
+
+    vma_temp->vma_next = heap;
+
     return vma_first;
 }

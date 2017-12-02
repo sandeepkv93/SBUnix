@@ -1,3 +1,4 @@
+#include <sys/alloc.h>
 #include <sys/defs.h>
 #include <sys/fork.h>
 #include <sys/kprintf.h>
@@ -5,6 +6,12 @@
 #include <sys/task.h>
 #include <sys/term.h>
 extern void syscall_isr_return(long);
+
+long
+syscall_brk(void* new_brk)
+{
+    return (long)alloc_brk(new_brk);
+}
 
 long
 syscall_yield()
@@ -86,6 +93,13 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__sched_yield:
             syscall_yield();
             break;
+        case _SYS__brk:
+            ret_val = syscall_brk((void*)arg1);
+            break;
+        // TODO
+        // Create a vma in process during read_elf for heap. Grow that vma when
+        // brk is called, use a member in vma_struct to identify the VMA
+        // corresponding to heap
         case _SYS__close:
         case _SYS__chdir:
         case _SYS__wait4:
@@ -93,11 +107,6 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__acces:
         case _SYS__pipe:
         case _SYS__dup:
-        case _SYS__brk:
-        // TODO
-        // Create a vma in process during read_elf for heap. Grow that vma when
-        // brk is called, use a member in vma_struct to identify the VMA
-        // corresponding to heap
         default:
             kprintf("Call num %d, args %d, %d, %d, ret_val %d", syscall_num,
                     arg1, arg2, arg3, ret_val);
