@@ -197,7 +197,7 @@ page_fault_handler(uint64_t v_addr)
 {
     int fd;
     uint64_t p_addr;
-    uint64_t* pagetable = paging_get_pt_vaddr(v_addr);
+    uint64_t* pagetable = paging_get_create_pt_vaddr(v_addr);
     uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
     struct vma_struct* list = task_get_this_task_struct()->vma_list;
 

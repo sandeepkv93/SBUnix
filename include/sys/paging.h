@@ -33,9 +33,10 @@ void paging_pagelist_add_addresses(uint64_t start, uint64_t end);
 void paging_pagelist_create();
 void* paging_pagelist_get_frame();
 void paging_create_pagetables();
-uint64_t* paging_get_table_entry(uint64_t* table, uint32_t offset);
+uint64_t* paging_get_or_create_entry(uint64_t* table, uint32_t offset);
 bool paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr);
 uint64_t* paging_get_pt_vaddr(uint64_t v_addr);
+uint64_t* paging_get_create_pt_vaddr(uint64_t v_addr);
 void paging_page_copy(char* source_page_va, char* dest_page_va,
                       uint64_t dest_page_pa);
 void paging_flush_tlb();
