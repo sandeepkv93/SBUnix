@@ -19,5 +19,6 @@ int vfs_close(int fd);
 int vfs_dup(int fd);
 unsigned int vfs_read(int fd, void* buffer, unsigned int count);
 int vfs_chdir(const char* path);
-char* vfs_getcwd(char* buf, int size);
+int vfs_getcwd(char* buf, size_t size);
+int vfs_access(const char* pathname);
 #endif

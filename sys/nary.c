@@ -132,46 +132,6 @@ findNaryNode(char* path)
 struct fs_node_entry*
 findNaryNodeData(char* path)
 {
-    /*
-    struct nary_tree_node* root = nary_root;
-    if (root == NULL) {
-        return NULL;
-    }
-    if ((root->data).node_id[0] != path[0]) {
-        return NULL;
-    }
-    ++path;
-    char* subPath = NULL;
-    char* remPath = NULL;
-    while (root->firstChild != NULL) {
-        calcPaths(path, &subPath, &remPath);
-        if (strcmp(((root->firstChild)->data).node_id, subPath) == 0) {
-            if (remPath == NULL) {
-                return &((root->firstChild)->data);
-            }
-            root = root->firstChild;
-            path = remPath;
-        } else {
-            root = root->firstChild;
-            int flag = 1;
-            while (root->sibling != NULL) {
-                if (strcmp(((root->sibling)->data).node_id, subPath) == 0) {
-                    if (remPath == NULL) {
-                        return &((root->sibling)->data);
-                    }
-                    root = root->sibling;
-                    path = remPath;
-                    flag = 0;
-                    break;
-                }
-                root = root->sibling;
-            }
-            if (flag == 1)
-                return NULL;
-        }
-    }
-    return NULL;
-    */
     struct nary_tree_node* nary_node = findNaryNode(path);
     return &(nary_node->data);
 }
@@ -209,6 +169,9 @@ checkIfExists(char* path)
         return -1;
     }
     ++path;
+    if (path[strlen(path) - 1] == '/') {
+        path[strlen(path) - 1] = '\0';
+    }
     char* subPath = NULL;
     char* remPath = NULL;
     while (root->firstChild != NULL) {

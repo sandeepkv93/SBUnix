@@ -120,6 +120,24 @@ chdir(const char* path)
     return syscall(_SYS__chdir, (long)path, 0, 0);
 }
 
+int
+getcwd(char* buf, size_t size)
+{
+    return syscall(_SYS__getcwd, (long)buf, (long)size, 0);
+}
+
+pid_t
+getpid(void)
+{
+    return syscall(_SYS__getpid, 0, 0, 0);
+}
+
+pid_t
+getppid(void)
+{
+    return syscall(_SYS__getppid, 0, 0, 0);
+}
+
 #ifdef __TEST__
 void
 _start()

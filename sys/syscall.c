@@ -55,9 +55,47 @@ syscall_close(uint64_t fd)
 {
     long ret = -1;
     if (fd != STDIN || fd != STDOUT || fd != STDERR) {
-        ret = vfs_close(fd);
+        ret = (long)vfs_close(fd);
     }
     return ret;
+}
+
+long
+syscall_chdir(char* path)
+{
+    return vfs_chdir(path);
+}
+
+long
+syscall_getcwd(char* buf, size_t size)
+{
+    long ret = -1;
+    ret = (long)vfs_getcwd(buf, size);
+    return ret;
+}
+
+long
+syscall_getpid()
+{
+    return (long)getpid();
+}
+
+long
+syscall_getppid()
+{
+    return (long)getppid();
+}
+
+long
+syscall_access(char* path)
+{
+    return (long)vfs_access(path);
+}
+
+long
+syscall_dup(int fd)
+{
+    return (long)vfs_dup(fd);
 }
 
 long
@@ -83,12 +121,27 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             ret_val = syscall_close((int)arg1);
             break;
         case _SYS__chdir:
+            ret_val = syscall_chdir((char*)arg1);
+            break;
+        case _SYS__getcwd:
+            ret_val = syscall_getcwd((char*)arg1, (size_t)arg2);
+            break;
+        case _SYS__getpid:
+            ret_val = syscall_getpid();
+            break;
+        case _SYS__getppid:
+            ret_val = syscall_getppid();
+            break;
         case _SYS__fork:
         case _SYS__wait4:
         case _SYS__exit:
         case _SYS__acces:
+            ret_val = syscall_access((char*)arg1);
+            break;
         case _SYS__pipe:
         case _SYS__dup:
+            ret_val = syscall_dup((int)arg1);
+            break;
         case _SYS__brk:
         default:
             kprintf("Call num %d, args %d, %d, %d, ret_val %d", syscall_num,

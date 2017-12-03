@@ -106,7 +106,7 @@ void
 kprintf(const char* format, ...)
 {
     // TODO Don't allocate big chunks on stack. Use kmalloc
-    char buffer[1024] = { '\0' };
+    char buffer[200] = { '\0' };
     int buflen = 0;
     va_list ap;
     va_start(ap, format);
