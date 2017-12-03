@@ -26,7 +26,7 @@ int getcwd(char* buf, size_t size);
 int execvpe(const char* file, char* const argv[], char* const envp[]);
 pid_t wait(int* status);
 
-unsigned int sleep(unsigned int seconds);
+unsigned int sleep(uint32_t seconds);
 
 pid_t getpid(void);
 pid_t getppid(void);

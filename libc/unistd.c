@@ -160,7 +160,7 @@ unlink(const char* pathname)
 }
 
 unsigned int
-sleep(unsigned int seconds)
+sleep(uint32_t seconds)
 {
     return syscall(_SYS__nanosleep, (long)seconds, 0, 0);
 }
