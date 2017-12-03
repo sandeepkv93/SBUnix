@@ -24,7 +24,7 @@ find_free_fd()
 int
 vfs_open(char* pathname, int flags)
 {
-    char path[64];
+    char path[32];
     if (pathname[0] == '/') {
         /*Relative Path */
         strcpy(path, pathname);
@@ -151,7 +151,7 @@ vfs_read(int fd, void* buffer, unsigned int count)
                     return i;
                 } else if (file_obj->fs_node.typeflag[0] == DIRECTORY + '0') {
                     file_obj->cursor += 1;
-                    char directory_path[512];
+                    char directory_path[32];
                     if (file_obj->fs_node.name[0] != '/') {
                         strcpy(directory_path, "/");
                         strcat(directory_path, file_obj->fs_node.name);
@@ -162,8 +162,8 @@ vfs_read(int fd, void* buffer, unsigned int count)
                         file_obj->cursor -= 1;
                         return -1;
                     }
-                    strcpy(buffer, (nth_nary_node->data).name);
-                    return strlen((nth_nary_node->data).name);
+                    strcpy(buffer, (nth_nary_node->data).node_id);
+                    return strlen((nth_nary_node->data).node_id);
                 }
 
             case NORMAL_FILE_TYPE:
