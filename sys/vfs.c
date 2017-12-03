@@ -197,3 +197,18 @@ vfs_getcwd(char* buf, size_t size)
     }
     return -1;
 }
+
+int
+vfs_unlink(const char* pathname)
+{
+    char path[64];
+    if (pathname[0] == '/') {
+        /*Relative Path */
+        strcpy(path, pathname);
+    } else {
+        /*Relative Path */
+        strcpy(path, task_get_this_task_struct()->cwd);
+        strcat(path, pathname);
+    }
+    return delete_nary_node(path);
+}

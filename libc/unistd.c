@@ -138,6 +138,12 @@ getppid(void)
     return syscall(_SYS__getppid, 0, 0, 0);
 }
 
+int
+unlink(const char* pathname)
+{
+    return syscall(_SYS__unlink, (long)pathname, 0, 0);
+}
+
 #ifdef __TEST__
 void
 _start()

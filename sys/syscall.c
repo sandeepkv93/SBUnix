@@ -99,6 +99,12 @@ syscall_dup(int fd)
 }
 
 long
+syscall_unlink(char* path)
+{
+    return vfs_unlink(path);
+}
+
+long
 syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
 {
     long ret_val = -1;
@@ -132,6 +138,9 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         case _SYS__getppid:
             ret_val = syscall_getppid();
             break;
+        case _SYS__unlink:
+            ret_val = syscall_unlink((char*)arg1);
+            return ret_val;
         case _SYS__fork:
         case _SYS__wait4:
         case _SYS__exit:

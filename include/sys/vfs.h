@@ -21,4 +21,5 @@ unsigned int vfs_read(int fd, void* buffer, unsigned int count);
 int vfs_chdir(const char* path);
 int vfs_getcwd(char* buf, size_t size);
 int vfs_access(const char* pathname);
+int vfs_unlink(const char* pathname);
 #endif
