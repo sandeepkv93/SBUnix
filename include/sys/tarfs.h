@@ -1,5 +1,7 @@
 #ifndef _TARFS_H
 #define _TARFS_H
+#define DIRECTORY 5
+#define FILE_TYPE 0
 
 extern char _binary_tarfs_start;
 extern char _binary_tarfs_end;

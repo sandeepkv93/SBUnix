@@ -135,6 +135,30 @@ yield()
     syscall(_SYS__sched_yield, 0, 0, 0);
 }
 
+int
+getcwd(char* buf, size_t size)
+{
+    return syscall(_SYS__getcwd, (long)buf, (long)size, 0);
+}
+
+pid_t
+getpid(void)
+{
+    return syscall(_SYS__getpid, 0, 0, 0);
+}
+
+pid_t
+getppid(void)
+{
+    return syscall(_SYS__getppid, 0, 0, 0);
+}
+
+int
+unlink(const char* pathname)
+{
+    return syscall(_SYS__unlink, (long)pathname, 0, 0);
+}
+
 #ifdef __TEST__
 void
 _start()

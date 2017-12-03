@@ -84,7 +84,7 @@ insertInPath(struct nary_tree_node* root, struct fs_node_entry data)
     }
 }
 
-struct fs_node_entry*
+struct nary_tree_node*
 findNaryNode(char* path)
 {
     struct nary_tree_node* root = nary_root;
@@ -95,13 +95,16 @@ findNaryNode(char* path)
         return NULL;
     }
     ++path;
+    if (path[strlen(path) - 1] == '/') {
+        path[strlen(path) - 1] = '\0';
+    }
     char* subPath = NULL;
     char* remPath = NULL;
     while (root->firstChild != NULL) {
         calcPaths(path, &subPath, &remPath);
         if (strcmp(((root->firstChild)->data).node_id, subPath) == 0) {
             if (remPath == NULL) {
-                return &((root->firstChild)->data);
+                return root->firstChild;
             }
             root = root->firstChild;
             path = remPath;
@@ -111,7 +114,7 @@ findNaryNode(char* path)
             while (root->sibling != NULL) {
                 if (strcmp(((root->sibling)->data).node_id, subPath) == 0) {
                     if (remPath == NULL) {
-                        return &((root->sibling)->data);
+                        return root->sibling;
                     }
                     root = root->sibling;
                     path = remPath;
@@ -127,6 +130,35 @@ findNaryNode(char* path)
     return NULL;
 }
 
+struct fs_node_entry*
+findNaryNodeData(char* path)
+{
+    struct nary_tree_node* nary_node = findNaryNode(path);
+    return &(nary_node->data);
+}
+
+struct nary_tree_node*
+findNthChild(struct nary_tree_node* parent, int N)
+{
+    struct nary_tree_node* cur = parent;
+    if (cur == NULL) {
+        return NULL;
+    }
+    if (N == 1) {
+        return cur->firstChild;
+    }
+    if (N > 1) {
+        cur = cur->firstChild;
+        --N;
+        while (N > 0 && cur != NULL) {
+            cur = cur->sibling;
+            N--;
+        }
+        return cur;
+    }
+    return NULL;
+}
+
 int
 checkIfExists(char* path)
 {
@@ -138,6 +170,9 @@ checkIfExists(char* path)
         return -1;
     }
     ++path;
+    if (path[strlen(path) - 1] == '/') {
+        path[strlen(path) - 1] = '\0';
+    }
     char* subPath = NULL;
     char* remPath = NULL;
     while (root->firstChild != NULL) {
@@ -173,54 +208,54 @@ checkIfExists(char* path)
 int
 delete_nary_node(char* path)
 {
-    struct nary_tree_node* head = nary_root;
-    if (head == NULL)
-        return 1;
-    if ((head->data).node_id[0] != path[0]) {
-        return 1;
+    struct nary_tree_node* root = nary_root;
+    if (root == NULL)
+        return -1;
+    if ((root->data).node_id[0] != path[0]) {
+        return -1;
     }
     ++path;
     char* subPath = NULL;
     char* remPath = NULL;
-    while (head->firstChild != NULL) {
+    while (root->firstChild != NULL) {
         calcPaths(path, &subPath, &remPath);
-        if (strcmp(((head->firstChild)->data).node_id, subPath) == 0) {
+        if (strcmp(((root->firstChild)->data).node_id, subPath) == 0) {
             if (remPath == NULL) {
-                struct nary_tree_node* temp = head->firstChild;
-                head->firstChild = head->firstChild->sibling;
-                if (head->firstChild == NULL &&
-                    strcmp((head->data).node_id, "/") == 0) {
-                    kfree(head);
+                struct nary_tree_node* temp = root->firstChild;
+                root->firstChild = root->firstChild->sibling;
+                if (root->firstChild == NULL &&
+                    strcmp((root->data).node_id, "/") == 0) {
+                    kfree(root);
                     nary_root = NULL;
                 }
                 kfree(temp);
                 return 0;
             }
-            head = head->firstChild;
+            root = root->firstChild;
             path = remPath;
         } else {
-            head = head->firstChild;
+            root = root->firstChild;
             int flag = 1;
-            while (head->sibling != NULL) {
-                if (strcmp(((head->sibling)->data).node_id, subPath) == 0) {
+            while (root->sibling != NULL) {
+                if (strcmp(((root->sibling)->data).node_id, subPath) == 0) {
                     if (remPath == NULL) {
-                        struct nary_tree_node* temp = head->sibling;
-                        head->sibling = (head->sibling)->sibling;
+                        struct nary_tree_node* temp = root->sibling;
+                        root->sibling = (root->sibling)->sibling;
                         kfree(temp);
                         return 0;
                     }
-                    head = head->sibling;
+                    root = root->sibling;
                     path = remPath;
                     flag = 0;
                     break;
                 }
-                head = head->sibling;
+                root = root->sibling;
             }
             if (flag == 1)
-                return 1;
+                return -1;
         }
     }
-    return 1;
+    return -1;
 }
 
 void

@@ -7,7 +7,8 @@
 #include <sys/task.h>
 #include <sys/utility.h>
 #include <sys/vfs.h>
-
+// BAD Declaration
+#define O_DIRECTORY 00200000
 int
 find_free_fd()
 {
@@ -24,7 +25,7 @@ find_free_fd()
 int
 vfs_open(char* pathname, int flags)
 {
-    char path[4096];
+    char path[64];
     if (pathname[0] == '/') {
         /*Relative Path */
         strcpy(path, pathname);
@@ -33,8 +34,11 @@ vfs_open(char* pathname, int flags)
         strcpy(path, task_get_this_task_struct()->cwd);
         strcat(path, pathname);
     }
-    struct fs_node_entry* fs_node = findNaryNode(path);
+    struct fs_node_entry* fs_node = findNaryNodeData(path);
     if (fs_node != NULL) {
+        if (flags == O_DIRECTORY && fs_node->typeflag[0] != DIRECTORY + '0') {
+            return -1;
+        }
         vfs_file_object* file_obj = kmalloc(sizeof(vfs_file_object));
         strcpy(file_obj->file_name, fs_node->node_id);
         file_obj->size = fs_node->size;
@@ -68,6 +72,19 @@ vfs_close(int fd)
         return 0;
     }
     return -1;
+}
+
+int
+vfs_access(const char* pathname)
+{
+    char path[64];
+    if (pathname[0] == '/') {
+        strcpy(path, pathname);
+    } else {
+        strcpy(path, task_get_this_task_struct()->cwd);
+        strcat(path, pathname);
+    }
+    return checkIfExists(path);
 }
 
 int
@@ -113,27 +130,43 @@ vfs_read(int fd, void* buffer, unsigned int count)
     if (file_obj != NULL) {
         switch (file_obj->fs_node.fs_type) {
             case TARFS_FILE_TYPE:
-                /*
-                kprintf("Read: %s\n", file_obj->fs_node.name);
-                kprintf("Size: %d\n", file_obj->size);
-                kprintf("Starting to read.. Cursor at: %d\n", file_obj->cursor);
-                */
-                if (count > file_obj->fs_node.size - file_obj->cursor) {
-                    count = file_obj->fs_node.size - file_obj->cursor;
+                if (file_obj->fs_node.typeflag[0] == FILE_TYPE + '0') {
+                    /*kprintf("Starting to read.. Cursor at: %d\n",
+                     * file_obj->cursor);*/
+                    if (count > file_obj->fs_node.size - file_obj->cursor) {
+                        count = file_obj->fs_node.size - file_obj->cursor;
+                    }
+                    char* file_starting_address =
+                      (char*)(file_obj->fs_node.struct_address +
+                              sizeof(struct posix_header_ustar) +
+                              file_obj->cursor);
+                    int i = 0;
+                    char* reader = (char*)buffer;
+                    for (; i < count; ++i) {
+                        reader[i] = *file_starting_address;
+                        ++file_starting_address;
+                    }
+                    file_obj->cursor += i;
+                    /* kprintf("Finished reading.. Cursor at:
+                     * %d\n",file_obj->cursor); */
+                    return i;
+                } else if (file_obj->fs_node.typeflag[0] == DIRECTORY + '0') {
+                    file_obj->cursor += 1;
+                    char directory_path[512];
+                    if (file_obj->fs_node.name[0] != '/') {
+                        strcpy(directory_path, "/");
+                        strcat(directory_path, file_obj->fs_node.name);
+                    }
+                    struct nary_tree_node* nth_nary_node = findNthChild(
+                      findNaryNode(directory_path), file_obj->cursor);
+                    if (nth_nary_node == NULL) {
+                        file_obj->cursor -= 1;
+                        return -1;
+                    }
+                    strcpy(buffer, (nth_nary_node->data).name);
+                    return strlen((nth_nary_node->data).name);
                 }
-                char* file_starting_address =
-                  (char*)(file_obj->fs_node.struct_address +
-                          sizeof(struct posix_header_ustar) + file_obj->cursor);
-                int i = 0;
-                char* reader = (char*)buffer;
-                for (; i < count; ++i) {
-                    reader[i] = *file_starting_address;
-                    ++file_starting_address;
-                }
-                file_obj->cursor += i;
-                /*kprintf("Finished reading.. Cursor at: %d\n",
-                 * file_obj->cursor);*/
-                return i;
+
             case NORMAL_FILE_TYPE:
                 break;
             default:
@@ -154,13 +187,28 @@ vfs_chdir(const char* path)
     return -1;
 }
 
-char*
-vfs_getcwd(char* buf, int size)
+int
+vfs_getcwd(char* buf, size_t size)
 {
     char* cur_work_dir = task_get_this_task_struct()->cwd;
     if (strlen(cur_work_dir) < size) {
         strcpy(buf, task_get_this_task_struct()->cwd);
-        return cur_work_dir;
+        return 0;
     }
-    return NULL;
+    return -1;
+}
+
+int
+vfs_unlink(const char* pathname)
+{
+    char path[64];
+    if (pathname[0] == '/') {
+        /*Relative Path */
+        strcpy(path, pathname);
+    } else {
+        /*Relative Path */
+        strcpy(path, task_get_this_task_struct()->cwd);
+        strcat(path, pathname);
+    }
+    return delete_nary_node(path);
 }

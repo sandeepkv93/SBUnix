@@ -200,3 +200,14 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     sched_enter_ring3((uint64_t*)(stackpage_v_addr + PAGING_PAGE_SIZE),
                       (void*)task_get_this_task_struct()->entry_point);
 }
+
+pid_t
+getpid()
+{
+    return task_get_this_task_struct()->pid;
+}
+pid_t
+getppid()
+{
+    return task_get_this_task_struct()->ppid;
+}

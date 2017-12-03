@@ -85,6 +85,61 @@ syscall_write(uint64_t fd, char* buff, uint64_t count)
     }
     return ret;
 }
+
+long
+syscall_close(uint64_t fd)
+{
+    long ret = -1;
+    if (fd != STDIN || fd != STDOUT || fd != STDERR) {
+        ret = (long)vfs_close(fd);
+    }
+    return ret;
+}
+
+long
+syscall_chdir(char* path)
+{
+    return vfs_chdir(path);
+}
+
+long
+syscall_getcwd(char* buf, size_t size)
+{
+    long ret = -1;
+    ret = (long)vfs_getcwd(buf, size);
+    return ret;
+}
+
+long
+syscall_getpid()
+{
+    return (long)getpid();
+}
+
+long
+syscall_getppid()
+{
+    return (long)getppid();
+}
+
+long
+syscall_access(char* path)
+{
+    return (long)vfs_access(path);
+}
+
+long
+syscall_dup(int fd)
+{
+    return (long)vfs_dup(fd);
+}
+
+long
+syscall_unlink(char* path)
+{
+    return vfs_unlink(path);
+}
+
 long
 syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
 {
@@ -111,16 +166,31 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             syscall_yield();
             break;
         case _SYS__brk:
+            // TODO
+            // Create a vma in process during read_elf for heap. Grow that vma
+            // when
+            // brk is called, use a member in vma_struct to identify the VMA
+            // corresponding to heap
             ret_val = syscall_brk((void*)arg1);
             break;
-        // TODO
-        // Create a vma in process during read_elf for heap. Grow that vma when
-        // brk is called, use a member in vma_struct to identify the VMA
-        // corresponding to heap
         case _SYS__close:
+            ret_val = syscall_close((int)arg1);
             break;
         case _SYS__chdir:
+            ret_val = syscall_chdir((char*)arg1);
             break;
+        case _SYS__getcwd:
+            ret_val = syscall_getcwd((char*)arg1, (size_t)arg2);
+            break;
+        case _SYS__getpid:
+            ret_val = syscall_getpid();
+            break;
+        case _SYS__getppid:
+            ret_val = syscall_getppid();
+            break;
+        case _SYS__unlink:
+            ret_val = syscall_unlink((char*)arg1);
+            return ret_val;
         case _SYS__wait4:
             ret_val = syscall_wait((int)arg1);
             break;
@@ -128,8 +198,13 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             ret_val = syscall_exit((uint64_t)arg1);
             break;
         case _SYS__acces:
-        case _SYS__pipe:
+            ret_val = syscall_access((char*)arg1);
+            break;
         case _SYS__dup:
+            ret_val = syscall_dup((int)arg1);
+            break;
+        case _SYS__pipe:
+        // TODO
         default:
             kprintf("Call num %d, args %d, %d, %d, ret_val %d", syscall_num,
                     arg1, arg2, arg3, ret_val);
