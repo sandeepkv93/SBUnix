@@ -14,8 +14,10 @@ main(int argc, char** argv, char** envp)
     if (!ret) {
         execvpe("/bin/sbush", argv_new, envp_new);
     }
-    while (1)
+    while (1) {
         yield();
+        // wait();
+    }
 }
 
 #if 0

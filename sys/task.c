@@ -160,6 +160,8 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // TODO: Is this needed?
     set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
 
+    // TODO: Since it might be COW we might need to decrement ref count, walk
+    // PTs
     // TODO remove the below part and use commented out code
     for (int i = 0; i < 510; i++) {
         pml4_va[i] = 0;

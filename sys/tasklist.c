@@ -229,4 +229,5 @@ tasklist_exit(uint64_t exit_code)
         parent->state = task_runnable;
     tasklist_reparent(pid);
     paging_free_pagetables((uint64_t*)PAGING_PML4_SELF_REFERENCING, 1);
+    task_yield();
 }

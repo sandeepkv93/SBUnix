@@ -1,17 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+long __argc;
+char* __argv;
 void
 _start(void)
 {
-    long __argc;
-    char* __argv;
-    __asm__("movq %%rsp, %%rdx;"
-            "popq %%rsi;"
+    __asm__("popq %%rsi;"
             "popq %%rsi;"
             "movq %%rsi, %0;"
             "movq %%rsp, %1;"
-            "movq %%rdx, %%rsp"
             : "=r"(__argc), "=r"(__argv)
             :
             : "%rsi", "%rsp", "%rdx");

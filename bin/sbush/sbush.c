@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <unistd.h>
+#if 0
 #include "sbush.h"
 #include "stringlib.h"
 #include "stringll.h"
@@ -367,24 +370,6 @@ read_envlist(char** envp)
 }
 
 int
-main(int argc, char* argv[], char* envp[])
-{
-    char input_line[400];
-    pid_t pid;
-
-    // int dummy_status = 1;
-    print_ps1();
-    while (fgets(0, input_line)) {
-        pid = fork();
-        if (pid == 0) {
-            execvpe(input_line, argv, envp);
-        } else {
-            // wait(&dummy_status); // dummy status
-        }
-        print_ps1();
-    }
-}
-int
 main2(int argc, char* argv[], char* envp[])
 {
     puts("[ SBUSH starting ]");
@@ -455,4 +440,24 @@ main2(int argc, char* argv[], char* envp[])
         }
     }
     return 0;
+}
+#endif
+
+int
+main(int argc, char* argv[], char* envp[])
+{
+    char input_line[400];
+    pid_t pid;
+
+    // int dummy_status = 1;
+    puts("sbush$ ");
+    while (fgets(0, input_line)) {
+        pid = fork();
+        if (pid == 0) {
+            execvpe(input_line, argv, envp);
+        } else {
+            // wait(&dummy_status); // dummy status
+        }
+        puts("sbush$ ");
+    }
 }

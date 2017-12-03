@@ -84,7 +84,6 @@ paging_pagelist_get_frame()
     // Returns a freepage from the FREELIST
     uint64_t pageAddress = (freepage_head - pages) * PAGING_PAGE_SIZE;
     if (freepage_head == NULL) {
-        return NULL;
         kprintf("Out of memory");
         while (1)
             ;
@@ -97,8 +96,11 @@ paging_pagelist_get_frame()
 void
 add_free_frame(uint64_t index)
 {
+#if 0
     pages[index].next = freepage_head->next;
     freepage_head = &pages[index];
+    kprintf("{freed frame}");
+#endif
 }
 
 void

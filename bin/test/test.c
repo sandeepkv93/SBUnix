@@ -15,6 +15,9 @@ main(int argc, char** argv, char** envp)
     // p[0] = 'H';
     // p[1] = 'I';
     // p[2] = '\0';
+    while (1) {
+        yield();
+    }
     exit(0);
     // puts(p);
 
