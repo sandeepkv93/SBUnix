@@ -7,8 +7,7 @@
 #include <sys/task.h>
 #include <sys/utility.h>
 #include <sys/vfs.h>
-// BAD Declaration
-#define O_DIRECTORY 00200000
+
 int
 find_free_fd()
 {

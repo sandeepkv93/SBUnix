@@ -2,6 +2,7 @@
 #define _DEFS_H
 
 #define O_RDONLY 0x0000
+#define O_DIRECTORY 00200000
 #define NULL ((void*)0)
 #define TRUE 1
 #define FALSE 0
