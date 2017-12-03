@@ -370,10 +370,16 @@ int
 main(int argc, char* argv[], char* envp[])
 {
     char input_line[400];
+    pid_t pid;
+
+    // int dummy_status = 1;
     print_ps1();
     while (fgets(0, input_line)) {
-        if (fork() == 0) {
+        pid = fork();
+        if (pid == 0) {
             execvpe(input_line, argv, envp);
+        } else {
+            // wait(&dummy_status); // dummy status
         }
         print_ps1();
     }

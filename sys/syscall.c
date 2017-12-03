@@ -4,6 +4,7 @@
 #include <sys/kprintf.h>
 #include <sys/syscall.h>
 #include <sys/task.h>
+#include <sys/tasklist.h>
 #include <sys/term.h>
 extern void syscall_isr_return(long);
 
@@ -23,6 +24,22 @@ long
 syscall_fork()
 {
     return fork();
+}
+long
+syscall_exit(uint64_t exit_code)
+{
+    tasklist_exit(exit_code);
+    return 0;
+}
+long
+syscall_wait(int state)
+{
+    return tasklist_wait(state);
+}
+long
+syscall_waitpid(pid_t child_pid)
+{
+    return tasklist_waitpid(child_pid);
 }
 long
 syscall_open(char* fname, int flags)
@@ -101,9 +118,15 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
         // brk is called, use a member in vma_struct to identify the VMA
         // corresponding to heap
         case _SYS__close:
+            break;
         case _SYS__chdir:
+            break;
         case _SYS__wait4:
+            ret_val = syscall_wait((int)arg1);
+            break;
         case _SYS__exit:
+            ret_val = syscall_exit((uint64_t)arg1);
+            break;
         case _SYS__acces:
         case _SYS__pipe:
         case _SYS__dup:

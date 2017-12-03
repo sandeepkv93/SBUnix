@@ -276,3 +276,27 @@ paging_flush_tlb()
 {
     paging_flush_tlb_asm();
 }
+
+void
+paging_free_pagetables(uint64_t* page_va_addr, int level)
+{
+    uint64_t next_table_addr;
+
+    for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
+
+        if (!(page_va_addr[i] & PAGING_PAGE_PRESENT)) {
+            continue;
+        }
+
+        next_table_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
+        //TODO: ensure that pt_level4 entry is being added everywhere
+        if (page_va_addr[i] & PAGING_PT_LEVEL4) {
+                paging_pagelist_free_frame(next_table_addr);
+
+        } else if (!(level == 1 && i == PAGING_TABLE_ENTRIES - 1)) {
+
+            paging_free_pagetables((uint64_t*)next_table_addr, level + 1);
+        }
+    }
+    paging_pagelist_free_frame((uint64_t)page_va_addr);
+}

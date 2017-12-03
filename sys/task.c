@@ -61,7 +61,7 @@ task_create(void* callback)
 
     this_task->regs.rsp = (uint64_t)stack_top;
     this_task->pid = g_pid++;
-
+    this_task->state = task_runnable;
     // Enable interrupts in new thread. enable_interrupts(TRUE)
     this_task->regs.flags = 0x200;
 

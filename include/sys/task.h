@@ -10,9 +10,11 @@
  */
 typedef enum task_state_ {
     task_runnable,
-    task_sleep_read,
     task_zombie,
     task_any_state,
+    task_sleep_wait,
+    task_sleep_keyboard,
+    task_sleep_timer
 } task_state;
 
 typedef struct _regstruct
@@ -39,6 +41,7 @@ typedef struct _taskstruct
     uint64_t entry_point;
     char cwd[PATH_LENGTH];
     task_state state;
+    uint64_t exit_code;
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 
 task_struct* task_create();
