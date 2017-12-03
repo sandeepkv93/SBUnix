@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <sys/alloc.h>
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/string.h>
@@ -105,8 +106,7 @@ sprintf(char* buffer, const char* format, ...)
 void
 kprintf(const char* format, ...)
 {
-    // TODO Don't allocate big chunks on stack. Use kmalloc
-    char buffer[1024] = { '\0' };
+    char* buffer = (char*)kmalloc(sizeof(char) * 1024);
     int buflen = 0;
     va_list ap;
     va_start(ap, format);

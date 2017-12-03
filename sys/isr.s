@@ -4,7 +4,7 @@
 push_regs:
 
     // Push all regs onto stack
-    //TODO: add cli
+    cli
     push %rsi
     push %rdi
     push %rbp
@@ -36,7 +36,6 @@ pop_regs:
      * will be the stack top once we pop all registers. This allows to safely 
      * return to the place that this function was called from.
      */
-    //TODO:add sti
     pop %rax
     movq %rax,120(%rsp)
 
@@ -56,6 +55,7 @@ pop_regs:
     pop %rbp
     pop %rdi
     pop %rsi
+    sti
     retq
 
 timer_isr_asm:

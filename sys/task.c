@@ -94,6 +94,12 @@ task_yield()
 }
 
 void
+task_save_state()
+{
+    sched_switch_kthread(me, me);
+}
+
+void
 task_exec_ring3(char* bin_name, char** argv, char** envp)
 {
     uint64_t argc = 0;

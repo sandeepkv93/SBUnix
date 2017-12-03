@@ -114,11 +114,24 @@ paging_pagelist_free_frame(uint64_t v_addr)
         add_free_frame(index);
     }
 }
+
 uint64_t*
 paging_get_table_entry(uint64_t* table, uint32_t offset)
 {
+    if (!(table[offset] & 0x1)) {
+        // TODO remove this
+        kprintf("No PT entry");
+        while (1)
+            ;
+        return NULL;
+    }
+    return (uint64_t*)(table[offset] & 0xfffffffffffff000);
+}
+
+uint64_t*
+paging_get_or_create_entry(uint64_t* table, uint32_t offset)
+{
     // Adds entry into offset of the table if not present, returns entry
-    /*char* temp_byte;*/
     if (!(table[offset] & 0x1)) {
         table[offset] = (uint64_t)paging_pagelist_get_frame();
 
@@ -135,11 +148,31 @@ paging_get_table_entry(uint64_t* table, uint32_t offset)
 }
 
 uint64_t*
-paging_get_pt_vaddr(uint64_t v_addr)
+paging_get_create_pt_vaddr(uint64_t v_addr)
 {
     // calling this creates entries in intermediate page tables(or new
     // intermdediate page allocatins if table is not present) since we call
-    // paging_get_table_entry.
+    // paging_get_or_create_entry.
+    uint64_t pml4_vaddr, pdp_vaddr, pd_vaddr, pt_vaddr;
+    pml4_vaddr = PAGING_PML4_SELF_REFERENCING;
+    paging_get_or_create_entry((uint64_t*)pml4_vaddr,
+                               PAGING_PML4_OFFSET(v_addr));
+
+    pdp_vaddr = ((pml4_vaddr << 9) | (PAGING_PML4_OFFSET(v_addr) << 12));
+    paging_get_or_create_entry((uint64_t*)pdp_vaddr,
+                               PAGING_PD_POINTER_OFFSET(v_addr));
+
+    pd_vaddr = ((pdp_vaddr << 9) | (PAGING_PD_POINTER_OFFSET(v_addr) << 12));
+    paging_get_or_create_entry((uint64_t*)pd_vaddr,
+                               PAGING_PAGE_DIRECTORY_OFFSET(v_addr));
+
+    pt_vaddr = ((pd_vaddr << 9) | (PAGING_PAGE_DIRECTORY_OFFSET(v_addr) << 12));
+    return (uint64_t*)pt_vaddr;
+}
+
+uint64_t*
+paging_get_pt_vaddr(uint64_t v_addr)
+{
     uint64_t pml4_vaddr, pdp_vaddr, pd_vaddr, pt_vaddr;
     pml4_vaddr = PAGING_PML4_SELF_REFERENCING;
     paging_get_table_entry((uint64_t*)pml4_vaddr, PAGING_PML4_OFFSET(v_addr));
@@ -166,7 +199,7 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
 
     // Flush not needed
     pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
-    pagetable = paging_get_pt_vaddr(v_addr);
+    pagetable = paging_get_create_pt_vaddr(v_addr);
 
     if ((pagetable[pt_offset] & PAGING_PAGE_PRESENT)) {
         pagetable[pt_offset] = p_addr;
@@ -198,13 +231,13 @@ paging_add_initial_pagetable_mapping(uint64_t* pml4_phys_addr, uint64_t v_addr,
     uint64_t* pt_table;
 
     pdp_table =
-      paging_get_table_entry(pml4_phys_addr, PAGING_PML4_OFFSET(v_addr));
+      paging_get_or_create_entry(pml4_phys_addr, PAGING_PML4_OFFSET(v_addr));
 
     pd_table =
-      paging_get_table_entry(pdp_table, PAGING_PD_POINTER_OFFSET(v_addr));
+      paging_get_or_create_entry(pdp_table, PAGING_PD_POINTER_OFFSET(v_addr));
 
-    pt_table =
-      paging_get_table_entry(pd_table, PAGING_PAGE_DIRECTORY_OFFSET(v_addr));
+    pt_table = paging_get_or_create_entry(pd_table,
+                                          PAGING_PAGE_DIRECTORY_OFFSET(v_addr));
 
     pt_table[PAGING_PAGE_TABLE_OFFSET(v_addr)] = phys_entry | PAGING_PT_LEVEL4;
 }
@@ -234,13 +267,8 @@ paging_create_pagetables()
 
     paging_add_initial_pagetable_mapping(
       pml4_table, PAGING_VIDEO, (0xb8000) | PAGING_PAGETABLE_PERMISSIONS);
-    /*paging_add_initial_pagetable_mapping(pml4_table, TEST_PAGING,
-     * (test_address) |
-     * PAGING_PAGETABLE_PERMISSIONS);*/
 
     paging_enable(pml4_table);
-
-    // test_get_free_pages();
 }
 
 void
@@ -289,9 +317,9 @@ paging_free_pagetables(uint64_t* page_va_addr, int level)
         }
 
         next_table_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
-        //TODO: ensure that pt_level4 entry is being added everywhere
+        // TODO: ensure that pt_level4 entry is being added everywhere
         if (page_va_addr[i] & PAGING_PT_LEVEL4) {
-                paging_pagelist_free_frame(next_table_addr);
+            paging_pagelist_free_frame(next_table_addr);
 
         } else if (!(level == 1 && i == PAGING_TABLE_ENTRIES - 1)) {
 

@@ -165,7 +165,6 @@ pic_init()
 void
 kb_isr()
 {
-    // TODO use string functions and remove hard coding
     static bool is_shift_pressed = FALSE, is_ctrl_pressed = FALSE;
     uint8_t code;
     code = inb(0x60);
@@ -198,7 +197,7 @@ page_fault_handler(uint64_t v_addr)
 {
     int fd;
     uint64_t p_addr;
-    uint64_t* pagetable = paging_get_pt_vaddr(v_addr);
+    uint64_t* pagetable = paging_get_create_pt_vaddr(v_addr);
     uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
     struct vma_struct* list = task_get_this_task_struct()->vma_list;
 
@@ -244,6 +243,8 @@ page_fault_handler(uint64_t v_addr)
         if (list == NULL) {
             // segfault
             kprintf("Segmentation fault. Be prepared to die.");
+            while (1)
+                ;
         }
     }
 }
