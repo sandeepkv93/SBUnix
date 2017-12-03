@@ -159,6 +159,12 @@ unlink(const char* pathname)
     return syscall(_SYS__unlink, (long)pathname, 0, 0);
 }
 
+unsigned int
+sleep(unsigned int seconds)
+{
+    return syscall(_SYS__nanosleep, (long)seconds, 0, 0);
+}
+
 #ifdef __TEST__
 void
 _start()
