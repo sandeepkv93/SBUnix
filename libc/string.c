@@ -1,4 +1,6 @@
 #include <sys/defs.h>
+#include <sys/string.h>
+
 void*
 memset(void* s, int c, int n)
 {
@@ -122,4 +124,17 @@ strrev(char* str)
         *p1 ^= *p2;
     }
     return str;
+}
+
+char*
+strrchr(char* s, char p)
+{
+    char* ret = NULL;
+    while (*s) {
+        if (*s == p) {
+            ret = (char*)s;
+        }
+        s++;
+    }
+    return ret;
 }
