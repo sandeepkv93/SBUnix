@@ -2,6 +2,7 @@
 #include <sys/kprintf.h>
 #include <sys/nary.h>
 #include <sys/string.h>
+#include <sys/tarfs.h>
 
 struct nary_tree_node* nary_root = NULL;
 
@@ -88,6 +89,9 @@ struct nary_tree_node*
 findNaryNode(char* path)
 {
     struct nary_tree_node* root = nary_root;
+    if (strcmp(path, "/") == 0) {
+        return root;
+    }
     if (root == NULL) {
         return NULL;
     }
@@ -285,8 +289,8 @@ insert_into_nary_tree(struct fs_node_entry data)
     if (nary_root == NULL) {
         struct fs_node_entry mother;
         strcpy(mother.node_id, "/");
+        mother.typeflag[0] = 5 + '0';
         nary_root = createNode(mother);
-
         nary_root->firstChild = createNode(data);
         /*kprintf("%s -> firstChild = %s\n", ((*root)->data).node_id,
                 data.node_id);*/
