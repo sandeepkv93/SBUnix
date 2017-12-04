@@ -1,13 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+char* command_list[20];
 #if 0
 #include "sbush.h"
 #include "stringlib.h"
 #include "stringll.h"
 #include <fcntl.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -444,17 +445,67 @@ main2(int argc, char* argv[], char* envp[])
 #endif
 
 int
+check_for_command_validity(char* cmd)
+{
+    int cP = 0;
+    if (cmd[cP] != '\0') {
+        if (cmd[cP++] == ' ') {
+            return -1;
+        }
+        while (cmd[cP] != '\0') {
+            if (cmd[cP++] == ' ') {
+                if (cmd[cP] == '\0' || cmd[cP++] == ' ') {
+                    return -1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+char*
+token_creater(char* src, int size)
+{
+    char* string = (char*)malloc(size + 1);
+    strncpy(string, src, size);
+    string[size] = '\0';
+    return string;
+}
+
+void
+command_tokenizer(char* cmd)
+{
+    int cP = 0;
+    int sT = 0;
+    int gP = 0;
+    int size;
+    while (cmd[cP] != '\0') {
+        if (cmd[cP] == ' ') {
+            size = cP - sT;
+            command_list[gP++] = token_creater(&cmd[sT], size);
+            sT = cP + 1;
+        }
+        cP++;
+    }
+    command_list[gP++] = token_creater(&cmd[sT], cP - sT);
+    command_list[gP] = NULL;
+}
+
+int
 main(int argc, char* argv[], char* envp[])
 {
     char input_line[400];
     pid_t pid;
-
     // int dummy_status = 1;
     puts("sbush$ ");
     while (fgets(0, input_line)) {
+        if (check_for_command_validity(input_line) == -1) {
+            puts("Invalid Command. Please Try Again");
+        }
+        command_tokenizer(input_line);
         pid = fork();
         if (pid == 0) {
-            execvpe(input_line, argv, envp);
+            execvpe(command_list[0], command_list, envp);
         } else {
             // wait(&dummy_status); // dummy status
         }
