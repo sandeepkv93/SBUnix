@@ -44,4 +44,5 @@ uint64_t get_ref_count(uint64_t v_addr);
 void paging_inc_ref_count(uint64_t v_addr);
 void paging_pagelist_free_frame(uint64_t v_addr);
 void paging_free_pagetables(uint64_t* page_va_addr, int level);
+int paging_num_free_pages();
 #endif

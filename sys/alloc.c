@@ -62,7 +62,7 @@ pls_giv_mem(int num_bytes)
         while (num_of_pages--) {
             cur_page_va = alloc_get_page();
         }
-        cur_page_offset += num_bytes % PAGING_PAGE_SIZE;
+        cur_page_offset = num_bytes % PAGING_PAGE_SIZE;
     } else {
         cur_page_offset += num_bytes;
     }
