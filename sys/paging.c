@@ -261,7 +261,8 @@ paging_create_pagetables(uint64_t physbase, uint64_t physfree)
       ((uint64_t)pml4_table) | PAGING_PAGETABLE_PERMISSIONS;
 
     // TODO Remove this hard coding of 2048. Map only physbase to physfree
-    for (int i = 0; i < 5000; i++) {
+    for (int i = physbase / PAGING_PAGE_SIZE; i < physfree / PAGING_PAGE_SIZE;
+         i++) {
         v_addr = PAGING_KERNMEM + i * (PAGING_PAGE_SIZE);
         paging_add_initial_pagetable_mapping(pml4_table, v_addr,
                                              (i * PAGING_PAGE_SIZE) |

@@ -29,7 +29,8 @@ long
 syscall_exit(uint64_t exit_code)
 {
     tasklist_exit(exit_code);
-    return 0;
+    task_yield();
+    return -1;
 }
 long
 syscall_wait(int state)

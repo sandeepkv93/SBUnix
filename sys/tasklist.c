@@ -72,6 +72,22 @@ tasklist_get_task(pid_t pid, task_state state)
 }
 
 task_struct*
+tasklist_find_task(task_state state)
+{
+    // returns head if state is task_any_state
+    if (!tasklist_head)
+        return NULL;
+    tasklist_node* list_iter = tasklist_head;
+    do {
+        if (state == task_any_state || list_iter->task->state == state) {
+            return list_iter->task;
+        }
+        list_iter = list_iter->next;
+    } while (list_iter != tasklist_head);
+    return NULL;
+}
+
+task_struct*
 tasklist_find_one_child(pid_t ppid, task_state state)
 {
     // TODO iterate over list and check for matching ppid and state.
@@ -124,9 +140,7 @@ tasklist_schedule_task()
     // We track the task to be scheduled next using task_head
     // TODO: return only runnable tasks
     tasklist_node* list_iter = tasklist_head;
-    if (tasklist_head == NULL || tasklist_head->next == NULL)
-        return tasklist_head->task;
-    do {
+    while (1) {
         if (list_iter->task->state == task_runnable) {
             tasklist_head = list_iter->next; // we will give the next process
                                              // priority since all the previous
@@ -134,8 +148,7 @@ tasklist_schedule_task()
             return list_iter->task;
         }
         list_iter = list_iter->next;
-    } while (list_iter == tasklist_head);
-    return NULL;
+    }
 }
 
 // TODO: if none of the children is in zombie state(NULL is returned), change

@@ -127,7 +127,7 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // For now we can mark the PML4 entries in VMA to present 0
 
     // Populate VMAs in the task_struct
-    elf_read(bin_name);
+    vma_read_elf(bin_name);
 
     // Get one page_frame mapped in stack region, we'll use it to store argv and
     // env. Refer crt1.c for a diagram

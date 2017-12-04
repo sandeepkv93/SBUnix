@@ -4,7 +4,8 @@
 char*
 fgets(int fd, char* s)
 {
-    read(fd, s, 999);
+    int end = read(fd, s, 999);
+    s[end] = 0;
     return s;
 }
 

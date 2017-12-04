@@ -26,29 +26,26 @@ main2(int argc, char** argv, char** envp)
 }
 
 int
-main1(int argc, char** argv, char** envp)
-{
-    char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
-    char* envp_new[] = { "PATH=/", NULL };
-
-    int ret;
-    puts("[ INIT started ]");
-    ret = fork();
-    if (!ret) {
-        execvpe("/bin/sbush", argv_new, envp_new);
-    }
-    while (1) {
-        // wait()
-        yield();
-    }
-}
-
-int
 main(int argc, char** argv, char** envp)
 {
     char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
     char* envp_new[] = { "PATH=/", NULL };
-    puts("[ INIT started ]");
+    puts("lo");
     execvpe("/bin/init", argv_new, envp_new);
+    return 0;
+}
+
+int
+main3(int argc, char** argv, char** envp)
+{
+    char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
+    char* envp_new[] = { "PATH=/", NULL };
+    puts("[ INIT started ]");
+    if (!fork()) {
+        execvpe("/bin/sbush", argv_new, envp_new);
+    }
+    while (1) {
+        yield();
+    }
     return 0;
 }
