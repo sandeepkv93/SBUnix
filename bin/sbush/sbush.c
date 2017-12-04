@@ -518,7 +518,7 @@ main(int argc, char* argv[], char* envp[])
             puts("Failed to run command, please check again");
             exit(1);
         } else {
-            waitpid(pid, &dummy_status); // dummy status
+            wait(&dummy_status); // dummy status
         }
         print_ps1();
     }

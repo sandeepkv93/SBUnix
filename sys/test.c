@@ -173,7 +173,7 @@ test_sample_thread_handler()
     while (1) {
         task_yield();
         term_set_glyph(0, '0' + task_get_this_task_struct()->pid);
-        sleep(90);
+        timer_sleep(90);
     }
 }
 

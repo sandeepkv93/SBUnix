@@ -7,4 +7,6 @@ task_struct* tasklist_schedule_task();
 void tasklist_exit(uint64_t exit_code);
 pid_t tasklist_wait(int status);
 pid_t tasklist_waitpid(pid_t child_pid);
+void tasklist_set_task_state(pid_t pid, task_state state);
+task_struct* tasklist_find_task(task_state state);
 #endif

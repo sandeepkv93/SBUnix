@@ -156,25 +156,6 @@ tasklist_schedule_task()
 // when exit is called on a process, check if the parent is sleeping on
 // task_sleep_wait, change it's state to runnable.
 
-void
-task_clean(task_struct* task)
-{
-    while (task->vma_list != NULL) {
-        kfree(task->vma_list);
-        task->vma_list = task->vma_list->vma_next;
-    }
-
-    // release file objects for 0,1,2. 1000 is dummy intial value
-    for (int i = 0; i < 3; i++) {
-        if ((uint64_t)task->filetable[i] != 1000)
-            kfree(task->filetable[i]);
-    }
-    for (int i = 3; i < TASK_FILETABLE_SIZE; i++) {
-        if (task->filetable[i] != NULL)
-            kfree(task->filetable[i]);
-    }
-}
-
 pid_t
 tasklist_waitpid(pid_t child_pid)
 {
@@ -185,7 +166,7 @@ tasklist_waitpid(pid_t child_pid)
         task_yield();
         child = tasklist_get_task(child_pid, task_zombie);
     }
-    task_clean(child);
+    task_destroy(child);
     return child_pid;
 }
 
@@ -194,21 +175,17 @@ tasklist_wait(int status)
 {
     // if none of the children is in zombie state(NULL is returned), change
     // the process' state to task_sleep_wait and yield.
-    pid_t pid = task_get_this_task_struct()->pid;
-    pid_t child_pid;
     task_struct* child;
-    while (1) {
+    pid_t pid = task_get_this_task_struct()->pid;
+    child = tasklist_find_one_child(pid, task_zombie);
+    if (child == NULL) {
+        tasklist_set_task_state(pid, task_sleep_wait);
+        task_yield();
         child = tasklist_find_one_child(pid, task_zombie);
-        if (child == NULL) {
-            tasklist_set_task_state(pid, task_sleep_wait);
-            task_yield();
-            child = tasklist_find_one_child(pid, task_zombie);
-        }
-        // free child
-        child_pid = child->pid;
-        task_clean(child);
-        return child_pid;
     }
+    // free child
+    task_destroy(child);
+    return child->pid;
 }
 
 void

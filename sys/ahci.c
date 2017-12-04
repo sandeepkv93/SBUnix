@@ -60,23 +60,23 @@ ahci_fix_port(hba_port_t* port, int port_num, int support_staggered_spinup)
     }
     port_rebase(port, port_num);
     port->sctl = SET_DET;
-    sleep(10);
+    timer_sleep(10);
     port->sctl = RESET_DET;
 
     if (support_staggered_spinup) {
         debug_print("support_staggered_spinup.");
         port->cmd |= STAG_SPINUP;
-        sleep(10);
+        timer_sleep(10);
     }
     port->serr_rwc = 0xFFFFFFFF;
     port->is_rwc = 0xFFFFFFFF;
     debug_print("After fix_port.");
     while (1) {
-        sleep(10);
+        timer_sleep(10);
         if (ahci_ready_to_go(port)) {
             break;
         }
-        sleep(10);
+        timer_sleep(10);
     }
     debug_print("Ready to go");
 }

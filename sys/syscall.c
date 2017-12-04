@@ -119,13 +119,13 @@ syscall_getcwd(char* buf, size_t size)
 long
 syscall_getpid()
 {
-    return (long)getpid();
+    return (long)task_getpid();
 }
 
 long
 syscall_getppid()
 {
-    return (long)getppid();
+    return (long)task_getppid();
 }
 
 long
@@ -149,7 +149,7 @@ syscall_unlink(char* path)
 long
 syscall_sleep(uint32_t seconds)
 {
-    sleep(seconds);
+    timer_sleep(seconds);
     return 0;
 }
 

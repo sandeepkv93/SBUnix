@@ -60,8 +60,6 @@ task_struct* task_get_this_task_struct();
 uint64_t task_initial_setup();
 void task_yield();
 void task_save_state();
-pid_t getpid();
-pid_t getppid();
-task_struct* tasklist_find_task(task_state state);
-void tasklist_set_task_state(pid_t pid, task_state state);
+pid_t task_getpid();
+pid_t task_getppid();
 #endif

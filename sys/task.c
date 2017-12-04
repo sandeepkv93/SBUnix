@@ -68,19 +68,31 @@ task_create(void* callback)
     for (int i = 0; i < TASK_FILETABLE_SIZE; i++) {
         this_task->filetable[i] = NULL;
     }
-    this_task->filetable[0] = (vfs_file_object*)1000;
-    this_task->filetable[1] = (vfs_file_object*)1000;
-    this_task->filetable[2] = (vfs_file_object*)1000;
+    this_task->filetable[0] = (vfs_file_object*)TERM_VFS_OBJ;
+    this_task->filetable[1] = (vfs_file_object*)TERM_VFS_OBJ;
+    this_task->filetable[2] = (vfs_file_object*)TERM_VFS_OBJ;
     strcpy(this_task->cwd, "/");
     tasklist_add_task(this_task);
     return this_task;
 }
 
 void
-task_destroy(task_struct* t)
+task_destroy(task_struct* task)
 {
-    alloc_free_page(t->stack_page);
-    kfree(t);
+    tasklist_remove_task(task->pid);
+    while (task->vma_list != NULL) {
+        kfree(task->vma_list);
+        task->vma_list = task->vma_list->vma_next;
+    }
+
+    // release file objects for 0,1,2. TERM_VFS_OBJ is dummy intial value
+    for (int i = 0; i < TASK_FILETABLE_SIZE; i++) {
+        if (task->filetable[i] != NULL &&
+            task->filetable[i] != (vfs_file_object*)TERM_VFS_OBJ)
+            kfree(task->filetable[i]);
+    }
+    alloc_free_page(task->stack_page);
+    kfree(task);
 }
 
 void
@@ -208,12 +220,13 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
 }
 
 pid_t
-getpid()
+task_getpid()
 {
     return task_get_this_task_struct()->pid;
 }
+
 pid_t
-getppid()
+task_getppid()
 {
     return task_get_this_task_struct()->ppid;
 }

@@ -1,6 +1,7 @@
 #ifndef _TERM_H
 #define _TERM_H
 #define TERM_BG_FG_COLOR(x, y) ((x << 4) | y)
+#define TERM_VFS_OBJ 0xdead
 enum term_colors
 {
     term_color_black = 0x0,

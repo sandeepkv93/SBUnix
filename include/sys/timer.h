@@ -3,7 +3,7 @@
 
 void timer_setup();
 void timer_isr();
-void sleep(uint32_t);
+void timer_sleep(uint32_t);
 
 typedef struct
 {

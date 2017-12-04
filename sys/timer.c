@@ -32,7 +32,7 @@ timer_setup()
 }
 
 void
-sleep(uint32_t milliseconds)
+timer_sleep(uint32_t milliseconds)
 {
     s_time initial_time = g_clock;
     s_time current_time = g_clock;
