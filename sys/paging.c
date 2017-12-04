@@ -341,7 +341,8 @@ paging_free_pagetables(uint64_t* page_va_addr, int level)
 
     for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
 
-        if (!(page_va_addr[i] & PAGING_PAGE_PRESENT)) {
+        if (!(page_va_addr[i] & PAGING_PAGE_PRESENT) ||
+            (level == 1 && i >= PAGING_TABLE_ENTRIES - 2)) {
             continue;
         }
 
@@ -350,7 +351,7 @@ paging_free_pagetables(uint64_t* page_va_addr, int level)
         if (page_va_addr[i] & PAGING_PT_LEVEL4) {
             paging_pagelist_free_frame(next_table_addr);
 
-        } else if (!(level == 1 && i == PAGING_TABLE_ENTRIES - 1)) {
+        } else {
 
             paging_free_pagetables((uint64_t*)next_table_addr, level + 1);
         }

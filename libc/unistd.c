@@ -46,8 +46,6 @@ syscall(long sys_no, long arg1, long arg2, long arg3)
 void
 exit(int value)
 {
-    while (1)
-        yield();
     syscall(_SYS__exit, value, 0, 0);
 }
 
@@ -82,15 +80,15 @@ execvpe(const char* filename, char* const argv[], char* const envp[])
 }
 
 pid_t
-waitpid(pid_t pid, int* wstatus, int options)
+waitpid(pid_t pid, int* wstatus)
 {
-    return syscall(_SYS__wait4, (long)pid, (long)wstatus, (long)options);
+    return syscall(_SYS__wait4, (long)pid, (long)wstatus, 0);
 }
 
 pid_t
 wait(int* wstatus)
 {
-    return syscall(_SYS__wait4, (long)wstatus, 0, 0);
+    return syscall(_SYS__wait4, -1, (long)wstatus, 0);
 }
 
 int

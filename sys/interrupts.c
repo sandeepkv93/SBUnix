@@ -243,7 +243,8 @@ page_fault_handler(uint64_t v_addr, uint64_t err_code)
         }
         if (list == NULL) {
             // segfault
-            kprintf("Segmentation fault. Be prepared to die.");
+            kprintf("Segmentation fault. Be prepared to die. %d error code",
+                    err_code);
             while (1)
                 ;
         }

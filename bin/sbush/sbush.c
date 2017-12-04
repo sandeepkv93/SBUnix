@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 char* command_list[20];
+char* g_ps1 = "[ >> ] ";
 #if 0
 #include "sbush.h"
 #include "stringlib.h"
@@ -491,16 +492,24 @@ command_tokenizer(char* cmd)
     command_list[gP] = NULL;
 }
 
+void
+print_ps1()
+{
+    write(2, g_ps1, strlen(g_ps1));
+}
+
 int
 main(int argc, char* argv[], char* envp[])
 {
     char input_line[400];
     pid_t pid;
-    // int dummy_status = 1;
-    puts("sbush$ ");
+    int dummy_status = 1;
+    print_ps1();
     while (fgets(0, input_line)) {
         if (check_for_command_validity(input_line) == -1) {
             puts("Invalid Command. Please Try Again");
+            print_ps1();
+            continue;
         }
         command_tokenizer(input_line);
         pid = fork();
@@ -509,8 +518,8 @@ main(int argc, char* argv[], char* envp[])
             puts("Failed to run command, please check again");
             exit(1);
         } else {
-            // wait(&dummy_status); // dummy status
+            waitpid(pid, &dummy_status); // dummy status
         }
-        puts("sbush$ ");
+        print_ps1();
     }
 }

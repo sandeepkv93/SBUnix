@@ -22,28 +22,31 @@ syscall_yield()
     task_yield();
     return 0;
 }
+
 long
 syscall_fork()
 {
     return fork();
 }
+
 long
 syscall_exit(uint64_t exit_code)
 {
     tasklist_exit(exit_code);
-    task_yield();
     return -1;
 }
+
 long
-syscall_wait(int state)
+syscall_wait(long child_pid, long status)
 {
-    return tasklist_wait(state);
+
+    if (child_pid < 0) {
+        return tasklist_wait(status);
+    } else {
+        return tasklist_waitpid(child_pid);
+    }
 }
-long
-syscall_waitpid(pid_t child_pid)
-{
-    return tasklist_waitpid(child_pid);
-}
+
 long
 syscall_open(char* fname, int flags)
 {
@@ -202,7 +205,7 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             ret_val = syscall_unlink((char*)arg1);
             return ret_val;
         case _SYS__wait4:
-            ret_val = syscall_wait((int)arg1);
+            ret_val = syscall_wait(arg1, arg2);
             break;
         case _SYS__exit:
             ret_val = syscall_exit((uint64_t)arg1);

@@ -32,15 +32,12 @@ charArrayToInt(char* array)
 int
 main(int argc, char** argv)
 {
+    uint32_t seconds;
     if (argc > 1) {
-        uint32_t seconds;
         seconds = charArrayToInt(argv[1]);
         sleep(seconds * 1000);
     } else {
         puts("sleep: missing operand");
     }
-    write(1, argv[1], strlen(argv[1]));
-    while (1) {
-        yield();
-    }
+    // write(1, argv[1], strlen(argv[1]));
 }

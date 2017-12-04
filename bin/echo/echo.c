@@ -16,9 +16,8 @@ main(int argc, char** argv)
             write(1, " ", 1);
             ++i;
         }
+    } else {
+        puts("Usage : echo <string> [<string> ..]");
     }
-    // TODO: What is the behaviour if there is no cmd argument
-    while (1) {
-        yield();
-    }
+    puts(" ");
 }

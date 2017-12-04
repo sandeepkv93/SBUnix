@@ -179,16 +179,14 @@ pid_t
 tasklist_waitpid(pid_t child_pid)
 {
     task_struct* child = tasklist_get_task(child_pid, task_zombie);
-    while (1) {
-        if (child == NULL) {
-            tasklist_set_task_state(task_get_this_task_struct()->pid,
-                                    task_sleep_wait);
-            task_yield();
-        } else {
-            task_clean(child);
-            return child_pid;
-        }
+    while (child == NULL || child->pid != child_pid) {
+        tasklist_set_task_state(task_get_this_task_struct()->pid,
+                                task_sleep_wait);
+        task_yield();
+        child = tasklist_get_task(child_pid, task_zombie);
     }
+    task_clean(child);
+    return child_pid;
 }
 
 pid_t
@@ -204,13 +202,12 @@ tasklist_wait(int status)
         if (child == NULL) {
             tasklist_set_task_state(pid, task_sleep_wait);
             task_yield();
+            child = tasklist_find_one_child(pid, task_zombie);
         }
         // free child
-        else {
-            child_pid = child->pid;
-            task_clean(child);
-            return child_pid;
-        }
+        child_pid = child->pid;
+        task_clean(child);
+        return child_pid;
     }
 }
 
@@ -218,29 +215,27 @@ void
 tasklist_reparent(pid_t ppid)
 {
     tasklist_node* list_iter = tasklist_head;
-    if (!tasklist_head) {
-        do {
-            if (list_iter->task->ppid == ppid) {
-                list_iter->task->ppid = INIT_PID;
-            }
-            list_iter = list_iter->next;
-        } while (list_iter != tasklist_head);
-    }
+    do {
+        if (list_iter->task->ppid == ppid) {
+            list_iter->task->ppid = INIT_PID;
+        }
+        list_iter = list_iter->next;
+    } while (list_iter != tasklist_head);
 }
 
 void
 tasklist_exit(uint64_t exit_code)
 {
-    pid_t pid = task_get_this_task_struct()->pid;
+    task_get_this_task_struct()->state = task_zombie;
     task_get_this_task_struct()->exit_code = exit_code;
-    tasklist_set_task_state(pid, task_zombie);
     // wake up parent process
     // a function that takes pid,current state,new state
     task_struct* parent =
       tasklist_get_task(task_get_this_task_struct()->ppid, task_sleep_wait);
-    if (parent)
+    if (parent) {
         parent->state = task_runnable;
-    tasklist_reparent(pid);
+    }
+    tasklist_reparent(task_get_this_task_struct()->pid);
     paging_free_pagetables((uint64_t*)PAGING_PML4_SELF_REFERENCING, 1);
     task_yield();
 }
