@@ -167,8 +167,8 @@ vfs_read(int fd, void* buffer, unsigned int count)
                         file_obj->cursor -= 1;
                         return -1;
                     }
-                    strcpy(buffer, (nth_nary_node->data).name);
-                    return strlen((nth_nary_node->data).name);
+                    strcpy(buffer, (nth_nary_node->data).node_id);
+                    return strlen((nth_nary_node->data).node_id);
                 }
 
             case NORMAL_FILE_TYPE:

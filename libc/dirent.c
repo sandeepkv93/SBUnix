@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <sys/string.h>
 #include <unistd.h>
