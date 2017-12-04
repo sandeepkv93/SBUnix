@@ -1,6 +1,8 @@
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/paging.h>
+#include <sys/task.h>
+#include <sys/tasklist.h>
 #include <sys/term.h>
 #define VC_ROW_LIMIT 25
 #define VC_COL_LIMIT 80
@@ -166,16 +168,26 @@ int
 term_read_from_buffer(char* buff, int count)
 {
     int i;
+    task_struct* waiting_task;
     for (i = 0; i < count; i++) {
         if (i >= kb_buff.end) {
             // If user is yet to type we need to wait
             kb_buff.block = TRUE;
         }
         // Wait until atleast one \n is there in buffer
-        while (kb_buff.block)
-            ;
+        if (kb_buff.block) {
+            // we can set it directly since we have the task_struct but we will
+            // maintain a single function for state modifications
+            tasklist_set_task_state(task_get_this_task_struct()->pid,
+                                    task_sleep_keyboard);
+            task_yield();
+        }
         if (kb_buff.buffer[i] == '\n') {
             term_buffer_reset(i + 1);
+            waiting_task = tasklist_find_task(task_sleep_keyboard);
+            if (waiting_task) {
+                tasklist_set_task_state(waiting_task->pid, task_runnable);
+            }
             return i;
         }
         buff[i] = kb_buff.buffer[i];

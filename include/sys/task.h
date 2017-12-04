@@ -50,6 +50,7 @@ typedef struct _taskstruct
     char cwd[PATH_LENGTH];
     task_state state;
     uint64_t exit_code;
+    bool is_fg;
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 
 task_struct* task_create();
@@ -60,4 +61,6 @@ task_struct* task_get_this_task_struct();
 uint64_t task_initial_setup();
 void task_yield();
 void task_save_state();
+task_struct* tasklist_find_task(task_state state);
+void tasklist_set_task_state(pid_t pid, task_state state);
 #endif
