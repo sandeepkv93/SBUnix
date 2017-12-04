@@ -159,7 +159,11 @@ tasklist_schedule_task()
 pid_t
 tasklist_waitpid(pid_t child_pid)
 {
-    task_struct* child = tasklist_get_task(child_pid, task_zombie);
+    task_struct* child = tasklist_get_task(child_pid, task_any_state);
+    if (child == NULL) {
+        return -1;
+    }
+    child = tasklist_get_task(child_pid, task_zombie);
     while (child == NULL || child->pid != child_pid) {
         tasklist_set_task_state(task_get_this_task_struct()->pid,
                                 task_sleep_wait);
@@ -228,6 +232,21 @@ tasklist_decrement_sleep_time()
                 list_iter->task->state = task_runnable;
             }
         }
+        list_iter = list_iter->next;
+    } while (list_iter != tasklist_head);
+}
+
+void
+tasklist_walk_print()
+{
+    tasklist_node* list_iter = tasklist_head;
+    kprintf("PID  BIN       STATE\n");
+    do {
+        kprintf("[%d] ", list_iter->task->pid);
+        kprintf(list_iter->task->binary_name);
+        kprintf("  ");
+        kprintf(task_get_state_string(list_iter->task->state));
+        kprintf("\n");
         list_iter = list_iter->next;
     } while (list_iter != tasklist_head);
 }

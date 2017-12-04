@@ -104,8 +104,8 @@ fork(void)
     child_task->ppid = parent_task->pid;
     strcpy(child_task->binary_name, parent_task->binary_name);
 
-    // TODO deep copy this
-    child_task->vma_list = parent_task->vma_list;
+    child_task->vma_list = vma_deep_copy_list(parent_task->vma_list);
+
     if (parent_task->is_fg) {
         parent_task->is_fg = FALSE;
         child_task->is_fg = TRUE;

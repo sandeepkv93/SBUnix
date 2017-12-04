@@ -163,6 +163,11 @@ sleep(uint32_t seconds)
     return syscall(_SYS__nanosleep, (long)seconds, 0, 0);
 }
 
+int
+ps()
+{
+    return syscall(_SYS__sched_getscheduler, 0, 0, 0);
+}
 #ifdef __TEST__
 void
 _start()

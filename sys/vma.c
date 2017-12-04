@@ -51,6 +51,33 @@ vma_read_elf(char* binary_file)
 }
 
 struct vma_struct*
+vma_deep_copy_list(struct vma_struct* head)
+{
+    struct vma_struct *curr = NULL, *prev = NULL, *new_head = NULL;
+
+    if (head) {
+        new_head = kmalloc(sizeof(struct vma_struct));
+        *new_head = *head;
+        new_head->vma_next = NULL;
+    } else {
+        return NULL;
+    }
+
+    prev = new_head;
+    head = head->vma_next;
+
+    while (head) {
+        curr = kmalloc(sizeof(struct vma_struct));
+        *curr = *head;
+        prev->vma_next = curr;
+        prev = curr;
+        head = head->vma_next;
+    }
+
+    return new_head;
+}
+
+struct vma_struct*
 vma_add_node(struct vma_struct* vma_first, uint64_t start, uint64_t end,
              char* filepath, uint64_t size, uint64_t offset, uint32_t flags)
 {

@@ -154,6 +154,13 @@ syscall_sleep(uint32_t seconds)
 }
 
 long
+syscall_ps()
+{
+    tasklist_walk_print();
+    return 0;
+}
+
+long
 syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
 {
     long ret_val = -1;
@@ -218,6 +225,9 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             break;
         case _SYS__nanosleep:
             ret_val = syscall_sleep((uint32_t)arg1);
+            break;
+        case _SYS__sched_getscheduler:
+            ret_val = syscall_ps();
             break;
         case _SYS__pipe:
         // TODO

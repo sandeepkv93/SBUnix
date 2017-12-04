@@ -10,4 +10,5 @@ pid_t tasklist_waitpid(pid_t child_pid);
 void tasklist_set_task_state(pid_t pid, task_state state);
 task_struct* tasklist_find_task(task_state state);
 void tasklist_decrement_sleep_time();
+void tasklist_walk_print();
 #endif

@@ -63,4 +63,5 @@ void task_yield();
 void task_save_state();
 pid_t task_getpid();
 pid_t task_getppid();
+char* task_get_state_string(task_state s);
 #endif

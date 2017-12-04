@@ -230,3 +230,21 @@ task_getppid()
 {
     return task_get_this_task_struct()->ppid;
 }
+
+char*
+task_get_state_string(task_state s)
+{
+    switch (s) {
+        case task_runnable:
+            return "Running";
+        case task_zombie:
+            return "Zombie";
+        case task_sleep_wait:
+        case task_sleep_keyboard:
+        case task_sleep_timer:
+            return "Sleeping";
+        case task_any_state:
+            return "??";
+    }
+    return "??";
+}

@@ -30,6 +30,9 @@ int
 vfs_open(char* pathname, int flags)
 {
     char* path = g_path_open;
+    if (pathname[0] == 0) {
+        return -1;
+    }
     if (pathname[0] == '/') {
         /*Relative Path */
         strcpy(path, pathname);

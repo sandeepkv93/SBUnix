@@ -40,11 +40,13 @@ main(int argc, char** argv, char** envp)
 {
     char* argv_new[] = { "/bin/sbush", "10", NULL };
     char* envp_new[] = { "PATH=/", NULL };
+    int status;
     puts("[ INIT started ]");
     if (!fork()) {
         execvpe("/bin/sbush", argv_new, envp_new);
     }
     while (1) {
+        wait(&status);
         yield();
     }
     return 0;
