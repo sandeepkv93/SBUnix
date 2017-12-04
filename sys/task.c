@@ -80,7 +80,7 @@ void
 task_destroy(task_struct* t)
 {
     alloc_free_page(t->stack_page);
-    /*kfree(t);*/
+    kfree(t);
 }
 
 void

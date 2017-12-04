@@ -70,7 +70,7 @@ vfs_close(int fd)
     if (file_obj != NULL) {
         file_obj->reference_count -= 1;
         if (file_obj->reference_count == 0) {
-            /*kfree(file_obj);*/
+            kfree(file_obj);
         }
         task_get_this_task_struct()->filetable[fd] = NULL;
         return 0;

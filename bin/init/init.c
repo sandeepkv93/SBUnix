@@ -26,7 +26,7 @@ main2(int argc, char** argv, char** envp)
 }
 
 int
-main(int argc, char** argv, char** envp)
+main3(int argc, char** argv, char** envp)
 {
     char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
     char* envp_new[] = { "PATH=/", NULL };
@@ -36,9 +36,9 @@ main(int argc, char** argv, char** envp)
 }
 
 int
-main3(int argc, char** argv, char** envp)
+main(int argc, char** argv, char** envp)
 {
-    char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
+    char* argv_new[] = { "/bin/sbush", "10", NULL };
     char* envp_new[] = { "PATH=/", NULL };
     puts("[ INIT started ]");
     if (!fork()) {

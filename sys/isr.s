@@ -4,7 +4,6 @@
 push_regs:
 
     // Push all regs onto stack
-    cli
     push %rsi
     push %rdi
     push %rbp
@@ -55,7 +54,6 @@ pop_regs:
     pop %rbp
     pop %rdi
     pop %rsi
-    sti
     retq
 
 timer_isr_asm:

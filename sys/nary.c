@@ -225,14 +225,14 @@ delete_nary_node(char* path)
         calcPaths(path, &subPath, &remPath);
         if (strcmp(((root->firstChild)->data).node_id, subPath) == 0) {
             if (remPath == NULL) {
-                /*struct nary_tree_node* temp = root->firstChild;*/
+                struct nary_tree_node* temp = root->firstChild;
                 root->firstChild = root->firstChild->sibling;
                 if (root->firstChild == NULL &&
                     strcmp((root->data).node_id, "/") == 0) {
-                    /*kfree(root);*/
+                    kfree(root);
                     nary_root = NULL;
                 }
-                /*kfree(temp);*/
+                kfree(temp);
                 return 0;
             }
             root = root->firstChild;
@@ -243,9 +243,9 @@ delete_nary_node(char* path)
             while (root->sibling != NULL) {
                 if (strcmp(((root->sibling)->data).node_id, subPath) == 0) {
                     if (remPath == NULL) {
-                        /*struct nary_tree_node* temp = root->sibling;*/
+                        struct nary_tree_node* temp = root->sibling;
                         root->sibling = (root->sibling)->sibling;
-                        /*kfree(temp);*/
+                        kfree(temp);
                         return 0;
                     }
                     root = root->sibling;
