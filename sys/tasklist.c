@@ -103,7 +103,7 @@ tasklist_remove_task(pid_t pid)
     if (curr->next == curr) {
         // Only one element
         tasklist_head = NULL;
-        kfree((void*)curr);
+        /*kfree((void*)curr);*/
         return TRUE;
     }
 
@@ -113,7 +113,7 @@ tasklist_remove_task(pid_t pid)
     }
     curr->next->prev = curr->prev;
     curr->prev->next = curr->next;
-    kfree((void*)curr);
+    /*kfree((void*)curr);*/
 
     return TRUE;
 }
@@ -147,18 +147,18 @@ void
 task_clean(task_struct* task)
 {
     while (task->vma_list != NULL) {
-        kfree(task->vma_list);
+        /*kfree(task->vma_list);*/
         task->vma_list = task->vma_list->vma_next;
     }
 
     // release file objects for 0,1,2. 1000 is dummy intial value
     for (int i = 0; i < 3; i++) {
-        if ((uint64_t)task->filetable[i] != 1000)
-            kfree(task->filetable[i]);
+        /*if ((uint64_t)task->filetable[i] != 1000)
+        kfree(task->filetable[i]);*/
     }
     for (int i = 3; i < TASK_FILETABLE_SIZE; i++) {
-        if (task->filetable[i] != NULL)
-            kfree(task->filetable[i]);
+        /*if (task->filetable[i] != NULL)
+        kfree(task->filetable[i]);*/
     }
 }
 

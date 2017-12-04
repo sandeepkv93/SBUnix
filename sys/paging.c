@@ -202,6 +202,7 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
     // Flush not needed
     pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
     pagetable = paging_get_create_pt_vaddr(v_addr);
+    paging_flush_tlb();
 
     if ((pagetable[pt_offset] & PAGING_PAGE_PRESENT)) {
         pagetable[pt_offset] = p_addr;
@@ -245,7 +246,7 @@ paging_add_initial_pagetable_mapping(uint64_t* pml4_phys_addr, uint64_t v_addr,
 }
 
 void
-paging_create_pagetables()
+paging_create_pagetables(uint64_t physbase, uint64_t physfree)
 {
     // Creates the 4 level pagetables needed and switches CR3
     uint64_t* pml4_table = paging_pagelist_get_frame();

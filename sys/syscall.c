@@ -209,5 +209,6 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             kprintf("Call num %d, args %d, %d, %d, ret_val %d", syscall_num,
                     arg1, arg2, arg3, ret_val);
     }
+    task_yield();
     return ret_val;
 }

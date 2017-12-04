@@ -29,7 +29,15 @@ fork_cow(uint64_t* page_va_addr, int level)
 
         next_table_addr = ((uint64_t)page_va_addr << 9) | (i << 12);
 
-        if (page_va_addr[i] & PAGING_PT_LEVEL4) {
+        if (level == 1 && i == PAGING_TABLE_ENTRIES - 2) {
+
+            table_entry_addr = page_va_addr[i];
+
+        } else if (level == 1 && i == PAGING_TABLE_ENTRIES - 1) {
+
+            table_entry_addr = frame_addr;
+
+        } else if (page_va_addr[i] & PAGING_PT_LEVEL4) {
 
             if (next_table_addr < PAGING_KERNMEM) {
                 page_va_addr[i] =
@@ -38,10 +46,6 @@ fork_cow(uint64_t* page_va_addr, int level)
 
             table_entry_addr = page_va_addr[i];
             paging_inc_ref_count(next_table_addr);
-
-        } else if (level == 1 && i == PAGING_TABLE_ENTRIES - 1) {
-
-            table_entry_addr = frame_addr;
 
         } else {
 
@@ -64,8 +68,7 @@ fork_copy_stack(task_struct* parent_task, task_struct* child_task,
                 uint64_t parent_stackend)
 {
     // Only one enters, but two processes exit. How cool!
-    memcpy(child_task->stack_page, task_get_this_task_struct()->stack_page,
-           PAGING_PAGE_SIZE);
+    memcpy(child_task->stack_page, parent_task->stack_page, PAGING_PAGE_SIZE);
 
     child_task->regs.rsp =
       (uint64_t)((parent_stackend - (uint64_t)parent_task->stack_page) +
