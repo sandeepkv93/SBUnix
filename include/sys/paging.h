@@ -3,6 +3,7 @@
 #define _PAGING_H
 #define PAGING_VA_MASK 0xfffffffffffff000
 #define PAGING_PAGE_COPY_TEMP_VA 0xffffffffaffff000
+#define PAGING_CLEAR_PAGE_VA (PAGING_PAGE_COPY_TEMP_VA + PAGING_PAGE_SIZE)
 #define PAGING_KERNMEM 0xffffffff80000000
 #define PAGING_VIDEO                                                           \
     (PAGING_KERNMEM + 0x1388000) // 2nd part is 5000 * PAGESIZE TODO
