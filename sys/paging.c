@@ -266,13 +266,26 @@ paging_add_initial_pagetable_mapping(uint64_t* pml4_phys_addr, uint64_t v_addr,
 
     pt_table[PAGING_PAGE_TABLE_OFFSET(v_addr)] = phys_entry | PAGING_PT_LEVEL4;
 }
+
+void
+paging_clear_initial_memory(uint64_t physfree)
+{
+    uint64_t* temp = (uint64_t*)physfree;
+    /*while ((uint64_t)temp < 0x40000000) {*/
+    while ((uint64_t)temp < physfree + 100 * PAGING_PAGE_SIZE) {
+        *temp = 0;
+        temp++;
+    }
+}
 void
 paging_create_pagetables(uint64_t physbase, uint64_t physfree)
 {
     // Creates the 4 level pagetables needed and switches CR3
 
-    uint64_t* pml4_table = paging_pagelist_get_frame();
+    uint64_t* pml4_table;
     uint64_t v_addr;
+    paging_clear_initial_memory(physfree);
+    pml4_table = paging_pagelist_get_frame();
     for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
         pml4_table[i] = 0;
     }
