@@ -72,6 +72,22 @@ tasklist_get_task(pid_t pid, task_state state)
 }
 
 task_struct*
+tasklist_find_task(task_state state)
+{
+    // returns head if state is task_any_state
+    if (!tasklist_head)
+        return NULL;
+    tasklist_node* list_iter = tasklist_head;
+    do {
+        if (state == task_any_state || list_iter->task->state == state) {
+            return list_iter->task;
+        }
+        list_iter = list_iter->next;
+    } while (list_iter != tasklist_head);
+    return NULL;
+}
+
+task_struct*
 tasklist_find_one_child(pid_t ppid, task_state state)
 {
     // TODO iterate over list and check for matching ppid and state.
@@ -103,7 +119,7 @@ tasklist_remove_task(pid_t pid)
     if (curr->next == curr) {
         // Only one element
         tasklist_head = NULL;
-        kfree((void*)curr);
+        /*kfree((void*)curr);*/
         return TRUE;
     }
 
@@ -113,7 +129,7 @@ tasklist_remove_task(pid_t pid)
     }
     curr->next->prev = curr->prev;
     curr->prev->next = curr->next;
-    kfree((void*)curr);
+    /*kfree((void*)curr);*/
 
     return TRUE;
 }
@@ -124,9 +140,7 @@ tasklist_schedule_task()
     // We track the task to be scheduled next using task_head
     // TODO: return only runnable tasks
     tasklist_node* list_iter = tasklist_head;
-    if (tasklist_head == NULL || tasklist_head->next == NULL)
-        return tasklist_head->task;
-    do {
+    while (1) {
         if (list_iter->task->state == task_runnable) {
             tasklist_head = list_iter->next; // we will give the next process
                                              // priority since all the previous
@@ -134,8 +148,7 @@ tasklist_schedule_task()
             return list_iter->task;
         }
         list_iter = list_iter->next;
-    } while (list_iter == tasklist_head);
-    return NULL;
+    }
 }
 
 // TODO: if none of the children is in zombie state(NULL is returned), change
@@ -147,18 +160,18 @@ void
 task_clean(task_struct* task)
 {
     while (task->vma_list != NULL) {
-        kfree(task->vma_list);
+        /*kfree(task->vma_list);*/
         task->vma_list = task->vma_list->vma_next;
     }
 
     // release file objects for 0,1,2. 1000 is dummy intial value
     for (int i = 0; i < 3; i++) {
-        if ((uint64_t)task->filetable[i] != 1000)
-            kfree(task->filetable[i]);
+        /*if ((uint64_t)task->filetable[i] != 1000)
+        kfree(task->filetable[i]);*/
     }
     for (int i = 3; i < TASK_FILETABLE_SIZE; i++) {
-        if (task->filetable[i] != NULL)
-            kfree(task->filetable[i]);
+        /*if (task->filetable[i] != NULL)
+        kfree(task->filetable[i]);*/
     }
 }
 

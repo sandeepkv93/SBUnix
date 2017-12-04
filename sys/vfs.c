@@ -7,7 +7,11 @@
 #include <sys/task.h>
 #include <sys/utility.h>
 #include <sys/vfs.h>
-
+// BAD Declaration
+#define O_DIRECTORY 00200000
+char g_path_open[64];
+char g_path_unlink[64];
+char g_path_directory[512];
 int
 find_free_fd()
 {
@@ -24,7 +28,7 @@ find_free_fd()
 int
 vfs_open(char* pathname, int flags)
 {
-    char path[32];
+    char* path = g_path_open;
     if (pathname[0] == '/') {
         /*Relative Path */
         strcpy(path, pathname);
@@ -65,7 +69,7 @@ vfs_close(int fd)
     if (file_obj != NULL) {
         file_obj->reference_count -= 1;
         if (file_obj->reference_count == 0) {
-            kfree(file_obj);
+            /*kfree(file_obj);*/
         }
         task_get_this_task_struct()->filetable[fd] = NULL;
         return 0;
@@ -118,6 +122,7 @@ vfs_seek(int fd, uint64_t offset)
 unsigned int
 vfs_read(int fd, void* buffer, unsigned int count)
 {
+    char* directory_path = g_path_directory;
     /*
     Goto File object corresponding to fd;
     Goto the Nary Tree Node pointed by file object
@@ -151,7 +156,6 @@ vfs_read(int fd, void* buffer, unsigned int count)
                     return i;
                 } else if (file_obj->fs_node.typeflag[0] == DIRECTORY + '0') {
                     file_obj->cursor += 1;
-                    char directory_path[32];
                     if (file_obj->fs_node.name[0] != '/') {
                         strcpy(directory_path, "/");
                         strcat(directory_path, file_obj->fs_node.name);
@@ -200,7 +204,7 @@ vfs_getcwd(char* buf, size_t size)
 int
 vfs_unlink(const char* pathname)
 {
-    char path[64];
+    char* path = g_path_unlink;
     if (pathname[0] == '/') {
         /*Relative Path */
         strcpy(path, pathname);

@@ -26,7 +26,6 @@ init_callback()
 {
     char* argv[] = { "/bin/init", NULL };
     char* envp[] = { "PATH=/bin/", "PWD=/", NULL };
-    task_yield();
     syscall_wrapper(_SYS__execve, (long)"bin/init", (long)argv, (long)envp);
     kprintf("/bin/init returned!!");
     while (1)
@@ -38,7 +37,7 @@ create_init()
 {
     task_struct* init_task = task_create(init_callback);
     init_task->regs.cr3 = paging_get_current_cr3();
-    // Call yield to update me properly
+    // Call yield, this will now "start" the init task
     task_yield();
 }
 
@@ -60,7 +59,7 @@ start(uint32_t* modulep, void* physbase, void* physfree)
         }
     }
     paging_pagelist_create(physfree);
-    paging_create_pagetables();
+    paging_create_pagetables(physbase, physfree);
     term_clear_screen();
 
     kprintf("physfree %p\n", (uint64_t)physfree);

@@ -4,6 +4,7 @@
 #include <sys/kprintf.h>
 #include <sys/string.h>
 #include <sys/term.h>
+char g_buffer[1024];
 
 void
 copy_hex(unsigned long num, char* buf, int* ptr)
@@ -106,11 +107,10 @@ sprintf(char* buffer, const char* format, ...)
 void
 kprintf(const char* format, ...)
 {
-    char* buffer = (char*)kmalloc(sizeof(char) * 1024);
     int buflen = 0;
     va_list ap;
     va_start(ap, format);
-    buflen = vprintf(buffer, format, ap);
-    term_write(buffer, buflen);
+    buflen = vprintf(g_buffer, format, ap);
+    term_write(g_buffer, buflen);
     va_end(ap);
 }

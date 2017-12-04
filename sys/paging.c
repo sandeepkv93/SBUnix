@@ -13,6 +13,8 @@ struct pagelist_t* freepage_head;
 extern void paging_enable(void*);
 extern int paging_flush_tlb_asm();
 
+int intial_page_mapping_done = 0;
+
 void
 update_pt_entry(uint64_t v_addr, uint64_t addr_flags)
 {
@@ -78,6 +80,23 @@ paging_pagelist_create(uint64_t physfree)
     freepage_head = &pages[(physfree / PAGING_PAGE_SIZE)];
 }
 
+void
+clear_pages(uint64_t pageAddress)
+{
+    uint64_t* pagetable;
+    uint64_t pt_offset;
+    char* temp_va = (char*)PAGING_CLEAR_PAGE_VA;
+    paging_flush_tlb();
+    pagetable = paging_get_pt_vaddr((uint64_t)temp_va);
+    pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)temp_va);
+    pagetable[pt_offset] = (uint64_t)pageAddress | PAGING_PAGETABLE_PERMISSIONS;
+    for (int i = 0; i < PAGING_PAGE_SIZE; i++) {
+        temp_va[i] = 0;
+    }
+    // TODO:setting pt entry to not present required?
+    paging_flush_tlb();
+}
+
 void*
 paging_pagelist_get_frame()
 {
@@ -87,6 +106,9 @@ paging_pagelist_get_frame()
         kprintf("Out of memory");
         while (1)
             ;
+    }
+    if (intial_page_mapping_done) {
+        clear_pages(pageAddress);
     }
     freepage_head->ref_count = 1;
     freepage_head = freepage_head->next;
@@ -202,6 +224,7 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
     // Flush not needed
     pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
     pagetable = paging_get_create_pt_vaddr(v_addr);
+    paging_flush_tlb();
 
     if ((pagetable[pt_offset] & PAGING_PAGE_PRESENT)) {
         pagetable[pt_offset] = p_addr;
@@ -243,14 +266,13 @@ paging_add_initial_pagetable_mapping(uint64_t* pml4_phys_addr, uint64_t v_addr,
 
     pt_table[PAGING_PAGE_TABLE_OFFSET(v_addr)] = phys_entry | PAGING_PT_LEVEL4;
 }
-
 void
-paging_create_pagetables()
+paging_create_pagetables(uint64_t physbase, uint64_t physfree)
 {
     // Creates the 4 level pagetables needed and switches CR3
+
     uint64_t* pml4_table = paging_pagelist_get_frame();
     uint64_t v_addr;
-
     for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
         pml4_table[i] = 0;
     }
@@ -260,7 +282,8 @@ paging_create_pagetables()
       ((uint64_t)pml4_table) | PAGING_PAGETABLE_PERMISSIONS;
 
     // TODO Remove this hard coding of 2048. Map only physbase to physfree
-    for (int i = 0; i < 5000; i++) {
+    for (int i = physbase / PAGING_PAGE_SIZE; i < physfree / PAGING_PAGE_SIZE;
+         i++) {
         v_addr = PAGING_KERNMEM + i * (PAGING_PAGE_SIZE);
         paging_add_initial_pagetable_mapping(pml4_table, v_addr,
                                              (i * PAGING_PAGE_SIZE) |
@@ -269,7 +292,10 @@ paging_create_pagetables()
 
     paging_add_initial_pagetable_mapping(
       pml4_table, PAGING_VIDEO, (0xb8000) | PAGING_PAGETABLE_PERMISSIONS);
-
+    // temp_va_mapping for clearing pages
+    paging_add_initial_pagetable_mapping(
+      pml4_table, PAGING_CLEAR_PAGE_VA,
+      ((uint64_t)paging_pagelist_get_frame() | PAGING_PAGETABLE_PERMISSIONS));
     paging_enable(pml4_table);
 }
 

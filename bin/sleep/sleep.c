@@ -4,7 +4,8 @@
 #include <sys/utility.h>
 #include <unistd.h>
 
-/* TODO: Use sys/utility.h char_array_to_int function instead of redefining. For some weird reasons not able to use even though the headfile is included */
+/* TODO: Use sys/utility.h char_array_to_int function instead of redefining. For
+ * some weird reasons not able to use even though the headfile is included */
 
 uint32_t
 charArrayToInt(char* array)

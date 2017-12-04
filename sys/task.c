@@ -80,17 +80,20 @@ void
 task_destroy(task_struct* t)
 {
     alloc_free_page(t->stack_page);
-    kfree(t);
+    /*kfree(t);*/
 }
 
 void
 task_yield()
 {
+    term_set_glyph(0, ' ');
+    term_set_glyph(1, ' ');
     next = tasklist_schedule_task();
     term_set_glyph(0, '0' + next->pid);
     sched_switch_kthread(me, next);
     me = next;
     set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
+    term_set_glyph(1, '0' + me->pid);
 }
 
 void
@@ -124,7 +127,7 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // For now we can mark the PML4 entries in VMA to present 0
 
     // Populate VMAs in the task_struct
-    elf_read(bin_name);
+    vma_read_elf(bin_name);
 
     // Get one page_frame mapped in stack region, we'll use it to store argv and
     // env. Refer crt1.c for a diagram
@@ -156,9 +159,6 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
 
     // We need a NULL after all the envs
     argv_envp_data[1 + (argc + 1) + envc] = (uint64_t)NULL;
-
-    // TODO: Is this needed?
-    set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
 
     // TODO: Since it might be COW we might need to decrement ref count, walk
     // PTs
@@ -196,6 +196,10 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();
     paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
 
+    // TODO: Is this needed?
+    set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
+
+    task_save_state(); //?
     // Stack grows downwards so we need to give the address of next page
     sched_enter_ring3((uint64_t*)(stackpage_v_addr + PAGING_PAGE_SIZE),
                       (void*)task_get_this_task_struct()->entry_point);

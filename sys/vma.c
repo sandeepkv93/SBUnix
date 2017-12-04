@@ -17,7 +17,7 @@
 #define VMA_HEAP_START (VMA_STACK_END - (6000 * PAGING_PAGE_SIZE))
 
 void
-elf_read(char* binary_file)
+vma_read_elf(char* binary_file)
 {
     Elf64_Ehdr ehdr;
     Elf64_Phdr* phdr;

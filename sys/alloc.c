@@ -19,19 +19,13 @@ typedef union header Header;
 Header start;
 Header* freep = NULL;
 
-void
-update_pagetable(uint64_t v_addr)
-{
-    uint64_t p_addr = (uint64_t)paging_pagelist_get_frame();
-    paging_add_pagetable_mapping(v_addr, p_addr);
-}
-
 void*
 alloc_get_page()
 {
-    uint64_t* v_addr = (uint64_t*)cur_kern_heap;
+    uint64_t v_addr = (uint64_t)cur_kern_heap;
+    uint64_t p_addr = (uint64_t)paging_pagelist_get_frame();
     // kprintf("new page %p\n", v_addr);
-    update_pagetable(cur_kern_heap);
+    paging_add_pagetable_mapping(v_addr, p_addr);
     cur_kern_heap += PAGING_PAGE_SIZE;
     return (void*)v_addr;
 }

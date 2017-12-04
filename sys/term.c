@@ -1,6 +1,8 @@
 #include <sys/interrupts.h>
 #include <sys/kprintf.h>
 #include <sys/paging.h>
+#include <sys/task.h>
+#include <sys/tasklist.h>
 #include <sys/term.h>
 #define VC_ROW_LIMIT 25
 #define VC_COL_LIMIT 80
@@ -172,8 +174,13 @@ term_read_from_buffer(char* buff, int count)
             kb_buff.block = TRUE;
         }
         // Wait until atleast one \n is there in buffer
-        while (kb_buff.block)
-            ;
+        if (kb_buff.block) {
+            // we can set it directly since we have the task_struct but we will
+            // maintain a single function for state modifications
+            tasklist_set_task_state(task_get_this_task_struct()->pid,
+                                    task_sleep_keyboard);
+            task_yield();
+        }
         if (kb_buff.buffer[i] == '\n') {
             term_buffer_reset(i + 1);
             return i;
@@ -191,6 +198,7 @@ term_set_keypress(uint8_t code, uint8_t is_ctrl_pressed,
     char str[2];
     char key = is_shift_pressed ? g_keymap_shift[code] : g_keymap[code];
     char prefix = is_ctrl_pressed ? '^' : key;
+    task_struct* waiting_task;
     str[0] = prefix;
     str[1] = key;
     if (is_ctrl_pressed) {
@@ -212,6 +220,10 @@ term_set_keypress(uint8_t code, uint8_t is_ctrl_pressed,
     term_add_to_buffer(str, is_ctrl_pressed + 1);
     if (prefix == '\n') {
         kb_buff.block = FALSE;
+        waiting_task = tasklist_find_task(task_sleep_keyboard);
+        if (waiting_task) {
+            tasklist_set_task_state(waiting_task->pid, task_runnable);
+        }
     }
 }
 

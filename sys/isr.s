@@ -73,6 +73,7 @@ kb_isr_asm:
 page_fault_isr_asm:
     callq push_regs
     movq %cr2,%rdi
+    movq 0(%rsp), %rsi
     callq page_fault_handler
     callq pop_regs
     // Below needed because page fault pushes error code
@@ -81,6 +82,9 @@ page_fault_isr_asm:
 
 syscall_isr_asm:
     // We need this asm function so that we can iretq, that's all :)
+    callq push_regs
     callq syscall_wrapper
+    movq %rax, 88(%rsp)
+    callq pop_regs
     iretq
 .end

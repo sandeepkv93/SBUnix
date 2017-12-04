@@ -193,9 +193,10 @@ kb_isr()
 }
 
 void
-page_fault_handler(uint64_t v_addr)
+page_fault_handler(uint64_t v_addr, uint64_t err_code)
 {
-    int fd;
+    volatile uint64_t help = v_addr;
+    int fd = help;
     uint64_t p_addr;
     uint64_t* pagetable = paging_get_create_pt_vaddr(v_addr);
     uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);

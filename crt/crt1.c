@@ -10,9 +10,11 @@ _start(void)
             "popq %%rsi;"
             "movq %%rsi, %0;"
             "movq %%rsp, %1;"
+            "push %%rsi;"
+            "push %%rsi;"
             : "=r"(__argc), "=r"(__argv)
             :
-            : "%rsi", "%rsp", "%rdx");
+            : "%rsi", "%rdx");
     exit(main(__argc, (char**)__argv, (char**)((char**)__argv + __argc + 1)));
 }
 
