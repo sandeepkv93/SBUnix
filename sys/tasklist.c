@@ -72,6 +72,22 @@ tasklist_get_task(pid_t pid, task_state state)
 }
 
 task_struct*
+tasklist_find_task(task_state state)
+{
+    // returns head if state is task_any_state
+    if (!tasklist_head)
+        return NULL;
+    tasklist_node* list_iter = tasklist_head;
+    do {
+        if (state == task_any_state || list_iter->task->state == state) {
+            return list_iter->task;
+        }
+        list_iter = list_iter->next;
+    } while (list_iter != tasklist_head);
+    return NULL;
+}
+
+task_struct*
 tasklist_find_one_child(pid_t ppid, task_state state)
 {
     // TODO iterate over list and check for matching ppid and state.
