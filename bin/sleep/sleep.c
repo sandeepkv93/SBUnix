@@ -35,7 +35,7 @@ main(int argc, char** argv)
     uint32_t seconds;
     if (argc > 1) {
         seconds = charArrayToInt(argv[1]);
-        sleep(seconds * 1000);
+        sleep(seconds);
     } else {
         puts("sleep: missing operand");
     }

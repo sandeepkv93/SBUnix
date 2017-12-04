@@ -216,3 +216,18 @@ tasklist_exit(uint64_t exit_code)
     paging_free_pagetables((uint64_t*)PAGING_PML4_SELF_REFERENCING, 1);
     task_yield();
 }
+
+void
+tasklist_decrement_sleep_time()
+{
+    tasklist_node* list_iter = tasklist_head;
+    do {
+        if (list_iter->task->state == task_sleep_timer) {
+            list_iter->task->sleep_time--;
+            if (list_iter->task->sleep_time == 0) {
+                list_iter->task->state = task_runnable;
+            }
+        }
+        list_iter = list_iter->next;
+    } while (list_iter != tasklist_head);
+}

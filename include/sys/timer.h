@@ -4,6 +4,7 @@
 void timer_setup();
 void timer_isr();
 void timer_sleep(uint32_t);
+void timer_nonblocking_sleep(uint32_t seconds);
 
 typedef struct
 {

@@ -149,7 +149,7 @@ syscall_unlink(char* path)
 long
 syscall_sleep(uint32_t seconds)
 {
-    timer_sleep(seconds);
+    timer_nonblocking_sleep(seconds);
     return 0;
 }
 

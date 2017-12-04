@@ -51,6 +51,7 @@ typedef struct _taskstruct
     task_state state;
     uint64_t exit_code;
     bool is_fg;
+    uint64_t sleep_time;
 } __attribute__((packed)) __attribute__((aligned(64))) task_struct;
 
 task_struct* task_create();

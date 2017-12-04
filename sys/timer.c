@@ -1,4 +1,5 @@
 #include <sys/interrupts.h>
+#include <sys/tasklist.h>
 #include <sys/term.h>
 #include <sys/timer.h>
 
@@ -16,6 +17,7 @@ timer_isr()
         g_clock.counter = 0;
         // Print every second
         term_set_time(g_clock.seconds);
+        tasklist_decrement_sleep_time();
     }
     outb(PIC1_COMMAND, PIC_EOI);
 }
@@ -45,4 +47,12 @@ timer_sleep(uint32_t milliseconds)
           (current_time.milliseconds - initial_time.milliseconds);
         wait = (elapsed_time_ms < milliseconds);
     } while (wait);
+}
+
+void
+timer_nonblocking_sleep(uint32_t seconds)
+{
+    task_get_this_task_struct()->state = task_sleep_timer;
+    task_get_this_task_struct()->sleep_time = seconds;
+    task_yield();
 }
