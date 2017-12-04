@@ -37,6 +37,7 @@ create_init()
 {
     task_struct* init_task = task_create(init_callback);
     init_task->regs.cr3 = paging_get_current_cr3();
+    init_task->is_fg = TRUE;
     // Call yield, this will now "start" the init task
     task_yield();
 }

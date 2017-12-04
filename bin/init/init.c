@@ -26,17 +26,17 @@ main2(int argc, char** argv, char** envp)
 }
 
 int
-main3(int argc, char** argv, char** envp)
+main(int argc, char** argv, char** envp)
 {
     char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
     char* envp_new[] = { "PATH=/", NULL };
-    puts("lo");
+    printf("Hello World ! %d \n", 2);
     execvpe("/bin/init", argv_new, envp_new);
     return 0;
 }
 
 int
-main(int argc, char** argv, char** envp)
+main3(int argc, char** argv, char** envp)
 {
     char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
     char* envp_new[] = { "PATH=/", NULL };

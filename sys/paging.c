@@ -297,6 +297,7 @@ paging_create_pagetables(uint64_t physbase, uint64_t physfree)
       pml4_table, PAGING_CLEAR_PAGE_VA,
       ((uint64_t)paging_pagelist_get_frame() | PAGING_PAGETABLE_PERMISSIONS));
     paging_enable(pml4_table);
+    intial_page_mapping_done = 1;
 }
 
 void

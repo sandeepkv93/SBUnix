@@ -2,6 +2,7 @@
 #include <sys/defs.h>
 #include <sys/fork.h>
 #include <sys/kprintf.h>
+#include <sys/paging.h>
 #include <sys/syscall.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>

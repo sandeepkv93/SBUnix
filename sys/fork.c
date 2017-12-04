@@ -106,10 +106,16 @@ fork(void)
 
     // TODO deep copy this
     child_task->vma_list = parent_task->vma_list;
+    if (parent_task->is_fg) {
+        parent_task->is_fg = FALSE;
+        child_task->is_fg = TRUE;
+    }
 
     /*
     uint64_t* temp_va = (uint64_t*)PAGING_PAGE_COPY_TEMP_VA;
+
     paging_add_pagetable_mapping((uint64_t)temp_va,
+
     (uint64_t)child_task->pml4_frame_addr);
     paging_enable(child_task->pml4_frame_addr);
     */

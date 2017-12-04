@@ -10,6 +10,7 @@
 // BAD Declaration
 #define O_DIRECTORY 00200000
 char g_path_open[64];
+char g_path_access[64];
 char g_path_unlink[64];
 char g_path_directory[512];
 int
@@ -80,7 +81,7 @@ vfs_close(int fd)
 int
 vfs_access(const char* pathname)
 {
-    char path[64];
+    char* path = g_path_access;
     if (pathname[0] == '/') {
         strcpy(path, pathname);
     } else {

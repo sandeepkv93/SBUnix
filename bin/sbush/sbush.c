@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+int trial;
 #if 0
 #include "sbush.h"
 #include "stringlib.h"
@@ -455,6 +456,8 @@ main(int argc, char* argv[], char* envp[])
         pid = fork();
         if (pid == 0) {
             execvpe(input_line, argv, envp);
+            puts("Failed to run command, please check again");
+            exit(1);
         } else {
             // wait(&dummy_status); // dummy status
         }

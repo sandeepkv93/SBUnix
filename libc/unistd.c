@@ -46,8 +46,8 @@ syscall(long sys_no, long arg1, long arg2, long arg3)
 void
 exit(int value)
 {
-    //    while (1)
-    //        yield();
+    while (1)
+        yield();
     syscall(_SYS__exit, value, 0, 0);
 }
 

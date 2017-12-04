@@ -16,7 +16,7 @@
 #define VMA_STACK_START (VMA_STACK_END - (500 * PAGING_PAGE_SIZE))
 #define VMA_HEAP_START (VMA_STACK_END - (6000 * PAGING_PAGE_SIZE))
 
-void
+bool
 vma_read_elf(char* binary_file)
 {
     Elf64_Ehdr ehdr;
@@ -24,6 +24,9 @@ vma_read_elf(char* binary_file)
 
     int fd = vfs_open(binary_file, 0);
 
+    if (fd == -1) {
+        return FALSE;
+    }
     vfs_read(fd, &ehdr, sizeof(Elf64_Ehdr));
 
     // Set entry point and binary name in current task_struct
@@ -44,6 +47,7 @@ vma_read_elf(char* binary_file)
       vma_list_with_phdr(NULL, phdr, ehdr.e_phnum, binary_file);
 
     vfs_close(fd);
+    return TRUE;
 }
 
 struct vma_struct*
