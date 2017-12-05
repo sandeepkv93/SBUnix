@@ -4,6 +4,7 @@
 #include <sys/timer.h>
 
 volatile s_time g_clock;
+volatile bool is_context_switch_enabled = FALSE;
 
 void
 timer_isr()
@@ -20,6 +21,11 @@ timer_isr()
         tasklist_decrement_sleep_time();
     }
     outb(PIC1_COMMAND, PIC_EOI);
+    if (is_context_switch_enabled) {
+        is_context_switch_enabled = FALSE;
+        task_yield();
+        is_context_switch_enabled = TRUE;
+    }
 }
 
 void
