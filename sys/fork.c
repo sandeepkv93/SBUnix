@@ -103,6 +103,7 @@ fork(void)
     child_task->regs.cr3 = fork_cow((void*)current_pml4_va, 1);
     child_task->ppid = parent_task->pid;
     strcpy(child_task->binary_name, parent_task->binary_name);
+    strcpy(child_task->cwd, parent_task->cwd);
 
     child_task->vma_list = vma_deep_copy_list(parent_task->vma_list);
 

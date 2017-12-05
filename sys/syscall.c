@@ -10,6 +10,7 @@
 #include <sys/term.h>
 #include <sys/timer.h>
 extern void syscall_isr_return(long);
+extern bool is_context_switch_enabled;
 
 long
 syscall_kill(pid_t pid, int signal)
@@ -171,6 +172,7 @@ long
 syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
 {
     long ret_val = -1;
+    is_context_switch_enabled = FALSE;
     switch (syscall_num) {
         /* For each case implement syscall, update ret_val */
         case _SYS__write:
@@ -245,6 +247,7 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             kprintf("Call num %d, args %d, %d, %d, ret_val %d", syscall_num,
                     arg1, arg2, arg3, ret_val);
     }
-    task_yield();
+    /*task_yield();*/
+    is_context_switch_enabled = TRUE;
     return ret_val;
 }

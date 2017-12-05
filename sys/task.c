@@ -14,6 +14,7 @@
 
 #define ARGV_ENV_MAX 200
 
+extern bool is_context_switch_enabled;
 extern void sched_switch_kthread(task_struct*, task_struct*);
 extern void sched_enter_ring3(uint64_t* stack_top, void* __start);
 
@@ -208,6 +209,7 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
 
     task_save_state(); //?
     // Stack grows downwards so we need to give the address of next page
+    is_context_switch_enabled = TRUE;
     sched_enter_ring3((uint64_t*)(stackpage_v_addr),
                       (void*)task_get_this_task_struct()->entry_point);
 }

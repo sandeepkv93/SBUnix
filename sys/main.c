@@ -20,6 +20,7 @@ extern uint64_t paging_get_current_cr3();
 uint8_t initial_stack[INITIAL_STACK_SIZE] __attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
+extern bool is_context_switch_enabled;
 
 void
 init_callback()
@@ -39,7 +40,9 @@ create_init()
     init_task->regs.cr3 = paging_get_current_cr3();
     init_task->is_fg = TRUE;
     // Call yield, this will now "start" the init task
-    task_yield();
+    is_context_switch_enabled = TRUE;
+    while (1)
+        ;
 }
 
 void
