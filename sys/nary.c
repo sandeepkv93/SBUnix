@@ -167,6 +167,9 @@ int
 checkIfExists(char* path)
 {
     struct nary_tree_node* root = nary_root;
+    if (strcmp(path, "/") == 0) {
+        return 0;
+    }
     if (root == NULL) {
         return -1;
     }
