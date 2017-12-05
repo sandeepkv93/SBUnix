@@ -39,7 +39,7 @@ int
 main(int argc, char** argv, char** envp)
 {
     char* argv_new[] = { "/bin/sbush", NULL };
-    char* envp_new[] = { "PATH=/", "PWD=/", NULL };
+    char* envp_new[] = { "PATH=/bin/", "PWD=/", NULL };
     int status;
     puts("[ INIT started ]");
     if (!fork()) {

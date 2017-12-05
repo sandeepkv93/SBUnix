@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 char* command_list[20];
+char exec_binary_name[64];
 char pwd[10];
 char* g_ps1 = "[ >> ] ";
 #if 0
@@ -596,7 +597,18 @@ main(int argc, char* argv[], char* envp[])
         }
         pid = fork();
         if (pid == 0) {
-            execvpe(command_list[0], command_list, envp);
+
+            strcpy(exec_binary_name, command_list[0]);
+
+            if (access(exec_binary_name, 0) == -1) {
+                char* e;
+                getenv(envp, "PATH", (char**)&e);
+                strcpy(exec_binary_name, e);
+                strcat(exec_binary_name, command_list[0]);
+            }
+
+            execvpe(exec_binary_name, command_list, envp);
+
             puts("Failed to run command, please check again");
             exit(1);
         } else {
