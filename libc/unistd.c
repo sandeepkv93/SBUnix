@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <sys/defs.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -72,7 +73,11 @@ fork(void)
 {
     return syscall(_SYS__fork, 0, 0, 0);
 }
-
+int
+kill(pid_t pid, int signal)
+{
+    return syscall(_SYS__kill, pid, signal, 0);
+}
 int
 execvpe(const char* filename, char* const argv[], char* const envp[])
 {

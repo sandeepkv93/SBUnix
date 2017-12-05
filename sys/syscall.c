@@ -3,12 +3,19 @@
 #include <sys/fork.h>
 #include <sys/kprintf.h>
 #include <sys/paging.h>
+#include <sys/signal.h>
 #include <sys/syscall.h>
 #include <sys/task.h>
 #include <sys/tasklist.h>
 #include <sys/term.h>
 #include <sys/timer.h>
 extern void syscall_isr_return(long);
+
+long
+syscall_kill(pid_t pid, int signal)
+{
+    return (long)signal_kill(pid, signal);
+}
 
 long
 syscall_brk(void* new_brk)
@@ -228,6 +235,9 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             break;
         case _SYS__sched_getscheduler:
             ret_val = syscall_ps();
+            break;
+        case _SYS__kill:
+            ret_val = syscall_kill((pid_t)arg1, (int)arg2);
             break;
         case _SYS__pipe:
         // TODO
