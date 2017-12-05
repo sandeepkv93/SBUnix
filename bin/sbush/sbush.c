@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 char* command_list[20];
+char pwd[10];
 char* g_ps1 = "[ >> ] ";
 #if 0
 #include "sbush.h"
@@ -492,6 +493,36 @@ command_tokenizer(char* cmd)
 }
 
 void
+setenv(char** envp, char* env_var, char* env_val)
+{
+    char** env;
+    for (env = envp; *env != 0; env++) {
+        if (strncmp(*env, env_var, strlen(env_var)) == 0) {
+            strcpy(*env, env_var);
+            strcat(*env, "=");
+            strcat(*env, env_val);
+            break;
+        }
+    }
+    *env = malloc(strlen(env_var) + 1 /*For =*/ + strlen(env_val) + 1);
+    strcpy(*env, env_var);
+    strcat(*env, "=");
+    strcat(*env, env_val);
+}
+
+void
+getenv(char** envp, char* env_var, char** env_val)
+{
+    for (char** env = envp; *env != 0; env++) {
+        if (strncmp(*env, env_var, strlen(env_var)) == 0) {
+            *env_val = *(env) + strlen(env_var) + 1;
+            return;
+        }
+    }
+    *env_val = "";
+}
+
+void
 print_ps1()
 {
     write(2, g_ps1, strlen(g_ps1));
@@ -511,6 +542,58 @@ main(int argc, char* argv[], char* envp[])
             continue;
         }
         command_tokenizer(input_line);
+        if (strcmp(command_list[0], "pwd") == 0) {
+            getcwd(pwd, 10);
+            write(1, pwd, strlen(pwd));
+            write(1, "\n", 1);
+            print_ps1();
+            continue;
+        }
+        if (strcmp(command_list[0], "cd") == 0) {
+            if (command_list[1] == NULL) {
+                puts("Usage: cd <path>");
+            } else {
+                if (chdir(command_list[1]) == -1) {
+                    puts("Invalid Path. Please Try Again");
+                }
+            }
+            print_ps1();
+            continue;
+        }
+        if (strcmp(command_list[0], "getenv") == 0) {
+            if (command_list[1] == NULL) {
+                puts("Usage: getenv <env_var_name>");
+            } else {
+                char* e;
+                getenv(envp, command_list[1], &e);
+                write(1, e, strlen(e));
+            }
+            write(1, "\n", 1);
+            print_ps1();
+            continue;
+        }
+        if (strcmp(command_list[0], "setenv") == 0) {
+            if (command_list[1] == NULL) {
+                puts("Usage: setenv <env_var_name = env_var_value>");
+            } else {
+                char* equals = strchr(command_list[1], '=');
+                if (equals != 0) {
+                    int prefix_length =
+                      (int)(strlen(command_list[1]) - strlen(equals));
+                    char* prefix = malloc(prefix_length + 1);
+                    strncpy(prefix, command_list[1], prefix_length);
+                    prefix[prefix_length] = 0;
+                    char* suffix = malloc(strlen(equals) + 1);
+                    suffix = equals + 1;
+                    setenv(envp, prefix, suffix);
+                } else {
+                    puts("Usage: setenv <env_var_name = env_var_value>");
+                }
+            }
+            write(1, "\n", 1);
+            print_ps1();
+            continue;
+        }
         pid = fork();
         if (pid == 0) {
             execvpe(command_list[0], command_list, envp);

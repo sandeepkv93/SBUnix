@@ -29,7 +29,7 @@ int
 main3(int argc, char** argv, char** envp)
 {
     char* argv_new[] = { "/bin/sbush", "/etc/rc", NULL };
-    char* envp_new[] = { "PATH=/", NULL };
+    char* envp_new[] = { "PATH=/", "PWD=/", NULL };
     printf("Hello World ! %d \n", 2);
     execvpe("/bin/init", argv_new, envp_new);
     return 0;
@@ -39,7 +39,7 @@ int
 main(int argc, char** argv, char** envp)
 {
     char* argv_new[] = { "/bin/sbush", NULL };
-    char* envp_new[] = { "PATH=/", NULL };
+    char* envp_new[] = { "PATH=/", "PWD=/", NULL };
     int status;
     puts("[ INIT started ]");
     if (!fork()) {
