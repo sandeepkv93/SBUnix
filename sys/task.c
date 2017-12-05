@@ -203,19 +203,12 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // We made the stack page go away, add the mapping back
     paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
 
-    // TODO: Remove below
-    // Get another page_frame for which the user programs can use to write,
-    // not needed after auto-growing stack
-    stackpage_v_addr -= PAGING_PAGE_SIZE;
-    stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();
-    paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
-
     // TODO: Is this needed?
     set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
 
     task_save_state(); //?
     // Stack grows downwards so we need to give the address of next page
-    sched_enter_ring3((uint64_t*)(stackpage_v_addr + PAGING_PAGE_SIZE),
+    sched_enter_ring3((uint64_t*)(stackpage_v_addr),
                       (void*)task_get_this_task_struct()->entry_point);
 }
 

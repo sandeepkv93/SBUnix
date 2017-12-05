@@ -38,7 +38,7 @@ main3(int argc, char** argv, char** envp)
 int
 main(int argc, char** argv, char** envp)
 {
-    char* argv_new[] = { "/bin/sbush", "10", NULL };
+    char* argv_new[] = { "/bin/sbush", NULL };
     char* envp_new[] = { "PATH=/", NULL };
     int status;
     puts("[ INIT started ]");

@@ -311,7 +311,7 @@ run_cmd(char* input_line, enum cmd_t command_type)
         } else {
             if (command_type != cmd_bg) {
                 debug_print("waiting");
-                waitpid(pid, NULL, 0);
+                waitpid(pid, NULL);
             }
             close(write_end);
             if (read_end != -1) {
@@ -372,7 +372,7 @@ read_envlist(char** envp)
 }
 
 int
-main2(int argc, char* argv[], char* envp[])
+main(int argc, char* argv[], char* envp[])
 {
     puts("[ SBUSH starting ]");
     int mode = MODE_INTERACTIVE;
@@ -463,7 +463,6 @@ check_for_command_validity(char* cmd)
     }
     return 0;
 }
-
 char*
 token_creater(char* src, int size)
 {

@@ -7,6 +7,7 @@
 #include <sys/syscall.h>
 #include <sys/tarfs.h>
 #include <sys/task.h>
+#include <sys/tasklist.h>
 #include <sys/term.h>
 #include <sys/timer.h>
 #include <sys/vma.h>
@@ -243,10 +244,8 @@ page_fault_handler(uint64_t v_addr, uint64_t err_code)
         }
         if (list == NULL) {
             // segfault
-            kprintf("Segmentation fault. Be prepared to die. %d error code",
-                    err_code);
-            while (1)
-                ;
+            kprintf("Segmentation fault. %p illegal address.\n", v_addr);
+            tasklist_exit(66);
         }
     }
 }

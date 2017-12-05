@@ -1,3 +1,4 @@
+#define __DEBUG__ 1
 #ifdef __DEBUG__
 #define debug_print(x) puts(x);
 #else
