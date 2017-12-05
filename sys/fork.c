@@ -19,7 +19,7 @@ fork_cow(uint64_t* page_va_addr, int level)
     pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)temp_va);
 
     paging_flush_tlb();
-    paging_add_pagetable_mapping((uint64_t)temp_va, frame_addr);
+    paging_add_pagetable_mapping((uint64_t)temp_va, frame_addr, FALSE);
 
     for (int i = 0; i < PAGING_TABLE_ENTRIES; i++) {
 
@@ -53,7 +53,7 @@ fork_cow(uint64_t* page_va_addr, int level)
         }
 
         temp_va[i] = table_entry_addr;
-        temp_va[i] |= PAGING_PAGETABLE_PERMISSIONS;
+        temp_va[i] |= PAGING_PAGETABLE_USER_PERMISSIONS;
     }
 
     pagetable = paging_get_pt_vaddr((uint64_t)temp_va);

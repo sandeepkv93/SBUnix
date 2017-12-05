@@ -89,7 +89,8 @@ clear_pages(uint64_t pageAddress)
     paging_flush_tlb();
     pagetable = paging_get_pt_vaddr((uint64_t)temp_va);
     pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)temp_va);
-    pagetable[pt_offset] = (uint64_t)pageAddress | PAGING_PAGETABLE_PERMISSIONS;
+    pagetable[pt_offset] =
+      (uint64_t)pageAddress | PAGING_PAGETABLE_KERNEL_PERMISSIONS;
     for (int i = 0; i < PAGING_PAGE_SIZE; i++) {
         temp_va[i] = 0;
     }
@@ -119,6 +120,7 @@ void
 add_free_frame(uint64_t index)
 {
 #if 0
+    //TODO add to end of list
     pages[index].next = freepage_head->next;
     freepage_head = &pages[index];
     kprintf("{freed frame}");
@@ -153,7 +155,7 @@ paging_get_table_entry(uint64_t* table, uint32_t offset)
 }
 
 uint64_t*
-paging_get_or_create_entry(uint64_t* table, uint32_t offset)
+paging_get_or_create_entry(uint64_t* table, uint32_t offset, bool is_user)
 {
     // Adds entry into offset of the table if not present, returns entry
     if (!(table[offset] & 0x1)) {
@@ -166,7 +168,11 @@ paging_get_or_create_entry(uint64_t* table, uint32_t offset)
             temp_byte[i] = 0;
         }
         */
-        table[offset] |= PAGING_PAGETABLE_PERMISSIONS;
+        if (is_user) {
+            table[offset] |= PAGING_PAGETABLE_USER_PERMISSIONS;
+        } else {
+            table[offset] |= PAGING_PAGETABLE_KERNEL_PERMISSIONS;
+        }
     }
     return (uint64_t*)(table[offset] & 0xfffffffffffff000);
 }
@@ -178,17 +184,21 @@ paging_get_create_pt_vaddr(uint64_t v_addr)
     // intermdediate page allocatins if table is not present) since we call
     // paging_get_or_create_entry.
     uint64_t pml4_vaddr, pdp_vaddr, pd_vaddr, pt_vaddr;
+    bool is_user = FALSE;
+    if (v_addr < PAGING_KERNMEM) {
+        is_user = TRUE;
+    }
     pml4_vaddr = PAGING_PML4_SELF_REFERENCING;
     paging_get_or_create_entry((uint64_t*)pml4_vaddr,
-                               PAGING_PML4_OFFSET(v_addr));
+                               PAGING_PML4_OFFSET(v_addr), is_user);
 
     pdp_vaddr = ((pml4_vaddr << 9) | (PAGING_PML4_OFFSET(v_addr) << 12));
     paging_get_or_create_entry((uint64_t*)pdp_vaddr,
-                               PAGING_PD_POINTER_OFFSET(v_addr));
+                               PAGING_PD_POINTER_OFFSET(v_addr), is_user);
 
     pd_vaddr = ((pdp_vaddr << 9) | (PAGING_PD_POINTER_OFFSET(v_addr) << 12));
     paging_get_or_create_entry((uint64_t*)pd_vaddr,
-                               PAGING_PAGE_DIRECTORY_OFFSET(v_addr));
+                               PAGING_PAGE_DIRECTORY_OFFSET(v_addr), is_user);
 
     pt_vaddr = ((pd_vaddr << 9) | (PAGING_PAGE_DIRECTORY_OFFSET(v_addr) << 12));
     return (uint64_t*)pt_vaddr;
@@ -214,7 +224,7 @@ paging_get_pt_vaddr(uint64_t v_addr)
 }
 
 bool
-paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
+paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr, bool is_user)
 {
     // The pagetables' addresses can be calculated because of self referencing
     // trick
@@ -227,8 +237,14 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
     paging_flush_tlb();
 
     if ((pagetable[pt_offset] & PAGING_PAGE_PRESENT)) {
+        // TODO decrement ref count?
         pagetable[pt_offset] = p_addr;
-        pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS | PAGING_PT_LEVEL4;
+        pagetable[pt_offset] |= PAGING_PT_LEVEL4;
+        if (is_user) {
+            pagetable[pt_offset] |= PAGING_PAGETABLE_USER_PERMISSIONS;
+        } else {
+            pagetable[pt_offset] |= PAGING_PAGETABLE_KERNEL_PERMISSIONS;
+        }
         paging_flush_tlb();
         return FALSE;
     } else {
@@ -240,7 +256,12 @@ paging_add_pagetable_mapping(uint64_t v_addr, uint64_t p_addr)
             temp_byte[i] = 0;
         }
         */
-        pagetable[pt_offset] |= PAGING_PAGETABLE_PERMISSIONS | PAGING_PT_LEVEL4;
+        pagetable[pt_offset] |= PAGING_PT_LEVEL4;
+        if (is_user) {
+            pagetable[pt_offset] |= PAGING_PAGETABLE_USER_PERMISSIONS;
+        } else {
+            pagetable[pt_offset] |= PAGING_PAGETABLE_KERNEL_PERMISSIONS;
+        }
         return TRUE;
     }
 }
@@ -255,14 +276,14 @@ paging_add_initial_pagetable_mapping(uint64_t* pml4_phys_addr, uint64_t v_addr,
     uint64_t* pd_table;
     uint64_t* pt_table;
 
-    pdp_table =
-      paging_get_or_create_entry(pml4_phys_addr, PAGING_PML4_OFFSET(v_addr));
+    pdp_table = paging_get_or_create_entry(pml4_phys_addr,
+                                           PAGING_PML4_OFFSET(v_addr), FALSE);
 
-    pd_table =
-      paging_get_or_create_entry(pdp_table, PAGING_PD_POINTER_OFFSET(v_addr));
+    pd_table = paging_get_or_create_entry(
+      pdp_table, PAGING_PD_POINTER_OFFSET(v_addr), FALSE);
 
-    pt_table = paging_get_or_create_entry(pd_table,
-                                          PAGING_PAGE_DIRECTORY_OFFSET(v_addr));
+    pt_table = paging_get_or_create_entry(
+      pd_table, PAGING_PAGE_DIRECTORY_OFFSET(v_addr), FALSE);
 
     pt_table[PAGING_PAGE_TABLE_OFFSET(v_addr)] = phys_entry | PAGING_PT_LEVEL4;
 }
@@ -292,34 +313,35 @@ paging_create_pagetables(uint64_t physbase, uint64_t physfree)
 
     // Self referencing trick
     pml4_table[PAGING_TABLE_ENTRIES - 1] =
-      ((uint64_t)pml4_table) | PAGING_PAGETABLE_PERMISSIONS;
+      ((uint64_t)pml4_table) | PAGING_PAGETABLE_USER_PERMISSIONS;
 
     // TODO Remove this hard coding of 2048. Map only physbase to physfree
     for (int i = physbase / PAGING_PAGE_SIZE; i < physfree / PAGING_PAGE_SIZE;
          i++) {
         v_addr = PAGING_KERNMEM + i * (PAGING_PAGE_SIZE);
-        paging_add_initial_pagetable_mapping(pml4_table, v_addr,
-                                             (i * PAGING_PAGE_SIZE) |
-                                               PAGING_PAGETABLE_PERMISSIONS);
+        paging_add_initial_pagetable_mapping(
+          pml4_table, v_addr,
+          (i * PAGING_PAGE_SIZE) | PAGING_PAGETABLE_KERNEL_PERMISSIONS);
     }
 
-    paging_add_initial_pagetable_mapping(
-      pml4_table, PAGING_VIDEO, (0xb8000) | PAGING_PAGETABLE_PERMISSIONS);
+    paging_add_initial_pagetable_mapping(pml4_table, PAGING_VIDEO,
+                                         (0xb8000) |
+                                           PAGING_PAGETABLE_KERNEL_PERMISSIONS);
     // temp_va_mapping for clearing pages
     paging_add_initial_pagetable_mapping(
-      pml4_table, PAGING_CLEAR_PAGE_VA,
-      ((uint64_t)paging_pagelist_get_frame() | PAGING_PAGETABLE_PERMISSIONS));
+      pml4_table, PAGING_CLEAR_PAGE_VA, ((uint64_t)paging_pagelist_get_frame() |
+                                         PAGING_PAGETABLE_KERNEL_PERMISSIONS));
     paging_enable(pml4_table);
     intial_page_mapping_done = 1;
 }
 
 void
-paging_page_copy(char* source_page_va, char* dest_page_va,
-                 uint64_t dest_page_pa)
+paging_page_copy(char* source_page_va, uint64_t dest_page_pa)
 {
+    char* dest_page_va = (char*)PAGING_PAGE_COPY_TEMP_VA;
     uint64_t* pagetable;
     uint64_t pt_offset;
-    paging_add_pagetable_mapping((uint64_t)dest_page_va, dest_page_pa);
+    paging_add_pagetable_mapping((uint64_t)dest_page_va, dest_page_pa, FALSE);
     for (int i = 0; i < PAGING_PAGE_SIZE; i++) {
         dest_page_va[i] = source_page_va[i];
     }

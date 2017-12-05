@@ -25,7 +25,7 @@ alloc_get_page()
     uint64_t v_addr = (uint64_t)cur_kern_heap;
     uint64_t p_addr = (uint64_t)paging_pagelist_get_frame();
     // kprintf("new page %p\n", v_addr);
-    paging_add_pagetable_mapping(v_addr, p_addr);
+    paging_add_pagetable_mapping(v_addr, p_addr, FALSE);
     cur_kern_heap += PAGING_PAGE_SIZE;
     return (void*)v_addr;
 }
