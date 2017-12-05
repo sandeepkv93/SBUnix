@@ -146,7 +146,7 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // Get one page_frame mapped in stack region, we'll use it to store argv and
     // env. Refer crt1.c for a diagram
 
-    paging_add_pagetable_mapping(copy_page_va, stackpage_p_addr);
+    paging_add_pagetable_mapping(copy_page_va, stackpage_p_addr, FALSE);
     paging_flush_tlb();
 
     for (int i = 0; argv[i] != NULL; i++) {
@@ -201,7 +201,7 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     paging_flush_tlb();
 
     // We made the stack page go away, add the mapping back
-    paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr);
+    paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr, TRUE);
 
     // TODO: Is this needed?
     set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
