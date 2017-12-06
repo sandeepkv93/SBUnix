@@ -14,11 +14,9 @@ charArrayToInt(char* array)
     int mult = 1;
     int n = strlen(array);
     while (n--) {
-        if ((array[n] < '0' || array[n] > '9') && array[n] != '-') {
-            if (number)
-                break;
-            else
-                continue;
+        if (array[n] < '0' || array[n] > '9') {
+            printf("Invalid Operand: Please Specify positive number\n");
+            exit(1);
         } else {
             number += (array[n] - '0') * mult;
             mult *= 10;
