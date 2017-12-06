@@ -435,9 +435,11 @@ main(int argc, char* argv[], char* envp[])
                 get_bg_command(input_line);
                 debug_print("BG process. ");
                 debug_print("Filtered to ") debug_print(input_line);
-                debug_print("\n") case cmd_pipe
-                  : case cmd_script : case cmd_bin
-                                      : run_cmd(input_line, command_type);
+                debug_print("\n");
+            case cmd_pipe: 
+            case cmd_script: 
+            case cmd_bin: 
+                run_cmd(input_line, command_type);
         }
         if (mode == MODE_INTERACTIVE) {
             print_ps1();
@@ -474,6 +476,20 @@ token_creater(char* src, int size)
     return string;
 }
 
+bool
+command_bg_handler(char* cmd)
+{
+    int i;
+    for (i = 0; cmd[i]; i++) {
+    }
+    if (cmd[--i] == '&') {
+        do {
+            cmd[i--] = 0;
+        } while (cmd[i] == ' ');
+        return TRUE;
+    }
+    return FALSE;
+}
 void
 command_tokenizer(char* cmd)
 {
@@ -534,7 +550,7 @@ main(int argc, char* argv[], char* envp[])
 {
     char input_line[400];
     pid_t pid;
-    int dummy_status = 1;
+    bool is_bg = FALSE;
     print_ps1();
     while (fgets(0, input_line)) {
         if (check_for_command_validity(input_line) == -1) {
@@ -542,6 +558,7 @@ main(int argc, char* argv[], char* envp[])
             print_ps1();
             continue;
         }
+        is_bg = command_bg_handler(input_line);
         command_tokenizer(input_line);
         if (strcmp(command_list[0], "pwd") == 0) {
             getcwd(pwd, 10);
@@ -612,7 +629,9 @@ main(int argc, char* argv[], char* envp[])
             puts("Failed to run command, please check again");
             exit(1);
         } else {
-            wait(&dummy_status); // dummy status
+            if (!is_bg) {
+                waitpid(pid, NULL); // dummy status
+            }
         }
         print_ps1();
     }
