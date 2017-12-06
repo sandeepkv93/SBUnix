@@ -37,7 +37,7 @@ vfs_open(char* pathname, int flags)
         /*Relative Path */
         strcpy(path, pathname);
     } else {
-        /*Relative Path */
+        /*Absolute Path */
         strcpy(path, task_get_this_task_struct()->cwd);
         strcat(path, pathname);
     }
@@ -184,9 +184,25 @@ vfs_read(int fd, void* buffer, unsigned int count)
 }
 
 int
-vfs_chdir(const char* path)
+vfs_chdir(const char* pathname)
 {
-    if (checkIfExists((char*)path) == 0) {
+    char* path = g_path_open;
+    if (pathname[0] == 0) {
+        return -1;
+    }
+    if (pathname[0] == '/') {
+        /*Relative Path */
+        strcpy(path, pathname);
+    } else {
+        /*Absolute Paths */
+        strcpy(path, task_get_this_task_struct()->cwd);
+        strcat(path, pathname);
+    }
+    struct fs_node_entry* fs_node = findNaryNodeData(path);
+    if (fs_node != NULL && fs_node->typeflag[0] == DIRECTORY + '0') {
+        if (path[strlen(path) - 1] != '/' && strlen(path) > 1) {
+            strcat(path, "/");
+        }
         strcpy(task_get_this_task_struct()->cwd, path);
         task_get_this_task_struct()->cwd[strlen(path)] = '\0';
         return 0;
@@ -213,7 +229,7 @@ vfs_unlink(const char* pathname)
         /*Relative Path */
         strcpy(path, pathname);
     } else {
-        /*Relative Path */
+        /*Absolute Path */
         strcpy(path, task_get_this_task_struct()->cwd);
         strcat(path, pathname);
     }
