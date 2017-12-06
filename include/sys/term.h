@@ -1,7 +1,12 @@
 #ifndef _TERM_H
 #define _TERM_H
 #define TERM_BG_FG_COLOR(x, y) ((x << 4) | y)
-#define TERM_VFS_OBJ 0xdead
+#define TERM_VFS_OBJ 0xdead0000
+#define TERM_VFS_MASK 0xffff0000
+#define TERM_READ_OBJ (TERM_VFS_OBJ | STDIN)
+#define TERM_WRITE_OBJ (TERM_VFS_OBJ | STDOUT)
+#define TERM_ERROR_OBJ (TERM_VFS_OBJ | STDERR)
+
 enum term_colors
 {
     term_color_black = 0x0,

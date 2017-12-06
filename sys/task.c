@@ -69,9 +69,9 @@ task_create(void* callback)
     for (int i = 0; i < TASK_FILETABLE_SIZE; i++) {
         this_task->filetable[i] = NULL;
     }
-    this_task->filetable[0] = (vfs_file_object*)TERM_VFS_OBJ;
-    this_task->filetable[1] = (vfs_file_object*)TERM_VFS_OBJ;
-    this_task->filetable[2] = (vfs_file_object*)TERM_VFS_OBJ;
+    this_task->filetable[0] = (vfs_file_object*)TERM_READ_OBJ;
+    this_task->filetable[1] = (vfs_file_object*)TERM_WRITE_OBJ;
+    this_task->filetable[2] = (vfs_file_object*)TERM_ERROR_OBJ;
     strcpy(this_task->cwd, "/");
     tasklist_add_task(this_task);
     return this_task;
@@ -89,7 +89,8 @@ task_destroy(task_struct* task)
     // release file objects for 0,1,2. TERM_VFS_OBJ is dummy intial value
     for (int i = 0; i < TASK_FILETABLE_SIZE; i++) {
         if (task->filetable[i] != NULL &&
-            task->filetable[i] != (vfs_file_object*)TERM_VFS_OBJ)
+            ((uint64_t)task->filetable[i] & TERM_VFS_MASK) !=
+              (uint64_t)TERM_VFS_OBJ)
             kfree(task->filetable[i]);
     }
     alloc_free_page(task->stack_page);

@@ -26,5 +26,7 @@ struct vma_struct* vma_list_with_phdr(struct vma_struct* vma_first,
                                       char* filepath);
 bool vma_read_elf(char* filepath);
 struct vma_struct* vma_deep_copy_list(struct vma_struct* head);
+bool vma_verfiy_elf(char* file_name);
+char* vma_get_script_interpreter(char* script_name);
 
 #endif

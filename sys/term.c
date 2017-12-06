@@ -152,16 +152,17 @@ term_add_to_buffer(char* str, int len)
     for (int i = 0; i < len; i++) {
         kb_buff.buffer[kb_buff.end++] = str[i];
     }
+    kb_buff.end += len;
 }
 
 void
 term_buffer_reset(int pos)
 {
-    int k = 0;
-    for (k = 0; k < TERM_KEY_BUFFER_SIZE; k++) {
-        kb_buff.buffer[k] = 0;
-        kb_buff.end = 0;
+    int k;
+    for (k = pos; k < TERM_KEY_BUFFER_SIZE; k++) {
+        kb_buff.buffer[k - pos] = kb_buff.buffer[k];
     }
+    kb_buff.end -= pos;
 }
 
 int
@@ -181,14 +182,15 @@ term_read_from_buffer(char* buff, int count)
                                     task_sleep_keyboard);
             task_yield();
         }
+        /*
         if (kb_buff.buffer[i] == '\n') {
             term_buffer_reset(i + 1);
-            return i;
-        }
+            return i + 1;
+        }*/
         buff[i] = kb_buff.buffer[i];
     }
     term_buffer_reset(i + 1);
-    return i;
+    return count;
 }
 
 void

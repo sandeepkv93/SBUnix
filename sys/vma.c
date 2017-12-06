@@ -16,6 +16,53 @@
 #define VMA_STACK_START (VMA_STACK_END - (500 * PAGING_PAGE_SIZE))
 #define VMA_HEAP_START (VMA_STACK_END - (6000 * PAGING_PAGE_SIZE))
 
+char interpreter_binary[100];
+
+char*
+vma_get_script_interpreter(char* script_name)
+{
+    // We extract the interpreter from the file given, return NULL if no shebang
+    // is found
+    int i;
+    int fd;
+    fd = vfs_open(script_name, 0);
+    if (fd == -1) {
+        return NULL;
+    }
+    vfs_read(fd, interpreter_binary, 100);
+    vfs_close(fd);
+    // Check shebang
+    if (interpreter_binary[0] != '#' || interpreter_binary[1] != '!') {
+        return NULL;
+    }
+    for (i = 0; i < 100 && interpreter_binary[i] != ' ' &&
+                interpreter_binary[i] != '\n';
+         i++) {
+    }
+    if (i < 100) {
+        interpreter_binary[i] = 0;
+        return &interpreter_binary[2];
+    }
+    return NULL;
+}
+bool
+vma_verfiy_elf(char* file_name)
+{
+    Elf64_Ehdr ehdr;
+    int fd = vfs_open(file_name, 0);
+
+    if (fd == -1) {
+        return FALSE;
+    }
+    vfs_read(fd, &ehdr, sizeof(Elf64_Ehdr));
+    if (ehdr.e_ident[0] != 127 || ehdr.e_ident[1] != 'E' ||
+        ehdr.e_ident[2] != 'L' || ehdr.e_ident[3] != 'F') {
+        vfs_close(fd);
+        return FALSE;
+    }
+    vfs_close(fd);
+    return TRUE;
+}
 bool
 vma_read_elf(char* binary_file)
 {

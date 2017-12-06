@@ -62,9 +62,28 @@ syscall_open(char* fname, int flags)
 }
 
 long
-syscall_exec(char* bin_name, char** argv, char** envp)
+syscall_exec(char* file_name, char** argv, char** envp)
 {
-    task_exec_ring3(bin_name, argv, envp);
+    char* interpreter;
+    char* script_argv[3] = { NULL, NULL, NULL };
+    if (!vma_verfiy_elf(file_name)) {
+        interpreter = vma_get_script_interpreter(file_name);
+        if (interpreter == NULL) {
+            return -1;
+        }
+        script_argv[0] = interpreter;
+        script_argv[1] = file_name;
+        /*
+        int fd = vfs_open(file_name, 0);
+
+        task_get_this_task_struct()->filetable[0] =
+          task_get_this_task_struct()->filetable[fd];
+        task_get_this_task_struct()->filetable[fd] = NULL;
+        */
+        task_exec_ring3(interpreter, script_argv, envp);
+    } else {
+        task_exec_ring3(file_name, argv, envp);
+    }
     return -1;
 }
 
@@ -72,7 +91,8 @@ long
 syscall_read(uint64_t fd, char* buf, uint64_t count)
 {
     long ret = -1;
-    if (fd == STDIN) {
+    if (task_get_this_task_struct()->filetable[fd] ==
+        (vfs_file_object*)TERM_READ_OBJ) {
         ret = term_read_from_buffer(buf, count);
     } else {
         ret = vfs_read(fd, buf, count);
@@ -86,7 +106,10 @@ syscall_write(uint64_t fd, char* buff, uint64_t count)
 {
     uint8_t row, column, color, temp;
     long ret = -1;
-    if (fd == STDERR || fd == STDOUT) {
+    if ((task_get_this_task_struct()->filetable[fd] ==
+         (vfs_file_object*)TERM_WRITE_OBJ) ||
+        (task_get_this_task_struct()->filetable[fd] ==
+         (vfs_file_object*)TERM_ERROR_OBJ)) {
         if (STDERR == fd) {
             term_get_cursor(&row, &column, &color);
             term_set_cursor(row, column, term_color_red);
@@ -104,8 +127,11 @@ long
 syscall_close(uint64_t fd)
 {
     long ret = -1;
-    if (fd != STDIN || fd != STDOUT || fd != STDERR) {
+    if (task_get_this_task_struct()->filetable[fd] !=
+        (vfs_file_object*)TERM_READ_OBJ) {
         ret = (long)vfs_close(fd);
+    } else {
+        ret = 0;
     }
     return ret;
 }
@@ -196,7 +222,8 @@ syscall_wrapper(long syscall_num, long arg1, long arg2, long arg3)
             break;
         case _SYS__brk:
             // TODO
-            // Create a vma in process during read_elf for heap. Grow that vma
+            // Create a vma in process during read_elf for heap. Grow that
+            // vma
             // when
             // brk is called, use a member in vma_struct to identify the VMA
             // corresponding to heap

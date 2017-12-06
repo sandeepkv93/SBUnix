@@ -6,6 +6,7 @@ char* command_list[20];
 char exec_binary_name[64];
 char pwd[10];
 char* g_ps1 = "[ >> ] ";
+bool g_mode_interative = TRUE;
 #if 0
 #include "sbush.h"
 #include "stringlib.h"
@@ -542,7 +543,9 @@ getenv(char** envp, char* env_var, char** env_val)
 void
 print_ps1()
 {
-    write(2, g_ps1, strlen(g_ps1));
+    if (g_mode_interative) {
+        write(2, g_ps1, strlen(g_ps1));
+    }
 }
 
 int
@@ -551,10 +554,21 @@ main(int argc, char* argv[], char* envp[])
     char input_line[400];
     pid_t pid;
     bool is_bg = FALSE;
+    int input_fd = 0;
+    if (argv[1] != NULL) {
+        g_mode_interative = FALSE;
+        if ((input_fd = open(argv[1], O_RDONLY)) == -1) {
+            printf("Please check the script: %s", argv[1]);
+        }
+    }
     print_ps1();
-    while (fgets(0, input_line)) {
+    while (fgets(input_fd, input_line)) {
         if (check_for_command_validity(input_line) == -1) {
             puts("Invalid Command. Please Try Again");
+            print_ps1();
+            continue;
+        }
+        if (input_line[0] == '#') {
             print_ps1();
             continue;
         }
@@ -626,7 +640,8 @@ main(int argc, char* argv[], char* envp[])
 
             execvpe(exec_binary_name, command_list, envp);
 
-            puts("Failed to run command, please check again");
+            printf("Failed to run command [%s], please check again",
+                   exec_binary_name);
             exit(1);
         } else {
             if (!is_bg) {

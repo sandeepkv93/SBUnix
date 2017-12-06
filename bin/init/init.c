@@ -38,12 +38,12 @@ main3(int argc, char** argv, char** envp)
 int
 main(int argc, char** argv, char** envp)
 {
-    char* argv_new[] = { "/bin/sbush", NULL };
+    char* argv_new[] = { NULL };
     char* envp_new[] = { "PATH=/bin/", "PWD=/", NULL };
     int status;
     puts("[ INIT started ]");
     if (!fork()) {
-        execvpe("/bin/sbush", argv_new, envp_new);
+        execvpe("/etc/rc", argv_new, envp_new);
     }
     while (1) {
         wait(&status);

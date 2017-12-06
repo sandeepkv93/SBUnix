@@ -1,0 +1,3 @@
+#!/bin/sbush
+cat /etc/help
+/bin/sbush

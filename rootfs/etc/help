@@ -1,0 +1,24 @@
+
+
+                    [>>>>    Welcome!  <<<]
+
+Commands supported
+==================
+pwd
+cd <path>
+setenv PATH=<path>
+getenv PATH
+
+Binaries present:
+=================
+echo, ls, cat, sleep, ps, kill -9
+
+Other things supported:
+=======================
+Script execution by typing path of script (Eg: /etc/test.sh)
+Set process as background by ending the command with a '&'
+
+Type away..!
+
+
+
