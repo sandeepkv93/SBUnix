@@ -29,6 +29,12 @@ vma_read_elf(char* binary_file)
     }
     vfs_read(fd, &ehdr, sizeof(Elf64_Ehdr));
 
+    if (ehdr.e_ident[0] != 127 || ehdr.e_ident[1] != 'E' ||
+        ehdr.e_ident[2] != 'L' || ehdr.e_ident[3] != 'F') {
+        vfs_close(fd);
+        return FALSE;
+    }
+
     // Set entry point and binary name in current task_struct
     task_get_this_task_struct()->entry_point = ehdr.e_entry;
     strcpy(task_get_this_task_struct()->binary_name, binary_file);
