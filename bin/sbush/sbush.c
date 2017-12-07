@@ -124,6 +124,10 @@ main(int argc, char* argv[], char* envp[])
     }
     print_ps1();
     while (fgets(input_fd, input_line)) {
+        if (strcmp(input_line, "") == 0) {
+            print_ps1();
+            continue;
+        }
         if (check_for_command_validity(input_line) == -1) {
             puts("Invalid Command. Please Try Again\n");
             print_ps1();
