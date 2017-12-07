@@ -40,6 +40,11 @@ copy_integer(int i, char* buf, int* ptr)
         *ptr += 1;
         return;
     }
+    if (i < 0) {
+        buf[*ptr] = '-';
+        *ptr += 1;
+        i = -i;
+    }
     while (i > 0) {
         d = i % 10;
         i /= 10;
