@@ -48,6 +48,7 @@ create_init()
 void
 start(uint32_t* modulep, void* physbase, void* physfree)
 {
+    int num_frames;
     struct smap_t
     {
         uint64_t base, length;
@@ -62,12 +63,13 @@ start(uint32_t* modulep, void* physbase, void* physfree)
                                           smap->base + smap->length);
         }
     }
-    paging_pagelist_create(physfree);
+    num_frames = paging_pagelist_create(physfree);
     paging_create_pagetables(physbase, physfree);
     term_clear_screen();
 
     kprintf("physfree %p\n", (uint64_t)physfree);
     kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+    kprintf("Num of frames : %d", num_frames);
 
     register_idt();
     pic_init();

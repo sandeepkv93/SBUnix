@@ -56,7 +56,7 @@ paging_inc_ref_count(uint64_t v_addr)
     pages[index].ref_count++;
 }
 
-void
+int
 paging_pagelist_create(uint64_t physfree)
 {
     // Once you add all addresses to be bookkept in the FREELIST by
@@ -78,6 +78,7 @@ paging_pagelist_create(uint64_t physfree)
         }
     }
     freepage_head = &pages[(physfree / PAGING_PAGE_SIZE)];
+    return i;
 }
 
 void
@@ -119,12 +120,9 @@ paging_pagelist_get_frame()
 void
 add_free_frame(uint64_t index)
 {
-#if 0
-    //TODO add to end of list
-    pages[index].next = freepage_head->next;
+    // TODO add to end of list
+    pages[index].next = freepage_head;
     freepage_head = &pages[index];
-    kprintf("{freed frame}");
-#endif
 }
 
 void
@@ -133,12 +131,18 @@ paging_pagelist_free_frame(uint64_t v_addr)
     uint64_t frame_addr, index;
     uint64_t* pt_table = paging_get_pt_vaddr(v_addr);
     uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
-    frame_addr = pt_table[pt_offset]; // flags get removed after division
+    frame_addr = pt_table[pt_offset] &
+                 0xfffffffffffff000; // flags get removed after division
     index = frame_addr / PAGING_PAGE_SIZE;
     pages[index].ref_count--;
     if (pages[index].ref_count == 0) {
+        kprintf("Will free VA %x, index %d\n", v_addr, index);
+        /*if (v_addr < 0x700000)*/
+        /*while (1)*/
+        /*;*/
         add_free_frame(index);
     }
+    paging_flush_tlb();
 }
 
 uint64_t*
@@ -385,6 +389,7 @@ paging_free_pagetables(uint64_t* page_va_addr, int level)
         // TODO: ensure that pt_level4 entry is being added everywhere
         if (page_va_addr[i] & PAGING_PT_LEVEL4) {
             paging_pagelist_free_frame(next_table_addr);
+            paging_flush_tlb();
 
         } else {
 
@@ -392,4 +397,5 @@ paging_free_pagetables(uint64_t* page_va_addr, int level)
         }
     }
     paging_pagelist_free_frame((uint64_t)page_va_addr);
+    paging_flush_tlb();
 }

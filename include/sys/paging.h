@@ -3,7 +3,7 @@
 #define _PAGING_H
 #define PAGING_VA_MASK 0xfffffffffffff000
 #define PAGING_PAGE_COPY_TEMP_VA 0xffffffffaffff000
-#define PAGING_CLEAR_PAGE_VA (PAGING_PAGE_COPY_TEMP_VA + PAGING_PAGE_SIZE)
+#define PAGING_CLEAR_PAGE_VA (PAGING_PAGE_COPY_TEMP_VA - PAGING_PAGE_SIZE)
 #define PAGING_KERNMEM 0xffffffff80000000
 #define PAGING_VIDEO                                                           \
     (PAGING_KERNMEM + 0x1388000) // 2nd part is 5000 * PAGESIZE TODO
@@ -32,7 +32,7 @@ struct pagelist_t
     struct pagelist_t* next;
 };
 void paging_pagelist_add_addresses(uint64_t start, uint64_t end);
-void paging_pagelist_create();
+int paging_pagelist_create();
 void* paging_pagelist_get_frame();
 void paging_create_pagetables();
 uint64_t* paging_get_or_create_entry(uint64_t* table, uint32_t offset,

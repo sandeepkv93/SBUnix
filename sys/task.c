@@ -22,6 +22,8 @@ task_struct t;
 task_struct *next, *me = &t;
 pid_t g_pid = 1;
 
+int exec_count = 0;
+
 task_struct*
 task_get_this_task_struct()
 {
@@ -126,6 +128,7 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
 
     // We use the temporary page to copy data because we are going to a new
     // address space
+    uint64_t next_table_addr;
     uint64_t stackpage_v_addr = PAGING_KERNMEM - PAGING_PAGE_SIZE;
     uint64_t copy_page_va = PAGING_PAGE_COPY_TEMP_VA;
     uint64_t stackpage_p_addr = (uint64_t)paging_pagelist_get_frame();
@@ -182,6 +185,13 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
     // PTs
     // TODO remove the below part and use commented out code
     for (int i = 0; i < 510; i++) {
+        if (pml4_va[i] & PAGING_PAGE_PRESENT) {
+            next_table_addr = ((uint64_t)pml4_va << 9) | (i << 12);
+            paging_free_pagetables((uint64_t*)next_table_addr, 2);
+        }
+        next_table_addr += 1;
+    }
+    for (int i = 0; i < 510; i++) {
         pml4_va[i] = 0;
     }
 
@@ -203,6 +213,9 @@ task_exec_ring3(char* bin_name, char** argv, char** envp)
 
     // Gotta flush your shitz
     paging_flush_tlb();
+
+    kprintf("Free frames %d, exec count %d\n", paging_num_free_pages(),
+            exec_count++);
 
     // We made the stack page go away, add the mapping back
     paging_add_pagetable_mapping(stackpage_v_addr, stackpage_p_addr, TRUE);

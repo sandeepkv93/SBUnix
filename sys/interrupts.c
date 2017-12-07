@@ -208,9 +208,9 @@ page_fault_handler(uint64_t v_addr, uint64_t err_code)
         if ((pagetable[pt_offset] & PAGING_PAGE_COW) &&
             ((pagetable[pt_offset] & PAGING_PAGE_W_ONLY) == 0)) {
             paging_pagelist_free_frame(v_addr); // decrement the frame
-                                                // reference count since a
-                                                // new page will be mapped
-                                                // to this virtual address
+            // reference count since a
+            // new page will be mapped
+            // to this virtual address
             p_addr = (uint64_t)paging_pagelist_get_frame();
             paging_page_copy((char*)(v_addr & PAGING_VA_MASK), p_addr);
             pagetable[pt_offset] = p_addr;
@@ -218,6 +218,7 @@ page_fault_handler(uint64_t v_addr, uint64_t err_code)
               PAGING_PAGETABLE_USER_PERMISSIONS |
               PAGING_PT_LEVEL4; // level 4 to indicate that it is pt table. This
                                 // is used in later forks of this process
+            paging_flush_tlb();
         }
     } else {
         while (list != NULL) {
@@ -245,6 +246,8 @@ page_fault_handler(uint64_t v_addr, uint64_t err_code)
         if (list == NULL) {
             // segfault
             kprintf("Segmentation fault. %p illegal address.\n", v_addr);
+            while (1)
+                ;
             tasklist_exit(66);
         }
     }

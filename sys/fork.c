@@ -14,8 +14,7 @@ fork_cow(uint64_t* page_va_addr, int level)
     uint64_t *temp_va, *pagetable;
     uint64_t frame_addr, table_entry_addr, pt_offset, next_table_addr;
     frame_addr = (uint64_t)paging_pagelist_get_frame();
-    temp_va =
-      (uint64_t*)PAGING_PAGE_COPY_TEMP_VA + (level - 1) * PAGING_PAGE_SIZE;
+    temp_va = (uint64_t*)PAGING_PAGE_COPY_TEMP_VA + (level)*PAGING_PAGE_SIZE;
     pt_offset = PAGING_PAGE_TABLE_OFFSET((uint64_t)temp_va);
 
     paging_flush_tlb();
@@ -39,10 +38,8 @@ fork_cow(uint64_t* page_va_addr, int level)
 
         } else if (page_va_addr[i] & PAGING_PT_LEVEL4) {
 
-            if (next_table_addr < PAGING_KERNMEM) {
-                page_va_addr[i] =
-                  (page_va_addr[i] | PAGING_PAGE_COW) & ~PAGING_PAGE_W_ONLY;
-            }
+            page_va_addr[i] =
+              (page_va_addr[i] | PAGING_PAGE_COW) & ~PAGING_PAGE_W_ONLY;
 
             table_entry_addr = page_va_addr[i];
             paging_inc_ref_count(next_table_addr);
