@@ -49,9 +49,9 @@ syscall_wait(long child_pid, long status)
 {
 
     if (child_pid < 0) {
-        return tasklist_wait(status);
+        return tasklist_wait((int*)status);
     } else {
-        return tasklist_waitpid(child_pid);
+        return tasklist_waitpid(child_pid, (int*)status);
     }
 }
 

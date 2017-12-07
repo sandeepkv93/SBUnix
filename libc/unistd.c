@@ -138,10 +138,14 @@ yield()
     syscall(_SYS__sched_yield, 0, 0, 0);
 }
 
-int
+char *
 getcwd(char* buf, size_t size)
 {
-    return syscall(_SYS__getcwd, (long)buf, (long)size, 0);
+    if( syscall(_SYS__getcwd, (long)buf, (long)size, 0)) {
+        return NULL;
+    } else {
+        return buf;
+    }
 }
 
 pid_t

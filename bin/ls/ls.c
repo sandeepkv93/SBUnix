@@ -10,7 +10,7 @@ int
 main(int argc, char** argv)
 {
     char buf[64] = { 0 };
-    dirent* dirent_object;
+    struct dirent* dirent_object;
     DIR* dir;
     if (argc > 1) {
         strcpy(buf, argv[1]);
@@ -35,4 +35,5 @@ main(int argc, char** argv)
             puts(dirent_object->d_name);
         }
     }
+    closedir(dir);
 }

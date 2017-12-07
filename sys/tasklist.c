@@ -157,7 +157,7 @@ tasklist_schedule_task()
 // task_sleep_wait, change it's state to runnable.
 
 pid_t
-tasklist_waitpid(pid_t child_pid)
+tasklist_waitpid(pid_t child_pid, int* status)
 {
     task_struct* child = tasklist_get_task(child_pid, task_any_state);
     if (child == NULL) {
@@ -170,12 +170,15 @@ tasklist_waitpid(pid_t child_pid)
         task_yield();
         child = tasklist_get_task(child_pid, task_zombie);
     }
+    if (status != NULL) {
+        *status = child->exit_code;
+    }
     task_destroy(child);
     return child_pid;
 }
 
 pid_t
-tasklist_wait(int status)
+tasklist_wait(int* status)
 {
     // if none of the children is in zombie state(NULL is returned), change
     // the process' state to task_sleep_wait and yield.
@@ -189,6 +192,9 @@ tasklist_wait(int status)
     }
     // free child
     if (child != NULL) {
+        if (status != NULL) {
+            *status = child->exit_code;
+        }
         task_destroy(child);
         return child->pid;
     }

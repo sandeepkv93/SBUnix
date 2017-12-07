@@ -10,8 +10,6 @@ long syscall(long, long, long, long);
 void exit(int);
 int open(const char*, int);
 pid_t fork(void);
-pid_t waitpid(pid_t, int*);
-int pipe(int[]);
 int dup(int);
 int close(int);
 void* brk(void*);
@@ -21,10 +19,11 @@ ssize_t write(int fd, const void* buf, size_t count);
 int unlink(const char* pathname);
 
 int chdir(const char* path);
-int getcwd(char* buf, size_t size);
+char* getcwd(char* buf, size_t size);
 
 int execvpe(const char* file, char* const argv[], char* const envp[]);
 pid_t wait(int* status);
+pid_t waitpid(pid_t, int*);
 
 unsigned int sleep(uint32_t seconds);
 

@@ -17,14 +17,14 @@ opendir(const char* name)
     return NULL;
 }
 
-dirent*
+struct dirent*
 readdir(DIR* dirp)
 {
-    dirent* dirent_object;
+    struct dirent* dirent_object;
     char name_buffer[NAME_MAX + 1] = { 0 };
     int read_status = read(dirp->fd, name_buffer, sizeof(name_buffer));
     if (read_status != -1) {
-        dirent_object = (dirent*)malloc(sizeof(dirent));
+        dirent_object = (struct dirent*)malloc(sizeof(struct dirent));
         strcpy(dirent_object->d_name, name_buffer);
         return dirent_object;
     }
