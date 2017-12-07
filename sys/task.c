@@ -102,14 +102,14 @@ task_destroy(task_struct* task)
 void
 task_yield()
 {
-    term_set_glyph(0, ' ');
-    term_set_glyph(1, ' ');
+    /*term_set_glyph(0, ' ');*/
+    /*term_set_glyph(1, ' ');*/
     next = tasklist_schedule_task();
-    term_set_glyph(0, '0' + next->pid);
+    /*term_set_glyph(0, '0' + next->pid);*/
     sched_switch_kthread(me, next);
     me = next;
     set_tss_rsp((void*)me->stack_page + PAGING_PAGE_SIZE);
-    term_set_glyph(1, '0' + me->pid);
+    /*term_set_glyph(1, '0' + me->pid);*/
 }
 
 void
