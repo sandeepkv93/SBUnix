@@ -4,10 +4,7 @@
 
 Commands supported
 ==================
-pwd
-cd <path>
-setenv PATH=<path>
-getenv PATH
+pwd, cd <path>, setenv PATH=<path>, getenv PATH
 
 Binaries present:
 =================
@@ -19,6 +16,4 @@ Script execution by typing path of script (Eg: /etc/test.sh)
 Set process as background by ending the command with a '&'
 
 Type away..!
-
-
 

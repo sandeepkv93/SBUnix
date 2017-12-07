@@ -559,6 +559,7 @@ main(int argc, char* argv[], char* envp[])
         g_mode_interative = FALSE;
         if ((input_fd = open(argv[1], O_RDONLY)) == -1) {
             printf("Please check the script: %s", argv[1]);
+            exit(1);
         }
     } else {
         puts("Starting sbush..");

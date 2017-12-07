@@ -188,8 +188,11 @@ tasklist_wait(int status)
         child = tasklist_find_one_child(pid, task_zombie);
     }
     // free child
-    task_destroy(child);
-    return child->pid;
+    if (child != NULL) {
+        task_destroy(child);
+        return child->pid;
+    }
+    return -1;
 }
 
 void

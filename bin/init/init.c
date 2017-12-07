@@ -38,16 +38,23 @@ main3(int argc, char** argv, char** envp)
 int
 main(int argc, char** argv, char** envp)
 {
-    char* argv_new[] = { NULL };
-    char* envp_new[] = { "PATH=/bin/", "PWD=/", NULL };
+    char* argv_sbush[] = { "/bin/sbush", NULL };
+    char* envp_child[] = { "PATH=/bin/", "PWD=/", NULL };
     int status;
     pid_t child_pid, term_pid;
     puts("[ INIT started ]");
+    child_pid = fork();
+    if (!child_pid) {
+        execvpe("/etc/rc", argv_sbush, envp_child);
+        puts("Please ensure /etc/rc is correct");
+        exit(1);
+    }
+    waitpid(child_pid, NULL);
     while (1) {
         child_pid = fork();
         if (!child_pid) {
-            execvpe("/etc/rc", argv_new, envp_new);
-            puts("Please ensure /etc/rc has the right syntax.");
+            execvpe("/bin/sbush", argv_sbush, envp_child);
+            exit(1);
         }
         while (1) {
             term_pid = wait(&status);
@@ -55,6 +62,7 @@ main(int argc, char** argv, char** envp)
                 break;
             }
         }
+        puts("[INIT] Child exited, will respawn");
     }
     return 0;
 }

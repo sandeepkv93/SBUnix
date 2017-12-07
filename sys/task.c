@@ -81,6 +81,8 @@ void
 task_destroy(task_struct* task)
 {
     tasklist_remove_task(task->pid);
+    if (task == NULL)
+        return;
     while (task->vma_list != NULL) {
         kfree(task->vma_list);
         task->vma_list = task->vma_list->vma_next;
