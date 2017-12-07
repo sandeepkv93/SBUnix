@@ -41,13 +41,20 @@ main(int argc, char** argv, char** envp)
     char* argv_new[] = { NULL };
     char* envp_new[] = { "PATH=/bin/", "PWD=/", NULL };
     int status;
+    pid_t child_pid, term_pid;
     puts("[ INIT started ]");
-    if (!fork()) {
-        execvpe("/etc/rc", argv_new, envp_new);
-    }
     while (1) {
-        wait(&status);
-        yield();
+        child_pid = fork();
+        if (!child_pid) {
+            execvpe("/etc/rc", argv_new, envp_new);
+            puts("Please ensure /etc/rc has the right syntax.");
+        }
+        while (1) {
+            term_pid = wait(&status);
+            if (term_pid == child_pid) {
+                break;
+            }
+        }
     }
     return 0;
 }

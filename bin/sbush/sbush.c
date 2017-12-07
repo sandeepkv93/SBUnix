@@ -560,6 +560,8 @@ main(int argc, char* argv[], char* envp[])
         if ((input_fd = open(argv[1], O_RDONLY)) == -1) {
             printf("Please check the script: %s", argv[1]);
         }
+    } else {
+        puts("Starting sbush..");
     }
     print_ps1();
     while (fgets(input_fd, input_line)) {
@@ -574,6 +576,11 @@ main(int argc, char* argv[], char* envp[])
         }
         is_bg = command_bg_handler(input_line);
         command_tokenizer(input_line);
+        if (strcmp(command_list[0], "exit") == 0) {
+            puts("Exiting");
+            puts("");
+            exit(0);
+        }
         if (strcmp(command_list[0], "pwd") == 0) {
             getcwd(pwd, 10);
             write(1, pwd, strlen(pwd));
@@ -640,8 +647,7 @@ main(int argc, char* argv[], char* envp[])
 
             execvpe(exec_binary_name, command_list, envp);
 
-            printf("Failed to run command [%s], please check again",
-                   exec_binary_name);
+            printf("Failed to run command, Please check again\n");
             exit(1);
         } else {
             if (!is_bg) {
