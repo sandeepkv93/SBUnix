@@ -12,6 +12,7 @@ timer_isr()
     // Hits 2425 times a second. Each hit ~2.5 ms
     g_clock.counter++;
     g_clock.milliseconds = (uint32_t)(g_clock.counter * 2) / 5;
+    outb(PIC1_COMMAND, PIC_EOI);
     if (g_clock.counter == 2425) {
         g_clock.seconds++;
         g_clock.milliseconds = 0;
@@ -20,7 +21,6 @@ timer_isr()
         term_set_time(g_clock.seconds);
         tasklist_decrement_sleep_time();
     }
-    outb(PIC1_COMMAND, PIC_EOI);
     if (is_context_switch_enabled) {
         is_context_switch_enabled = FALSE;
         task_yield();

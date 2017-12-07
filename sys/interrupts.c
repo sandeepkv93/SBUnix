@@ -18,6 +18,7 @@ extern void syscall_isr_asm();
 extern void timer_isr_asm();
 extern void kb_isr_asm();
 extern void page_fault_isr_asm();
+extern bool is_context_switch_enabled;
 
 #define RING0 0
 #define RING3 3
@@ -203,6 +204,7 @@ page_fault_handler(uint64_t v_addr, uint64_t err_code)
     uint64_t pt_offset = PAGING_PAGE_TABLE_OFFSET(v_addr);
     struct vma_struct* list = task_get_this_task_struct()->vma_list;
 
+    is_context_switch_enabled = FALSE;
     if (pagetable[pt_offset] & PAGING_PAGE_PRESENT) {
 
         if ((pagetable[pt_offset] & PAGING_PAGE_COW) &&
@@ -248,6 +250,7 @@ page_fault_handler(uint64_t v_addr, uint64_t err_code)
             tasklist_exit(66);
         }
     }
+    is_context_switch_enabled = TRUE;
 }
 
 void
